@@ -7,6 +7,8 @@ date: 2018-03-30 10:25:19
 
 华中科技大学
 
-1061322005@qq.com
+Dian团队605号正式队员
 
-https://github.com/Githubwyb
+GitHub: https://github.com/Githubwyb
+
+E-Mail: 1061322005@qq.com

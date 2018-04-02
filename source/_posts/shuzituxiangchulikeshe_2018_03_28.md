@@ -2,7 +2,7 @@
 title: 数字图像处理课设
 date: 2018-03-30 11:17:54
 tags: [课程,笔记]
-categories: notes
+categories: class_notes
 ---
 
 ## first
