@@ -2,7 +2,7 @@
 title: 创业领导力--龚阿玲
 date: 2018-04-08 19:10:21
 tags: [notes, 点石创校]
-categories: [notes_course]
+categories: notes_course
 ---
 
 # first

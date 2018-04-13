@@ -1,7 +1,7 @@
 ---
 title: python学习笔记
 date: 2018-04-03 14:13:45
-tags: [python, 笔记]
+tags: [python, notes]
 categories: notes_personal
 ---
 
