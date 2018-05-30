@@ -49,6 +49,9 @@ categories: [notes_course]
 
 用做商务沟通
 
+7+-2
+5+-2
+
 ## MECE原则
 
 | MC | CE |
