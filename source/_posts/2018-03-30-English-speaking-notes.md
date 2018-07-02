@@ -2,7 +2,7 @@
 title: 托福口语笔记
 date: 2018-03-30 22:48:08
 tags: [tofel, speaking, notes]
-categories: notes_personal
+categories: [notes, personal]
 ---
 
 # Question:

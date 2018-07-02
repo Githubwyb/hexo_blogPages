@@ -2,7 +2,7 @@
 title: 点石创校第二次课程笔记
 date: 2018-04-07 14:28:56
 tags: [notes, 点石创校]
-categories: notes_course
+categories: [notes, course]
 ---
 
 # 火柴人成长之路

@@ -2,7 +2,7 @@
 title: 比特币、区块链、代币经济系统--李远师兄分享
 date: 2018-04-07 19:14:17
 tags: [notes, lecture]
-categories: notes_course
+categories: [notes, course]
 ---
 
 Dian 228 李远 SelfSell创始人
@@ -25,7 +25,7 @@ Liyuan@selfsell.com
 - 2014.02 重大灾难，比特币丢失
 - 2016.01 央行开始研究自己的货币
 - 2017.02 开始暴涨
-- 2017.09.04 
+- 2017.09.04
 - 2017.12 最高峰
 
 # 产业格局
