@@ -3,6 +3,7 @@ title: stm32cubemx配置介绍
 date: 2018-03-30 11:17:54
 tags: [软件,使用教程,stm32cubemx]
 categories: technology
+top: true
 ---
 
 本博客仅为自己在使用时的总结，希望有所帮助

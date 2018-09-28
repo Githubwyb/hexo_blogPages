@@ -12,3 +12,5 @@ Dian团队605号正式队员
 GitHub: https://github.com/Githubwyb
 
 E-Mail: 1061322005@qq.com
+
+{% pdf ./index/wangyubo_resume.pdf %}

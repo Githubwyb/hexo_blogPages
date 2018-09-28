@@ -3,6 +3,7 @@ title: 算法与数据结构学习
 date: 2018-09-18 15:07:21
 tags: [study, notes, algorithm]
 categories: [notes, study]
+top: true
 ---
 
 # 数学知识复习
@@ -101,3 +102,15 @@ $$ \sum_{i = 0}^{N}A^i = \frac{A^{N+1} - 1}{A - 1} $$
         }
     }
 ```
+
+### 定理
+
+- 使用希尔增量时希尔排序的最坏情形的运行时间为$\Theta(N^2)$。
+- 使用Hibbard增量的希尔排序的最坏情形运行时间为$\Theta(N^{\frac{3}{2}})$
+
+## 堆排序
+
+-
+
+<img src = "2018_09_26_04.gif" width = "80%" />
+
