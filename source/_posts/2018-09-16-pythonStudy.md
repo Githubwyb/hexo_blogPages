@@ -27,3 +27,22 @@ top: true
     print r_v
 ```
 
+# 汉字转拼音
+
+需要安装xpinyin模块
+
+```shell
+    pip install xpinyin
+```
+
+简单用例
+
+```python
+    import xpinyin
+    pin = xpinyin.Pinyin()
+    test1 = pin.get_pinyin("大河向东流")   #默认分割符为-
+    print(test1)
+
+    test2 = pin.get_pinyin("大河向东流", "")
+    print(test2)
+```

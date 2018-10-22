@@ -54,3 +54,11 @@ watch命令以周期性的方式执行给定的指令，指令输出以全屏方
     watch -n 60 from            //监控mail
     watch -n 1 "df -i;df"       //监测磁盘inode和block数目变化情况
 ```
+
+# 常用命令
+
+## 实时查看文件内容（可用于查看log文件）
+
+```shell
+    tail -f (fileName)
+```
