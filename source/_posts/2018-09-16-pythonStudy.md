@@ -6,6 +6,16 @@ categories: [notes, study]
 top: true
 ---
 
+# 指定编码格式
+
+## 格式1
+
+源文件第一行或第二行直接定义
+
+```python
+    # coding=utf-8
+```
+
 # 调用可执行文件
 
 ## 获取输出结果

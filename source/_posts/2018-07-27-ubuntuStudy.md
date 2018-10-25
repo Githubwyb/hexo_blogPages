@@ -12,3 +12,16 @@ categories: [notes, study]
     sudo apt --fix-broken install
 ```
 
+# 忽略某个包的更新
+
+使用以下命令可以忽略某个包的更新
+
+```shell
+    sudo apt-mark hold (pack)
+```
+
+取消忽略
+
+```shell
+    sudo apt-mark unhold (pack)
+```
