@@ -5,6 +5,35 @@ tags: [study, notes, hexo]
 categories: [notes, study]
 ---
 
+# 安装
+
+## ubuntu
+
+### 安装nodejs和npm
+
+```shell
+    curl -sL https://deb.nodesource.com/setup_8.x -o nodesource_setup.sh
+    sudo bash nodesource_setup.sh
+    sudo apt-get install nodejs
+```
+
+### 安装hexo和hexo-cli
+
+```shell
+    sudo npm install hexo -g
+    sudo npm install hexo-cli -g
+```
+
+### 迁移博客代码到另一台电脑
+
+- 先安装`hexo`和`hexo-cli`的环境
+- 然后执行
+
+```shell
+    sudo npm install
+    sudo npm audix fix
+```
+
 # 博客置顶
 
 ## 单纯置顶
