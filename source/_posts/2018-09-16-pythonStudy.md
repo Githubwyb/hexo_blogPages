@@ -6,6 +6,14 @@ categories: [notes, study]
 top: true
 ---
 
+# 环境
+
+```
+    Python 3.6.4
+    Anaconda, Inc.
+    (default, Jan 16 2018, 10:22:32) [MSC v.1900 64 bit (AMD64)] on win32
+```
+
 # 指定编码格式
 
 ## 格式1
@@ -14,6 +22,34 @@ top: true
 
 ```python
     # coding=utf-8
+```
+
+# 删除一个变量释放空间
+
+```python
+    del var
+```
+
+# 路径相关操作
+
+## 获取当前路径
+
+```python
+    import os
+
+    print(os.getcwd())                  #获取当前工作目录路径
+    print(os.path.abspath('.'))         #获取当前工作目录路径
+    print(os.path.abspath('test.txt'))  #获取当前目录文件下的工作目录路径
+    print(os.path.abspath('..'))        #获取当前工作的父目录 ！注意是父目录路径
+    print(os.path.abspath(os.curdir))   #获取当前工作目录路径
+```
+
+## 改变当前路径
+
+```python
+    import os
+
+    os.chdir(path)
 ```
 
 # 调用可执行文件
