@@ -78,15 +78,13 @@ categories: [notes, work]
 
 # numpy
 
-# numpy
-
 ## numpy数据存取
 
 numpy有一个可以直接将numpy数组矩阵按照原来的格式储存和读取的函数
 
 ```python
     import numpy as np
-    
+
     # 储存data
     np.save("file directory", data)
 
