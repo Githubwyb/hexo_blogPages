@@ -1,7 +1,7 @@
 ---
 title: ubuntu学习
 date: 2018-07-27 20:58:22
-tags: [study, notes, ubuntu]
+tags: [study, notes, linux]
 categories: [notes, study]
 ---
 
