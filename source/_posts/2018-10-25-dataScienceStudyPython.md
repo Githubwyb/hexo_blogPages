@@ -15,6 +15,15 @@ categories: [notes, work]
 
 # pandas
 
+## 显示数据的各种统计数据
+
+包括中位数、平均数、标准差、最值等
+
+```python
+    dataframe.describe()
+    series.describe()
+```
+
 ## csv格式文件读取
 
 可以使用`read_csv()`函数将`csv`读入成`dataframe`的格式
