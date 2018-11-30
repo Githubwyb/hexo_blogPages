@@ -72,6 +72,6 @@ categories: [notes, study]
 
 ## 4. 安装搜狗输入法
 
-到[官网][1]下载搜狗输入法，安装后重启
+到[官网][1]下载搜狗输入法，安装后重启，在配置界面调整位置即可，第一次启动或许会有一些问题，重启即可
 
 [1]: https://pinyin.sogou.com/linux/?r=pinyin
