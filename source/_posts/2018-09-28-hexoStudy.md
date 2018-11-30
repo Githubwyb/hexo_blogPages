@@ -31,7 +31,7 @@ categories: [notes, study]
 
 ```shell
     sudo npm install
-    sudo npm audix fix
+    sudo npm audit fix
 ```
 
 # 博客置顶
