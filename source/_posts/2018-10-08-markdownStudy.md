@@ -9,11 +9,11 @@ categories: [notes, study]
 
 ## 超链接
 
-### 将超链接的网址放到末尾
+代码
 
 ```markdown
     [我的博客][1]
-    ...
+
     [1]: https://githubwyb.github.io/
 ```
 
@@ -22,3 +22,19 @@ categories: [notes, study]
 [我的博客][1]
 
 [1]: https://githubwyb.github.io/
+
+## 文内跳转
+
+代码
+
+```markdown
+    <span id = "test">跳转到这里</span>
+
+    [跳转](#test)
+```
+
+效果
+
+<span id = "test">跳转到这里</span>
+
+[跳转](#test)
