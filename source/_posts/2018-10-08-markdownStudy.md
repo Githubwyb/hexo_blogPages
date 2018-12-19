@@ -7,6 +7,12 @@ categories: [notes, study]
 
 # 写文档
 
+## 空格
+
+```markdown
+    &nbsp;
+```
+
 ## 超链接
 
 代码
