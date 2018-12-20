@@ -72,3 +72,13 @@ watch命令以周期性的方式执行给定的指令，指令输出以全屏方
 ```shell
     zip -r (filename.zip) (path)
 ```
+
+# 系统命令
+
+## 修改卷标名称
+
+分区为`ext2/ext3`类型使用
+
+```shell
+    sudo e2label /dev/(partition) "(name)"
+```
