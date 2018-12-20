@@ -16,7 +16,7 @@ top: true
 
 # 默认函数
 
-## range
+## range 列表
 
 创建一个整数列表
 
@@ -101,7 +101,7 @@ top: true
     isNull_df.any()                 #显示各列的情况是否含有true，相当于各列取或
 ```
 
-## Series
+## Series 序列
 
 ### 统计各值出现数量
 
@@ -127,9 +127,9 @@ numpy有一个可以直接将numpy数组矩阵按照原来的格式储存和读�
 
 这个方法可以直接将shape也存下来，不需要考虑格式、类型等，缺点是文件会有点大。
 
-## ndarray
+## ndarray 矩阵
 
-### reshape
+### reshape 重置矩阵形状
 
 从最外层开始重置矩阵形状，默认按行读取，-1代表未知数量，由numpy自动计算
 
@@ -148,7 +148,7 @@ numpy有一个可以直接将numpy数组矩阵按照原来的格式储存和读�
     np.random.seed(2)
 ```
 
-## linespace
+## linespace 列表
 
 ```python
     import numpy as np
@@ -159,7 +159,7 @@ numpy有一个可以直接将numpy数组矩阵按照原来的格式储存和读�
 
 # matplotlib
 
-## pyplot
+## pyplot 画图
 
 ### 新开一个页面 figure
 
