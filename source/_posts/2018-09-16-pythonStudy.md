@@ -14,6 +14,14 @@ top: true
     (default, Jan 16 2018, 10:22:32) [MSC v.1900 64 bit (AMD64)] on win32
 ```
 
+#  语法相关
+
+## 删除一个变量释放空间
+
+```python
+    del var
+```
+
 # 指定编码格式
 
 ## 格式1
@@ -24,15 +32,11 @@ top: true
     # coding=utf-8
 ```
 
-# 删除一个变量释放空间
+# 特殊操作
 
-```python
-    del var
-```
+## 路径相关操作
 
-# 路径相关操作
-
-## 获取当前路径
+### 获取当前路径
 
 ```python
     import os
@@ -44,7 +48,7 @@ top: true
     print(os.path.abspath(os.curdir))   #获取当前工作目录路径
 ```
 
-## 改变当前路径
+### 改变当前路径
 
 ```python
     import os
@@ -52,9 +56,9 @@ top: true
     os.chdir(path)
 ```
 
-# 调用可执行文件
+## 调用可执行文件
 
-## 获取输出结果
+### 获取输出结果
 
 ```python
     import os
@@ -64,7 +68,7 @@ top: true
     f.close()
 ```
 
-## 获取返回值
+### 获取返回值
 
 ```python
     import os
@@ -73,7 +77,7 @@ top: true
     print r_v
 ```
 
-# 汉字转拼音
+## 汉字转拼音
 
 需要安装xpinyin模块
 
