@@ -1,7 +1,7 @@
 ---
 title: tensorflow学习笔记
 date: 2018-12-19 14:00:46
-tags: [study, notes, python]
+tags: [python, AI]
 categories: [notes, study]
 ---
 
@@ -40,6 +40,78 @@ categories: [notes, study]
         print(sess.run(v2))
         print(sess.run(v3))
 ```
+
+### 变量命名空间 variable_scope
+
+variable_scope定义了变量的命名空间
+
+#### 示例1-如何创建一个新变量：
+
+```python
+    with tf.variable_scope("foo"):
+        with tf.variable_scope("bar"):
+            v = tf.get_variable("v", [1])
+```
+
+其中`v.name == "foo/bar/v:0"`
+
+#### 示例2-共享变量AUTO_REUSE：
+
+```python
+    def foo():
+        with tf.variable_scope("foo", reuse=tf.AUTO_REUSE):
+            v = tf.get_variable("v", [1])
+        return v
+
+
+    v1 = foo()  # Creates v.
+    v2 = foo()  # Gets the same, existing v.
+    print(v1.name) # foo/v:0
+    print(v2.name) # foo/v:0
+```
+
+其中`v1 == v2`
+
+#### 示例3-使用reuse=True共享变量：
+
+```python
+    with tf.variable_scope("foo"):
+        v = tf.get_variable("v", [1])
+    with tf.variable_scope("foo", reuse=True):
+        v1 = tf.get_variable("v", [1])
+```
+
+其中`v == v1`
+
+#### 示例4-通过捕获范围并设置重用来共享变量：
+
+```python
+    with tf.variable_scope("foo") as scope:
+        v = tf.get_variable("v", [1])
+        scope.reuse_variables()
+        v1 = tf.get_variable("v", [1])
+```
+
+其中`v == v1`
+
+#### 为了防止意外共享变量，我们在获取非重用范围中的现有变量时引发异常。
+
+```python
+    with tf.variable_scope("foo"):
+        v = tf.get_variable("v", [1])
+        v1 = tf.get_variable("v", [1])
+```
+
+将会触发`ValueError("... v already exists ...")`异常
+
+#### 同样，我们在尝试获取重用模式中不存在的变量时引发异常。
+
+```python
+    with tf.variable_scope("foo", reuse=True):
+        v = tf.get_variable("v", [1])
+```
+
+将会触发`ValueError("... v does not exists ...")`异常
 
 ## 矩阵
 

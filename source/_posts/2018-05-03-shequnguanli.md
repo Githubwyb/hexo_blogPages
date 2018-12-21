@@ -1,7 +1,7 @@
 ---
 title: 点石创校第八次课程笔记--社群管理
 date: 2018-05-03 19:09:09
-tags: [点石创校, notes]
+tags: [点石创校]
 categories: [notes, course]
 ---
 

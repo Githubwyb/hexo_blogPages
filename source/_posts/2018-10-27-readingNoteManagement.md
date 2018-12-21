@@ -1,7 +1,7 @@
 ---
 title: 读书笔记————管理学第三版
 date: 2018-10-27 16:32:00
-tags: [reading, notes]
+tags: [reading]
 categories: [notes, reading]
 ---
 

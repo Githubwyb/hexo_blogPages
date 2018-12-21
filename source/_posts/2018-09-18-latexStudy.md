@@ -1,7 +1,7 @@
 ---
-title: latex学习
+title: latex笔记
 date: 2018-09-18 15:16:39
-tags: [study, notes, latex]
+tags: [latex]
 categories: [notes, study]
 ---
 

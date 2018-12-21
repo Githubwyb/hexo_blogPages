@@ -1,7 +1,7 @@
 ---
 title: 比特币、区块链、代币经济系统--李远师兄分享
 date: 2018-04-07 19:14:17
-tags: [notes, lecture]
+tags: [lecture]
 categories: [notes, course]
 ---
 

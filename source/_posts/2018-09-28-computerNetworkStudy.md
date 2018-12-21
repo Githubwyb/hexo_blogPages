@@ -1,7 +1,7 @@
 ---
 title: 计算机网络学习
 date: 2018-09-28 11:30:07
-tags: [study, notes, network]
+tags: [network]
 categories: [notes, study]
 ---
 

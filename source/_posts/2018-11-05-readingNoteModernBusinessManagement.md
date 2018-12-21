@@ -1,7 +1,7 @@
 ---
 title: 读书笔记————现代企业管理学
 date: 2018-11-05 16:25:17
-tags: [reading, notes]
+tags: [reading]
 categories: [notes, reading]
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: 结构思考力
 date: 2018-04-15 09:31:02
-tags: [notes, 点石创校]
+tags: [点石创校]
 categories: [notes, course]
 ---
 

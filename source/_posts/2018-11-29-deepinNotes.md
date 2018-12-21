@@ -1,7 +1,7 @@
 ---
 title: Deepin系统使用笔记
 date: 2018-11-29 15:35:00
-tags: [notes, linux]
+tags: [linux]
 categories: [notes, work]
 ---
 

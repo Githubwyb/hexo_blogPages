@@ -1,7 +1,7 @@
 ---
-title: 快捷键记录页
+title: 快捷键记录
 date: 2018-10-16 10:03:38
-tags: [study, notes, shortcuts]
+tags: [shortcuts]
 categories: [notes, work]
 ---
 

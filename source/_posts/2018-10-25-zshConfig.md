@@ -1,7 +1,7 @@
 ---
 title: zsh配置记录
 date: 2018-10-25 13:18:21
-tags: [notes, source, tools]
+tags: [source, linux]
 categories: [notes, work]
 ---
 

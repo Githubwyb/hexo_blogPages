@@ -1,7 +1,7 @@
 ---
 title: 面向对象学习笔记
 date: 2018-10-09 13:29:10
-tags: [study, notes, object]
+tags: [object]
 categories: [notes, study]
 top: true
 ---

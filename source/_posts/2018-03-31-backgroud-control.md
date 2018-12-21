@@ -1,7 +1,7 @@
 ---
 title: 场控注意事项
 date: 2018-03-31 13:15:43
-tags: [场控, notes]
+tags: [场控]
 categories: [notes, work]
 ---
 

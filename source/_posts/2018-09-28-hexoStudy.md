@@ -1,7 +1,7 @@
 ---
 title: hexo搭建中的学习笔记
 date: 2018-09-28 17:06:17
-tags: [study, notes, hexo]
+tags: [hexo]
 categories: [notes, study]
 ---
 

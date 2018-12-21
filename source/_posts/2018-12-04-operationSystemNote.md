@@ -1,7 +1,7 @@
 ---
 title: 操作系统笔记（C语言）
 date: 2018-12-04 16:57:43
-tags: [study, notes, os, C/C++]
+tags: [os, C/C++]
 categories: [notes, study]
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: 区块链-达闼科技师兄分享
 date: 2018-09-19 19:09:17
-tags: [study, notes]
+tags: [点石创校, 区块链]
 categories: [notes, course]
 ---
 

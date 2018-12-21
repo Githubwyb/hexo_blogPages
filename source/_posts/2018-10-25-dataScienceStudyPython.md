@@ -1,7 +1,7 @@
 ---
 title: 数据处理笔记（python）
 date: 2018-10-25 16:40:34
-tags: [notes, python, data]
+tags: [python, data]
 categories: [notes, work]
 top: true
 ---
