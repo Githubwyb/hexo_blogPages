@@ -96,11 +96,5 @@ GPIO的配置比较简单，直接点选芯片引脚相应的GPIO引脚，比如
 
 可以用这两个函数控制灯的闪烁了。
 
-#### *持续更新中......*
-
--------------------
-
-<center> ------我是有底线的------- </center>
-
 [1]: https://www.douban.com/note/206867792/
 [2]: http://www.st.com/content/st_com/zh/products/development-tools/software-development-tools/stm32-software-development-tools/stm32-configurators-and-code-generators/stm32cubemx.html

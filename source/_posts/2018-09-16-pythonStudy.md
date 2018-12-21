@@ -28,6 +28,8 @@ top: true
 - None有自己的数据类型NoneType。
 - 你可以将None赋值给任何变量，但是你不能创建其他NoneType对象。
 
+python中矩阵索引使用None表示此维度不切片，同样意味着此维度大小未知
+
 ## del 删除一个变量释放空间
 
 ```python
