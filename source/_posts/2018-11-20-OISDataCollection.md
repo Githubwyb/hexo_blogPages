@@ -1,7 +1,7 @@
 ---
 title: OIS光学防抖资料收集
 date: 2018-11-20 20:13:14
-tags: [data]
+tags: [source]
 categories: [notes, work]
 ---
 
