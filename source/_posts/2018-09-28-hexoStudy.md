@@ -34,9 +34,11 @@ categories: [notes, study]
     sudo npm audit fix
 ```
 
-# 博客置顶
+# 插件和操作
 
-## 单纯置顶
+## 博客置顶
+
+### 单纯置顶
 
 ```shell
     npm uninstall hexo-generator-index --save
@@ -54,7 +56,7 @@ categories: [notes, study]
     ---
 ```
 
-## 自定义排序置顶
+### 自定义排序置顶
 
 - 使用的是top属性，top值越高，排序越在前，不设置top值得博文按照时间顺序排序。
 - 修改Hexo文件夹下的`node_modules/hexo-generator-index/lib/generator.js`，打开在最后添加如下javascript代码
@@ -75,7 +77,7 @@ categories: [notes, study]
     });
 ```
 
-## 设置置顶标志
+### 设置置顶标志
 
 - 打开：`/blog/themes/next/layout/_macro`目录下的`post.swig`文件，定位到`<div class="post-meta">`标签下，插入如下代码:
 
@@ -87,9 +89,9 @@ categories: [notes, study]
     {% endif %}
 ```
 
-# pdf插件
+## pdf插件
 
-## 安装
+### 安装
 
 - 在博客bash中执行下列命令安装
 
@@ -97,7 +99,7 @@ categories: [notes, study]
     npm install --save hexo-pdf
 ```
 
-## 展示
+### 展示
 
 - 使用外部文章网页链接
 
@@ -113,15 +115,15 @@ categories: [notes, study]
     {% pdf  test.pdf %}
 ```
 
-# 字数统计和阅读时长(网站底部/文章内)
+## 字数统计和阅读时长(网站底部/文章内)
 
-## 安装插件
+### 安装插件
 
 ```shell
     npm install hexo-symbols-count-time --save
 ```
 
-## 修改 站点配置文件
+### 修改 站点配置文件
 
 ```yml
     symbols_count_time:
@@ -133,7 +135,7 @@ categories: [notes, study]
      total_time: true
 ```
 
-## 修改 主题配置文件
+### 修改 主题配置文件
 
 ```yml
     # Post wordcount display settings
@@ -149,3 +151,39 @@ categories: [notes, study]
      # Words Per Minute
      wpm: 275
 ```
+
+## latex公式支持
+
+### Next主题中自带latex插件
+
+修改`_config.xml`文件即可
+
+### pandoc插件
+
+自带的latex插件优先解析markdown导致latex许多符号显示不好，使用pandoc可以解决这个问题，优先解析latex公式
+
+```shell
+    sudo apt install pandoc
+    npm install hexo-renderer-pandoc --save
+    rm -r node_modules/hexo-renderer-marked
+```
+
+#### 注意事项
+
+表格中的latex公式会变得奇怪，表格中所有`\`需要使用两个`\\`代替
+
+示例
+
+```latex
+    | 描述     | 代码        | 效果            | 宽度        |
+    | -------- | ----------- | --------------- | ----------- |
+    | 使用`\\` | a \\qquad b | $ a \\qquad b $ | 两个m的宽度 |
+    | 使用`\`  | a \quad b   | $ a \quad b $   | 一个m的宽度 |
+```
+
+效果
+
+| 描述     | 代码        | 效果            | 宽度        |
+| -------- | ----------- | --------------- | ----------- |
+| 使用`\\` | a \\qquad b | $ a \\qquad b $ | 两个m的宽度 |
+| 使用`\`  | a \quad b   | $ a \quad b $   | 一个m的宽度 |
