@@ -172,6 +172,12 @@ with处理相当于`try-finally`
     # coding=utf-8
 ```
 
+或者
+
+```python
+    # -*- coding:utf-8 -*-
+```
+
 # 特殊操作
 
 ## 路径相关操作
