@@ -170,7 +170,7 @@ categories: [notes, study]
 
 #### 注意事项
 
-表格中的latex公式会变得奇怪，表格中所有`\`需要使用两个`\\`代替
+##### 1. 表格中的latex公式会变得奇怪，表格中所有`\`需要使用两个`\\`代替
 
 示例
 
@@ -187,3 +187,15 @@ categories: [notes, study]
 | -------- | ----------- | --------------- | ----------- |
 | 使用`\\` | a \\qquad b | $ a \\qquad b $ | 两个m的宽度 |
 | 使用`\`  | a \quad b   | $ a \quad b $   | 一个m的宽度 |
+
+##### 2. 网址不会自动变成超链接，使用`<>`包裹即可
+
+```markdown
+    https://githubwyb.github.io
+    <https://githubwyb.github.io>
+```
+
+效果
+
+https://githubwyb.github.io
+<https://githubwyb.github.io>
