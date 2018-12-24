@@ -164,8 +164,8 @@ categories: [notes, study]
 
 ```shell
     sudo apt install pandoc
-    npm install hexo-renderer-pandoc --save
-    rm -r node_modules/hexo-renderer-marked
+    sudo npm install hexo-renderer-pandoc --save
+    sudo npm uninstall hexo-renderer-marked
 ```
 
 #### 注意事项
