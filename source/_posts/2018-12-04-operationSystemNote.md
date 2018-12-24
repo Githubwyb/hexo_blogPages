@@ -30,7 +30,7 @@ categories: [notes, study]
      * @return 0，创建成功；其他，错误码
      */
     int pthread_create(pthread_t *tidp,
-                        const pthread_attr_t *attr, 
+                        const pthread_attr_t *attr,
                         (void*)(*start_rtn)(void*),
                         void *arg);
 ```
@@ -39,14 +39,14 @@ categories: [notes, study]
 
 ```C
     #include <pthread.h>
-    
+
     /*
      * @description 等待线程结束函数
      * @param thread 线程标识符
      * @param retval 获取线程结束返回值
      * @return 0，创建成功；其他，错误码
      */
-    int pthread_join(pthread_t thread, 
+    int pthread_join(pthread_t thread,
                         void **retval);
 ```
 
@@ -80,7 +80,7 @@ categories: [notes, study]
 
 ```C
     #include <pthread.h>
-    
+
     /*
      * @description 申请锁
      * @param mutex 线程互斥锁
@@ -93,7 +93,7 @@ categories: [notes, study]
 
 ```C
     #include <pthread.h>
-    
+
     /*
      * @description 解锁
      * @param mutex 线程互斥锁
@@ -155,7 +155,7 @@ categories: [notes, study]
 ```C
     #include <sys/types.h>
     #include <unistd.h>
-    
+
     /*
      * @description 创建一个进程
      * @return pid_t实质是int，包含在<sys/types.h>中，子进程返回0；父进程返回子进程号；-1为错误
@@ -179,12 +179,12 @@ categories: [notes, study]
      */
     pid_t wait(int *status);
 
-    //子进程的结束状态返回后存于status，底下有几个宏可判别结束情况  
-    WIFEXITED(status);      //如果子进程正常结束则为非0值。  
-    WEXITSTATUS(status);    //取得子进程exit()返回的结束代码，一般会先用WIFEXITED来判断是否正常结束才能使用此宏。  
-    WIFSIGNALED(status);    //如果子进程是因为信号而结束则此宏值为真 
-    WTERMSIG(status);       //取得子进程因信号而中止的信号代码，一般会先用WIFSIGNALED来判断后才使用此宏。  
-    WIFSTOPPED(status);     //如果子进程处于暂停执行情况则此宏值为真。一般只有使用WUNTRACED 时才会有此情况。  
+    //子进程的结束状态返回后存于status，底下有几个宏可判别结束情况
+    WIFEXITED(status);      //如果子进程正常结束则为非0值。
+    WEXITSTATUS(status);    //取得子进程exit()返回的结束代码，一般会先用WIFEXITED来判断是否正常结束才能使用此宏。
+    WIFSIGNALED(status);    //如果子进程是因为信号而结束则此宏值为真
+    WTERMSIG(status);       //取得子进程因信号而中止的信号代码，一般会先用WIFSIGNALED来判断后才使用此宏。
+    WIFSTOPPED(status);     //如果子进程处于暂停执行情况则此宏值为真。一般只有使用WUNTRACED 时才会有此情况。
     WSTOPSIG(status);       //取得引发子进程暂停的信号代码，一般会先用WIFSTOPPED来判断后才使用此宏。
 ```
 
@@ -243,7 +243,7 @@ categories: [notes, study]
 ```C
     #include <sys/ipc.h>
     #include <sys/types.h>
-    
+
     /*
      * @description 获取一个key值用于共享内存或消息队列
      * @param fname 指定一个文件名
@@ -259,7 +259,7 @@ categories: [notes, study]
     #include <sys/ipc.h>
     #include <sys/shm.h>
     #include <errno>
-    
+
     /*
      * @description 获取或者创建共享内存
      * @param key 共享内存ID，一般为ftok获取的ID
@@ -277,8 +277,8 @@ categories: [notes, study]
 
 | key | size | shmflg                        | 描述                                                       |
 | --- | ---- | ----------------------------- | ---------------------------------------------------------- |
-| x   | x    | IPC_CREAT \| 0600             | 建立新的共享内存对象，不存在与key相同的则创建，存在返回key |
-| x   | x    | IPC_CREAT \| IPC_EXCL \| 0600 | 建立新的共享内存对象，不存在与key相同的则创建，存在报错    |
+| x   | x    | IPC_CREAT $ \mid $ 0600            | 建立新的共享内存对象，不存在与key相同的则创建，存在返回key |
+| x   | x    | IPC_CREAT $ \mid $ IPC_EXCL $ \mid $ 0600 | 建立新的共享内存对象，不存在与key相同的则创建，存在报错    |
 | x   | 0    | 0                             | 获取共享内存                                               |
 
 - 错误代码
@@ -299,7 +299,7 @@ categories: [notes, study]
     #include <sys/ipc.h>
     #include <sys/shm.h>
     #include <errno>
-    
+
     /*
      * @description 链接共享内存到当前进程
      * @param shmid 共享内存标识符
@@ -327,7 +327,7 @@ categories: [notes, study]
     #include <sys/ipc.h>
     #include <sys/shm.h>
     #include <errno>
-    
+
     /*
      * @description 链接共享内存到当前进程
      * @param shmaddr 共享内存地址
@@ -351,7 +351,7 @@ categories: [notes, study]
     #include <sys/ipc.h>
     #include <sys/shm.h>
     #include <errno>
-    
+
     /*
      * @description 链接共享内存到当前进程
      * @param shmid 共享内存标识符
@@ -389,7 +389,7 @@ categories: [notes, study]
     #include <sys/ipc.h>
     #include <sys/shm.h>
     #include <errno>
-    
+
     int main(int argc, char const *argv[]) {
         key_t key = ftok(".", 0x01);
         if (key < 0) {
@@ -459,7 +459,7 @@ categories: [notes, study]
     #include <sys/ipc.h>
     #include <sys/shm.h>
     #include <errno>
-    
+
     /*
      * @description 获取或者创建信号量
      * @param key 信号量ID，一般为ftok获取的ID
@@ -501,7 +501,7 @@ categories: [notes, study]
     #include <sys/ipc.h>
     #include <sys/shm.h>
     #include <errno>
-    
+
     /*
      * @description 信号量操作
      * @param semid 信号量ID
@@ -564,7 +564,7 @@ sem_flg
     #include <sys/ipc.h>
     #include <sys/shm.h>
     #include <errno>
-    
+
     /*
      * @description 信号量管理
      * @param sem_id 信号量ID
@@ -618,7 +618,7 @@ sem_flg
             LOG_ERROR("semget failed, %d, %s", errno, strerror(errno));
             return -1;
         }
-        
+
         //设置初始值
         int code = semctl(semId, 0, SETVAL, 1);
         if (code == -1) {
