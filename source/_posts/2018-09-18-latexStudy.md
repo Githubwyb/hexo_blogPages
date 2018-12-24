@@ -12,6 +12,12 @@ categories: [notes, study]
 
 # 公式格式记录
 
+## 符号
+
+参考文档: [常用数学符号的 LaTeX 表示方法][1]
+
+[1]: http://www.mohu.org/info/symbols/symbols.htm
+
 ## 空格
 
 | 描述         | 代码       | 效果           | 宽度         |
@@ -49,6 +55,24 @@ $$ a^{bc} $$
 
 $$ \frac{A}{B} $$
 $$ \frac abc $$
+
+## 阶段函数表示
+
+array后面的`ll`表示每一列的对齐方式，l：左对齐，c：居中，r：右对齐
+
+```latex
+    $$ f(z) = \left\{\begin{array}{ll}
+        1 & {z > 0} \\
+        0 & otherwise
+    \end{array}\right. $$
+```
+
+效果
+
+$$ f(z) = \left\{\begin{array}{ll}
+    1 & {z > 0} \\
+    0 & otherwise
+\end{array}\right. $$
 
 ## log函数
 

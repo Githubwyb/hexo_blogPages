@@ -16,6 +16,11 @@ top: true
 
 #  语法相关
 
+参考文档: [W3Cschool][1]、[Runoob][2]
+
+[1]: https://www.w3cschool.cn/uqmpir/
+[2]: http://www.runoob.com/python/python-tutorial.html
+
 ## 变量
 
 ### None
@@ -35,6 +40,19 @@ python中矩阵索引使用None表示此维度不切片，同样意味着此维�
 ```python
     del var
 ```
+
+## 函数
+
+### lambda 匿名函数
+
+```python
+    lambda arg1, arg2, ...argN : expression using arguments
+```
+
+#### 注意
+
+- lambda 函数不能包含命令，包含的表达式不能超过一个。不要试图向 lambda 函数中塞入太多的东西；如果你需要更复杂的东西，应该定义一个普通函数，然后想让它多长就多长。
+- 就lambda而言，它并没有给程序带来性能上的提升，它带来的是代码的简洁。
 
 ## try 异常处理
 
@@ -200,6 +218,53 @@ with处理相当于`try-finally`
     import os
 
     os.chdir(path)
+```
+
+### 遍历目录
+
+此命令会遍历目录下的所有文件包括子文件
+
+```python
+    import os
+    for dirPath, dirNames, fileNames in os.walk('./'):
+        print('dirPath', dirPath)       # 当前遍历的目录
+        print('dirNames', dirNames)     # 该目录下所有的文件夹名字组成的列表
+        print('fileNames', fileNames)   # 该目录下所有的文件名字组成的列表
+```
+
+## 压缩
+
+### zip格式
+
+```python
+    import zipfile
+
+    z = zipfile.ZipFile(folderName + '.zip', 'w', zipfile.ZIP_STORED) # 创建文件
+    z.write('test.txt')             # 写入一个文件
+    z.write('dirName')              # 写入一个空文件夹
+    z.write('folderName/fileName')  # 可以在没有上级目录的情况下直接写一个文件
+    z.close()                       # 关闭文件
+```
+
+#### 实例
+
+压缩目录下的所有文件
+
+```python
+    import zipfile
+    import os
+
+    z = zipfile.ZipFile('dirName.zip', 'w', zipfile.ZIP_STORED)
+    for dirPath, dirNames, fileNames in os.walk('dirName'):
+        for fileName in fileNames:
+            z.write(dirPath + '/' + fileName)
+            print(dirPath + '/' + fileName)
+
+        # 防止空文件夹没有被添加入压缩文件
+        for dirName in dirNames:
+            z.write(dirPath + '/' + dirName)
+            print(dirPath + '/' + dirName + '/') # 区别于文件的打印
+    z.close()
 ```
 
 ## 调用可执行文件
