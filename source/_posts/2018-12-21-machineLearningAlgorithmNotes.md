@@ -60,3 +60,9 @@ $$ \Delta w_i = \eta(t - y)x_i \\
 - $ t $ 为训练样本的实际值，也就是label
 - $ y $ 为感知器输出值
 - $ \eta $ 为学习速率，也就是rate
+
+## 实例
+
+python编写感知器实现and运算符
+
+Github: <https://github.com/Githubwyb/zeroDeepLearning/tree/master/1.Perceptron>
