@@ -69,8 +69,8 @@ array后面的`ll`表示每一列的对齐方式，l：左对齐，c：居中，
 
 效果
 
-$$ f(z) = \left\{\begin{array}{ll}
-    1 & {z > 0} \\
+$$ f(z) = \left\\{\begin{array}{ll}
+    1 & {z > 0} \\\\
     0 & otherwise
 \end{array}\right. $$
 
@@ -129,23 +129,23 @@ $$ log_A{B} $$
 效果
 
 $$
-\begin{matrix} 0 & 1 \\ 1 & 0 \end{matrix}
+\begin{matrix} 0 & 1 \\\\ 1 & 0 \end{matrix}
 \quad
-\begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix}
+\begin{pmatrix} 0 & -i \\\\ i & 0 \end{pmatrix}
 \quad
-\begin{bmatrix} 0 & -1 \\ 1 & 0 \end{bmatrix}
+\begin{bmatrix} 0 & -1 \\\\ 1 & 0 \end{bmatrix}
 \quad
-\begin{Bmatrix} 1 & 0 \\ 0 & -1 \end{Bmatrix}
+\begin{Bmatrix} 1 & 0 \\\\ 0 & -1 \end{Bmatrix}
 \quad
-\begin{vmatrix} a & b \\ c & d \end{vmatrix}
+\begin{vmatrix} a & b \\\\ c & d \end{vmatrix}
 \quad
-\begin{Vmatrix} i & 0 \\ 0 & -i \end{Vmatrix}
+\begin{Vmatrix} i & 0 \\\\ 0 & -i \end{Vmatrix}
 $$
 
 ### 使用`array`构建矩阵
 
 ```latex
-    $$ 
+    $$
     \left(                  %左括号
     \begin{array}{ccc}      %该矩阵一共3列，每一列都居中放置
         a11 & a12 & a13\\   %第一行元素
@@ -157,11 +157,7 @@ $$
 
 效果
 
-$$ 
-\left(                  %左括号
-\begin{array}{ccc}      %该矩阵一共3列，每一列都居中放置
-    a11 & a12 & a13\\   %第一行元素
-    a21 & a22 & a23\\   %第二行元素
-\end{array}
-\right)                 %右括号
-$$
+$$ \left(\begin{array}{ccc}
+    a11 & a12 & a13 \\\\
+    a21 & a22 & a23
+\end{array}\right) $$

@@ -158,16 +158,6 @@ categories: [notes, study]
 
 修改`_config.xml`文件即可
 
-### pandoc插件
-
-自带的latex插件优先解析markdown导致latex许多符号显示不好，使用pandoc可以解决这个问题，优先解析latex公式
-
-```shell
-    sudo apt install pandoc
-    sudo npm install hexo-renderer-pandoc --save
-    sudo npm uninstall hexo-renderer-marked
-```
-
 #### 注意事项
 
 ##### 1. 表格中的latex公式会变得奇怪，表格中所有`\`需要使用两个`\\`代替
@@ -188,14 +178,4 @@ categories: [notes, study]
 | 使用`\\` | a \\qquad b | $ a \\qquad b $ | 两个m的宽度 |
 | 使用`\`  | a \quad b   | $ a \quad b $   | 一个m的宽度 |
 
-##### 2. 网址不会自动变成超链接，使用`<>`包裹即可
-
-```markdown
-    https://githubwyb.github.io
-    <https://githubwyb.github.io>
-```
-
-效果
-
-https://githubwyb.github.io
-<https://githubwyb.github.io>
+##### 2. latex公式在hexo中不能写注释，并且换行使用`\\`无效，需要使用`\\\\`，大括号需要使用`\\{`才可使用
