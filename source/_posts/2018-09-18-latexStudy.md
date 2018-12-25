@@ -74,6 +74,20 @@ $$ f(z) = \left\\{\begin{array}{ll}
     0 & otherwise
 \end{array}\right. $$
 
+## 公式推导换行
+
+```latex
+    $$ \begin{aligned}
+        f(x) & = (x + 1)^2 \\
+        & = x^2 + 2x + 1
+    \end{aligned} $$
+```
+
+$$ \begin{aligned}
+    f(x) & = (x + 1)^2 \\\\
+    & = x^2 + 2x + 1
+\end{aligned} $$
+
 ## log函数
 
 ```latex
