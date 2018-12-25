@@ -17,11 +17,11 @@ $$ S_i = \frac{e^{V_i}}{\sum\nolimits_{i}^{C}e^{V_i}} $$
 
 一个多分类问题，C = 4。线性分类器模型最后输出层包含了四个输出值，分别是：
 
-$$ V = \begin{bmatrix} -3 \\ 2 \\ -1 \\ 0 \end{bmatrix} $$
+$$ V = \begin{bmatrix} -3 \\\\ 2 \\\\ -1 \\\\ 0 \end{bmatrix} $$
 
 经过Softmax处理后，数值转化为相对概率：
 
-$$ S = \begin{bmatrix} 0.0057 \\ 0.8390 \\ 0.0418 \\ 0.1135 \end{bmatrix} $$
+$$ S = \begin{bmatrix} 0.0057 \\\\ 0.8390 \\\\ 0.0418 \\\\ 0.1135 \end{bmatrix} $$
 
 很明显，Softmax 的输出表征了不同类别之间的相对概率。我们可以清晰地看出，S1 = 0.8390，对应的概率最大，则更清晰地可以判断预测为第2类的可能性更大。Softmax 将连续数值转化成相对概率，更有利于我们理解。
 
@@ -38,8 +38,8 @@ $$ S = \begin{bmatrix} 0.0057 \\ 0.8390 \\ 0.0418 \\ 0.1135 \end{bmatrix} $$
 
 - **输入权值** 一个感知器可以接收多个**输入** $ (x_1, x_2, ..., x_n | x_i \in R) $，每个输入上有一个**权值** $ w_i \in R $，此外还有一个**偏置项** $ b \in R $ 。
 - **激活函数** 感知器的激活函数可以有很多选择，比如我们可以选择下面这个**阶跃函数** $ f $ 来作为激活函数：
-$$ f(z) = \left\{\begin{array}{ll}
-    1 & {z > 0} \\
+$$ f(z) = \left\\{\begin{array}{ll}
+    1 & {z > 0} \\\\
     0 & otherwise
 \end{array}\right. $$
 - **输出** 感知器的输出用下面的公式计算
@@ -49,12 +49,12 @@ $$ y = f(w \cdot x + b) $$
 
 感知器规则
 
-$$ w_i \leftarrow w_i + \Delta w_i \\
+$$ w_i \leftarrow w_i + \Delta w_i \\\\
 b \leftarrow b + \Delta b $$
 
 其中
 
-$$ \Delta w_i = \eta(t - y)x_i \\
+$$ \Delta w_i = \eta(t - y)x_i \\\\
 \Delta b = \eta(t - y) $$
 
 - $ t $ 为训练样本的实际值，也就是label
@@ -71,7 +71,7 @@ Github: <https://github.com/Githubwyb/zeroDeepLearning/tree/master/1.Perceptron>
 
 ## 模型
 
-<img src = "2018_12_26_02.png">
+<img src = "2018_12_25_02.png">
 
 ## 函数
 
