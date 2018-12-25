@@ -66,3 +66,58 @@ $$ \Delta w_i = \eta(t - y)x_i \\
 python编写感知器实现and运算符
 
 Github: <https://github.com/Githubwyb/zeroDeepLearning/tree/master/1.Perceptron>
+
+# 线性单元
+
+## 模型
+
+<img src = "2018_12_26_02.png">
+
+## 函数
+
+与感知器一致，仅仅将激活函数改为线性函数 $ f(x) = x $
+
+## 训练线性单元
+
+### 目标函数
+
+线性单元所要达到的目标是预测结果和实际结果相同，可以定义单个样本误差为：
+
+$$ e = \frac{1}{2}(y - \bar y)^2 = \frac{1}{2}(y - w \cdot x)^2 $$
+
+其中 $ y $ 为实际值，$ \bar y $ 为预测值。线性单元的目标为使 $ e $ 达到最小。
+
+实际情况中，样本有很多个，需要使一批样本的误差达到最小，定义整体误差 $ E $ ：
+
+$$ \begin{aligned}
+    E & = e_1 + e_2 + ... + e_n \\\\
+    & = \frac{1}{2}\sum_{i = 1}^{n}(y_i - \bar y_i)^2 \\\\
+    & = \frac{1}{2}\sum_{i = 1}^{n}(y_i - w_i \cdot x_i)^2
+\end{aligned} $$
+
+训练线性单元目的即为将 $ E $ 变为最小
+
+### 梯度下降算法
+
+为使整体误差下降到最小，需要改变 $ w $ 使预测值更接近于真实值。可以定义整体误差 $ E $ 为 $ w $ 的函数，利用梯度的方法使整体误差取极小值点。由于计算机没办法计算梯度，但是计算能力强大，可以使用尝试法接近极小值。引入渐进到极小值及**梯度下降算法**的公式，对每个 $ w $ 来说：
+
+$$ w_{new} = w_{old} -  \eta\nabla E(w_{old}) $$
+
+对于 $ \nabla E $ ，有：
+
+$$ \begin{aligned}
+    \nabla E(w) & = \frac{1}{2}\sum_{i = 1}^{n}\frac{\partial}{\partial w}(y_i - \bar{y_i})^2 \\\\
+    & = \frac{1}{2}\sum_{i = 1}^{n}\frac{\partial}{\partial w}(y_i - w \cdot x)^2 \\\\
+    & = \frac{1}{2}\sum_{i = 1}^{n}[- 2(y_i - w \cdot x)x] \\\\
+    & = -\sum_{i = 1}^{n}(y_i - \bar{y_i})x \\\\
+\end{aligned} $$
+
+所以，训练线性单元的规则为：
+
+$$ w_{new} = w_{old} + \eta\sum_{i = 1}^{n}(y_i - \bar{y_i})x $$
+
+## 实例
+
+python编写线性单元实现线性预测
+
+Github: <https://github.com/Githubwyb/zeroDeepLearning/tree/master/2.LinearUnit>
