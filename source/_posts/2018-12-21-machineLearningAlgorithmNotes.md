@@ -23,12 +23,36 @@ $$ V = \begin{bmatrix} -3 \\\\ 2 \\\\ -1 \\\\ 0 \end{bmatrix} $$
 
 $$ S = \begin{bmatrix} 0.0057 \\\\ 0.8390 \\\\ 0.0418 \\\\ 0.1135 \end{bmatrix} $$
 
-很明显，Softmax 的输出表征了不同类别之间的相对概率。我们可以清晰地看出，S1 = 0.8390，对应的概率最大，则更清晰地可以判断预测为第2类的可能性更大。Softmax 将连续数值转化成相对概率，更有利于我们理解。
+很明显，Softmax 的输出表征了不同类别之间的相对概率。我们可以清晰地看出，$ S_1 = 0.8390 $ ，对应的概率最大，则更清晰地可以判断预测为第2类的可能性更大。Softmax 将连续数值转化成相对概率，更有利于我们理解。
+
+# sigmoid函数
+
+## 函数形式
+
+$$ \sigma(x) = \frac{1}{1 + e^{-x}} $$
+
+该函数的导数形式非常简单，为：
+
+$$ \begin{aligned}
+    \sigma(x)' & = (\frac{1}{1 + e^{-x}})' \\\\
+    & = -\frac{-e^{-x}}{(1 + e^{-x})^2} \\\\
+    & = \frac{1}{1 + e^{-x}} - \frac{1}{(1 + e^{-x})^2} \\\\
+    & = \sigma(x)(1 - \sigma(x))
+\end{aligned} $$
+
+## 函数性质
+
+函数图像
+
+<img src = "2018_12_26_03.png">
+
+函数值域为 $ (0, 1) $ ，用于将神经元的输出归一化，便于做多分类问题。
 
 # 感知器（神经元）
 
 - 神经网络的组成单元——神经元。
 - 神经元也叫做感知器。
+- 神经元和感知器的不同在于神经元的激活函数为 $ sigmoid $ 函数
 
 ## 模型
 
@@ -97,7 +121,7 @@ $$ \begin{aligned}
 
 训练线性单元目的即为将 $ E $ 变为最小
 
-### 梯度下降算法
+### <span id = "gradient">梯度下降算法</span>
 
 为使整体误差下降到最小，需要改变 $ w $ 使预测值更接近于真实值。可以定义整体误差 $ E $ 为 $ w $ 的函数，利用梯度的方法使整体误差取极小值点。由于计算机没办法计算梯度，但是计算能力强大，可以使用尝试法接近极小值。引入渐进到极小值及**梯度下降算法**的公式，对每个 $ w $ 来说：
 
@@ -114,10 +138,103 @@ $$ \begin{aligned}
 
 所以，训练线性单元的规则为：
 
-$$ w_{new} = w_{old} + \eta\sum_{i = 1}^{n}(y_i - \bar{y_i})x $$
+$$ w \leftarrow w + \eta\sum_{i = 1}^{n}(y_i - \bar{y_i})x $$
 
 ## 实例
 
 python编写线性单元实现线性预测
 
 Github: <https://github.com/Githubwyb/zeroDeepLearning/tree/master/2.LinearUnit>
+
+# 神经网络和反向传播算法
+
+## 神经元
+
+神经元就是将感知器的激活函数更改为 $ sigmoid $ 函数：
+
+<img src = "2018_12_26_05.png">
+
+## 神经网络
+
+<img src = "2018_12_26_04.png">
+
+神经网络包含输入层、隐藏层和输出层，隐藏层可以有多层神经元构成，每一层神经元的输入为上一层神经元的输出。
+
+上图所示的隐藏层只有一层，公式为：
+
+$$ a_4 = sigmoid(w_{41}x_1 + w_{42}x_2 + w_{43}x_3 + w_{44}x_4 + w_{4b}) \\\\
+a_5 = sigmoid(w_{51}x_1 + w_{52}x_2 + w_{53}x_3 + w_{54}x_4 + w_{5b}) \\\\
+a_6 = sigmoid(w_{61}x_1 + w_{62}x_2 + w_{63}x_3 + w_{64}x_4 + w_{6b}) \\\\
+a_7 = sigmoid(w_{71}x_1 + w_{72}x_2 + w_{73}x_3 + w_{74}x_4 + w_{7b}) $$
+
+输出层为和输出 $ y $ 同维度的神经元组成，公式同上。
+
+## 神经网络的训练
+
+现在，我们需要知道一个神经网络的每个连接上的权值是如何得到的。我们可以说神经网络是一个**模型**，那么这些权值就是模型的**参数**，也就是模型要学习的东西。然而，一个神经网络的连接方式、网络的层数、每层的节点数这些参数，则不是学习出来的，而是人为事先设置的。对于这些人为设置的参数，我们称之为**超参数(Hyper-Parameters)**。
+
+### 反向传播算法
+
+首先，对于整体神经网络来说，目标函数取输出层所有误差的平方和：
+
+$$ E_d = \frac{1}{2}\sum_{j \in n_{outputs}}(t_j - y_j)^2 $$
+
+$ E_d $ 仅代表对于一个样本d的误差，训练规则同上的线性单元的训练使用的[梯度下降算法](#gradient)：
+
+$$ w_{ji} = w_{ji} - \eta\frac{\partial E_d}{\partial w_{ji}} $$
+
+计算 $ \frac{\partial E_d}{\partial w} $ 需要分输出层、隐藏层两种情况进行计算：
+
+设一些变量的值
+
+$$ \begin{aligned}
+    net & = w \cdot x \\\\
+    y & = sigmoid(net) \\\\
+    \delta_j & = (t_j - y_j)y_j(1 - y_j) \\\\
+    j & ，输出层第j维 \\\\
+    i & ，输入层第i维
+\end{aligned} $$
+
+#### 输出层
+
+由链式求导法则，
+
+$$ \frac{\partial E_d}{\partial w_{ji}} = \frac{\partial E_d}{\partial y_j}\frac{\partial y_j}{\partial net_j}\frac{\partial net_j}{\partial w_{ji}} $$
+
+其中，
+
+$$ \begin{aligned}
+    \frac{\partial E_d}{\partial y_j} & = \frac{\partial \frac{1}{2}\sum_{j}(t_j - y_j)^2}{\partial y_j} = -(t_j - y_j) \\\\
+    \frac{\partial y_j}{\partial net_j} & = \frac{\partial sigmoid(net_j)}{\partial net_j} = y_j(1 - y_j) \\\\
+    \frac{\partial net_j}{\partial w_{ji}} & = \frac{\partial \sum_{i} w_{ji}x_{ji}}{\partial w_{ji}} = x_{ji}
+\end{aligned} $$
+
+代入得
+
+$$ \frac{\partial E_d}{\partial w_{ji}} = \frac{\partial E_d}{\partial y_j}\frac{\partial y_j}{\partial net_j}\frac{\partial net_j}{\partial w_{ji}} = -(t_j - y_j)y_j(1 - y_j)x_{ji} = -\delta_j x_{ji} $$
+
+所以输出层的 $ w_{ji} $ 训练规则为：
+
+$$ w_{ji} \leftarrow w_{ji} - \eta\frac{\partial E_d}{\partial w_{ji}} = w_{ji} + \eta \delta_j x_{ji} $$
+
+#### 隐藏层
+
+由链式求导法则，
+
+$$ \frac{\partial E_d}{\partial w_{ji}} = \frac{\partial E_d}{\partial y_{output}}\frac{\partial y_j}{\partial net_j}\frac{\partial net_j}{\partial w_{ji}} $$
+
+其中，
+
+$$ \begin{aligned}
+    \frac{\partial E_d}{\partial y_j} & = \frac{\partial \frac{1}{2}\sum_{j}(t_j - y_j)^2}{\partial y_j} = -(t_j - y_j) \\\\
+    \frac{\partial y_j}{\partial net_j} & = \frac{\partial sigmoid(net_j)}{\partial net_j} = y_j(1 - y_j) \\\\
+    \frac{\partial net_j}{\partial w_{ji}} & = \frac{\partial \sum_{i} w_{ji}x_{ji}}{\partial w_{ji}} = x_{ji}
+\end{aligned} $$
+
+代入得
+
+$$ \frac{\partial E_d}{\partial w_{ji}} = \frac{\partial E_d}{\partial y_j}\frac{\partial y_j}{\partial net_j}\frac{\partial net_j}{\partial w_{ji}} = -(t_j - y_j)y_j(1 - y_j)x_{ji} = -\delta_j x_{ji} $$
+
+所以输出层的 $ w_{ji} $ 训练规则为：
+
+$$ w_{ji} \leftarrow w_{ji} - \eta\frac{\partial E_d}{\partial w_{ji}} = w_{ji} + \eta \delta_j x_{ji} $$

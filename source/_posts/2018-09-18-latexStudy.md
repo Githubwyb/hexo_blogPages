@@ -18,6 +18,13 @@ categories: [notes, study]
 
 [1]: http://www.mohu.org/info/symbols/symbols.htm
 
+### 常用数学符号
+
+- `$ \sigma $`: $ \sigma $
+- 累加算子`$ \Sigma $`: $ \Sigma $
+- 梯度算子`$ \nabla $`: $ \nabla $
+- 偏导算子`$ \partial $`: $ \partial $
+
 ## 空格
 
 | 描述         | 代码       | 效果           | 宽度         |
