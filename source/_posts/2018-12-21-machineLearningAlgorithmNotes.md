@@ -191,8 +191,10 @@ $$ \begin{aligned}
     net & = w \cdot x \\\\
     y & = sigmoid(net) \\\\
     \delta_j & = (t_j - y_j)y_j(1 - y_j) \\\\
-    j & ，输出层第j维 \\\\
-    i & ，输入层第i维
+    j & ，神经元输出第j维 \\\\
+    i & ，神经元输入第i维 \\\\
+    k & ，神经网络隐藏层第k层 \\\\
+    o & ，神经网络的输出层
 \end{aligned} $$
 
 #### 输出层
@@ -206,7 +208,8 @@ $$ \frac{\partial E_d}{\partial w_{ji}} = \frac{\partial E_d}{\partial y_j}\frac
 $$ \begin{aligned}
     \frac{\partial E_d}{\partial y_j} & = \frac{\partial \frac{1}{2}\sum_{j}(t_j - y_j)^2}{\partial y_j} = -(t_j - y_j) \\\\
     \frac{\partial y_j}{\partial net_j} & = \frac{\partial sigmoid(net_j)}{\partial net_j} = y_j(1 - y_j) \\\\
-    \frac{\partial net_j}{\partial w_{ji}} & = \frac{\partial \sum_{i} w_{ji}x_{ji}}{\partial w_{ji}} = x_{ji}
+    \frac{\partial net_j}{\partial w_{ji}} & = \frac{\partial \sum_{i} w_{ji}x_{ji}}{\partial w_{ji}} = x_{ji} \\\\
+    \frac{\partial E_d}{\partial net_j} & = -(t_j - y_j)y_j(1 - y_j) = -\delta_j
 \end{aligned} $$
 
 代入得
@@ -219,22 +222,37 @@ $$ w_{ji} \leftarrow w_{ji} - \eta\frac{\partial E_d}{\partial w_{ji}} = w_{ji} 
 
 #### 隐藏层
 
-由链式求导法则，
+用递推公式，设隐藏层有 $ n $ 层
 
-$$ \frac{\partial E_d}{\partial w_{ji}} = \frac{\partial E_d}{\partial y_{output}}\frac{\partial y_j}{\partial net_j}\frac{\partial net_j}{\partial w_{ji}} $$
+##### 第 $ n $ 层隐藏层
 
-其中，
+$$ \frac{\partial E_d}{\partial w_{j_ni}} = \frac{\partial E_d}{\partial net_{j_n}}\frac{\partial net_{j_n}}{\partial w_{j_ni}} $$
+
+$ E_d $ 不是 $ net_{j_n} $ 直接函数，但输出层的 $ net_{j_o} $ 是 $ net_{j_n} $ 的函数，且有
+
+$$ \frac{\partial E_d}{\partial net_{j_n}} = \sum_{j_o}\frac{\partial E_d}{\partial net_{j_o}}\frac{\partial net_{j_o}}{\partial net_{j_n}} = \sum_{j_o}-\delta_{j_o}\frac{\partial net_{j_o}}{\partial net_{j_n}} $$
+
+设 $ y_{j_n} $ 为隐藏层第 $ j_n $ 个神经元的输出，同时也是输出层所有神经元的第 $ j_n $ 输入 $ x_{j_n} $，
 
 $$ \begin{aligned}
-    \frac{\partial E_d}{\partial y_j} & = \frac{\partial \frac{1}{2}\sum_{j}(t_j - y_j)^2}{\partial y_j} = -(t_j - y_j) \\\\
-    \frac{\partial y_j}{\partial net_j} & = \frac{\partial sigmoid(net_j)}{\partial net_j} = y_j(1 - y_j) \\\\
-    \frac{\partial net_j}{\partial w_{ji}} & = \frac{\partial \sum_{i} w_{ji}x_{ji}}{\partial w_{ji}} = x_{ji}
+    \frac{\partial net_{j_o}}{\partial net_{j_n}} & = \frac{\partial net_{j_o}}{\partial y_{j_n}}\frac{\partial y_{j_n}}{\partial net_{j_n}} \\\\
+    \frac{\partial net_{j_o}}{\partial y_{j_n}} & = \frac{\partial \sum_{i} w_{j_oi}x_{j_oi}}{\partial y_{j_n}} = w_{j_oj_n} \\\\
+    \frac{\partial y_{j_n}}{\partial net_{j_n}} & = \frac{\partial sigmoid(net_{j_n})}{\partial net_{j_n}} = y_{j_n}(1 - y_{j_n})
 \end{aligned} $$
 
 代入得
 
-$$ \frac{\partial E_d}{\partial w_{ji}} = \frac{\partial E_d}{\partial y_j}\frac{\partial y_j}{\partial net_j}\frac{\partial net_j}{\partial w_{ji}} = -(t_j - y_j)y_j(1 - y_j)x_{ji} = -\delta_j x_{ji} $$
+$$ \begin{aligned}
+    \frac{\partial E_d}{\partial net_{j_n}} & = \sum_{j_o}\frac{\partial E_d}{\partial net_{j_o}}\frac{\partial net_{j_o}}{\partial net_{j_n}} \\\\
+    & = \sum_{j_o} -\delta_{j_o} w_{j_oj_n} y_{j_n} (1 - y_{j_n}) \\\\
+    & = y_{j_n} (1 - y_{j_n}) \sum_{j_o} -\delta_{j_o} w_{j_oj_n} \\\\
+    & = -\delta_{j_n}
+\end{aligned} $$
 
-所以输出层的 $ w_{ji} $ 训练规则为：
+##### 递推到第 $ n - k $ 层
 
-$$ w_{ji} \leftarrow w_{ji} - \eta\frac{\partial E_d}{\partial w_{ji}} = w_{ji} + \eta \delta_j x_{ji} $$
+$$ \frac{\partial E_d}{\partial w_{j_{n-k}i}} = \frac{\partial E_d}{\partial net_{j_{n-k}}}\frac{\partial net_{j_{n-k}}}{\partial w_{j_{n-k}i}} = -\delta_{j_{n - k}}x_{j_{n - k}i} $$
+
+其中
+
+$$ \delta_{j_{n - k}} =  y_{j_{n - k}} (1 - y_{j_{n - k}}) \sum_{j_{n - k + 1}} \delta_{j_{n - k + 1}} w_{j_{n - k + 1}j_{n - k}} $$
