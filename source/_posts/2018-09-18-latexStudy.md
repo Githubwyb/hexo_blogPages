@@ -24,6 +24,8 @@ categories: [notes, study]
 - 累加算子`$ \Sigma $`: $ \Sigma $
 - 梯度算子`$ \nabla $`: $ \nabla $
 - 偏导算子`$ \partial $`: $ \partial $
+- 属于`$ \in $`: $ \in $
+- 无穷`$ \infty $`: $ \infty $
 
 ## 空格
 
@@ -126,6 +128,16 @@ $$ log_A{B} $$
 - 不加大括号 $ \sum\limits_N^na $
 - 不加大括号 $ \sum\limits_Nb^na $
 - 加大括号 $ \sum\limits_{Nb}^{na} $
+
+## 最小值下方加参数
+
+```latex
+    $$ \min\limits_{w \in W} $$
+```
+
+效果
+
+$$ \min\limits_{w \in W} $$
 
 ## 矩阵
 

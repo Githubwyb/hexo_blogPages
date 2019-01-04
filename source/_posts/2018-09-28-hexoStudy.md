@@ -158,7 +158,7 @@ categories: [notes, study]
 
 修改`_config.xml`文件即可
 
-#### 注意事项
+#### <span id = "latex">注意事项</span>
 
 ##### 1. 表格中不能使用`\|`，需要使用latex中的`\mid`来代替
 
@@ -179,3 +179,49 @@ categories: [notes, study]
 | 使用`\mid` | a $ \mid $ b      |
 
 ##### 2. latex公式在hexo中不能写注释，并且换行使用`\\`无效，需要使用`\\\\`，大括号需要使用`\\{`才可使用
+
+# 注意事项
+
+## 1. [latex注意事项](#latex)
+
+## 2. 表格相关
+
+表格使用markdown无法合并单元格，如果使用html标签来写，需要写到一行中，否则会出现大段空行
+
+```markdown
+    # 没有空行
+    <table><tr><th>姓名</th><td>Bill Gates</td></tr><tr><th rowspan="2">电话</th><td>555 77 854</td></tr><tr><td>555 77 855</td></tr></table>
+
+    # 大段空行
+    <table>
+        <tr>
+            <th>姓名</th>
+            <td>Bill Gates</td>
+        </tr>
+        <tr>
+            <th rowspan="2">电话</th>
+            <td>555 77 854</td>
+        </tr>
+        <tr>
+            <td>555 77 855</td>
+        </tr>
+    </table>
+```
+
+效果
+
+<table><tr><th>姓名</th><td>Bill Gates</td></tr><tr><th rowspan="2">电话</th><td>555 77 854</td></tr><tr><td>555 77 855</td></tr></table>
+
+<table>
+    <tr>
+        <th>姓名</th>
+        <td>Bill Gates</td>
+    </tr>
+    <tr>
+        <th rowspan="2">电话</th>
+        <td>555 77 854</td>
+    </tr>
+    <tr>
+        <td>555 77 855</td>
+    </tr>
+</table>
