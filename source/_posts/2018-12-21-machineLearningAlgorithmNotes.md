@@ -190,7 +190,7 @@ $$ w_{ji} = w_{ji} - \eta\frac{\partial E_d}{\partial w_{ji}} $$
 $$ \begin{aligned}
     net & = w \cdot x \\\\
     y & = sigmoid(net) \\\\
-    \delta_j & = (t_j - y_j)y_j(1 - y_j) \\\\
+    \delta_j & = -\frac{\partial E_d}{\partial net_j} \\\\
     j & ，神经元输出第j维 \\\\
     i & ，神经元输入第i维 \\\\
     k & ，神经网络隐藏层第k层 \\\\

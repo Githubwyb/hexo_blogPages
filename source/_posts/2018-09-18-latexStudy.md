@@ -83,7 +83,7 @@ $$ f(z) = \left\\{\begin{array}{ll}
     0 & otherwise
 \end{array}\right. $$
 
-## 公式推导换行
+## 公式推导换行等号对齐
 
 ```latex
     $$ \begin{aligned}
@@ -96,6 +96,26 @@ $$ \begin{aligned}
     f(x) & = (x + 1)^2 \\\\
     & = x^2 + 2x + 1
 \end{aligned} $$
+
+## 公式编号
+
+```latex
+    % 手动编号，一个块级公式只能用一个tag
+    $$ x = (tp_1, tp_2, ..., tp_{N - 1}, tp_N), \tag{1}$$
+    $$ y = (0, 1, ..., 0, 0), \tag{2}$$
+
+    % 自动编号
+    $$\begin{equation}
+    x^n+y^n=z^n
+    \end{equation}$$
+```
+
+$$ x = (tp_1, tp_2, ..., tp_{N - 1}, tp_N), \tag{1}$$
+$$ y = (0, 1, ..., 0, 0), \tag{2}$$
+
+$$\begin{equation}
+    x^n+y^n=z^n
+\end{equation}$$
 
 ## log函数
 
