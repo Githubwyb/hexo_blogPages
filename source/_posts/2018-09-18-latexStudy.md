@@ -26,6 +26,8 @@ categories: [notes, study]
 - 偏导算子`$ \partial $`: $ \partial $
 - 属于`$ \in $`: $ \in $
 - 无穷`$ \infty $`: $ \infty $
+- 任意`$ \forall $`: $ \forall $
+- 约等于`$ \approx $`: $ \approx $
 
 ## 空格
 
