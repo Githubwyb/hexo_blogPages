@@ -28,6 +28,8 @@ categories: [notes, study]
 - 无穷`$ \infty $`: $ \infty $
 - 任意`$ \forall $`: $ \forall $
 - 约等于`$ \approx $`: $ \approx $
+- 因为`$ \because $`: $ \because $
+- 所以`$ \therefore $`: $ \therefore $
 
 ## 空格
 
