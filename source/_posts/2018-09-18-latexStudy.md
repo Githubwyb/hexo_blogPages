@@ -20,28 +20,29 @@ categories: [notes, study]
 
 ### 常用数学符号
 
-- `$ \sigma $`: $ \sigma $
-- 累加算子`$ \Sigma $`: $ \Sigma $
-- 梯度算子`$ \nabla $`: $ \nabla $
-- 偏导算子`$ \partial $`: $ \partial $
-- 属于`$ \in $`: $ \in $
-- 无穷`$ \infty $`: $ \infty $
-- 任意`$ \forall $`: $ \forall $
-- 约等于`$ \approx $`: $ \approx $
-- 因为`$ \because $`: $ \because $
-- 所以`$ \therefore $`: $ \therefore $
+- `$\sigma$`: $\sigma$
+- 累加算子`$\Sigma$`: $\Sigma$
+- 梯度算子`$\nabla$`: $\nabla$
+- 偏导算子`$\partial$`: $\partial$
+- 属于`$\in$`: $\in$
+- 无穷`$\infty$`: $\infty$
+- 任意`$\forall$`: $\forall$
+- 约等于`$\approx$`: $\approx$
+- 因为`$\because$`: $\because$
+- 所以`$\therefore$`: $\therefore$
+- 字母右上角一撇`$a^{\prime}$`: $a^{\prime}$
 
 ## 空格
 
-| 描述         | 代码       | 效果           | 宽度         |
-| ------------ | ---------- | -------------- | ------------ |
-| 两个quad空格 | a \\qquad b | $ a \\qquad b $ | 两个m的宽度  |
-| quad空格     | a \\quad b  | $ a \\quad b $  | 一个m的宽度  |
-| 大空格       | a\\ b       | $ a\\ b $       | 1/3m宽度     |
-| 中等空格     | a\\;b       | $ a\\;b $       | 2/7m宽度     |
-| 小空格       | a\\,b       | $ a\\,b $       | 1/6m宽度     |
-| 没有空格     | ab         | $ ab $         |              |
-| 紧贴         | a\\!b       | $ a\\!b $       | 缩进1/6m宽度 |
+| 描述         | 代码        | 效果          | 宽度         |
+| ------------ | ----------- | ------------- | ------------ |
+| 两个quad空格 | a \\qquad b | $a \\qquad b$ | 两个m的宽度  |
+| quad空格     | a \\quad b  | $a \\quad b$  | 一个m的宽度  |
+| 大空格       | a\\ b       | $a\\ b$       | 1/3m宽度     |
+| 中等空格     | a\\;b       | $a\\;b$       | 2/7m宽度     |
+| 小空格       | a\\,b       | $a\\,b$       | 1/6m宽度     |
+| 没有空格     | ab          | $ab$          |              |
+| 紧贴         | a\\!b       | $a\\!b$       | 缩进1/6m宽度 |
 
 ## 乘方
 
