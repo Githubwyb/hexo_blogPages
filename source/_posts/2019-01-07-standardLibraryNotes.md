@@ -77,3 +77,28 @@ categories: [notes, study]
 #### 注意事项
 
 - 在上述实例中发现类没有被析构，这两个函数可以实现跳转但是不会检测类相关，所以类不会被析构
+
+# C++标准库
+
+## stack栈
+
+```C++
+    #include <stack>
+
+    using namespace std;
+
+    int main() {
+        stack<int> myStack;     //定义类型为int
+        myStack.push(10);       //入栈
+        myStack.push(50);       //入栈
+        int a = myStack.top();  //返回栈顶元素的引用，不会出栈
+        myStack.pop();          //出栈，void型
+        bool isEmpty = myStack.empty();         //是否为空
+        unsigned long size = myStack.size();    //栈的元素数量
+    }
+```
+
+### 注意事项
+
+- push()，实际上是调用的底层容器的push_back()函数，新元素的值是push函数参数的一个拷贝。
+- emplace()，实际上是调用的底层容器的emplace_back()函数，新元素的值是在容器内部就地构造的，不需要移动或者拷贝。
