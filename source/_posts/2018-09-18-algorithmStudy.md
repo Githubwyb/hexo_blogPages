@@ -473,11 +473,120 @@ Floyd-Warshall算法（Floyd-Warshall algorithm）是解决任意两点间的最
 
 ### 遍历
 
-#### 二叉树前序遍历
+#### 树的深度优先和广度优先遍历
 
-- 指先访问根，然后访问子树的遍历方式
+定义树结构
 
-<img src = "2019_02_22_05.png" width = "80%">
+<img src = "2019_02_27_10.png" width = "40%">
+
+##### 深度优先遍历
+
+深度优先遍历（Depth First Search），简称DFS，其原则是，沿着一条路径一直找到最深的那个节点，当没有子节点的时候，返回上一级节点，寻找其另外的子节点，继续向下遍历，没有就向上返回一级，直到所有的节点都被遍历到，每个节点只能访问一次。
+
+###### 算法步骤：
+
+使用栈的数据结构实现
+
+1. 首先将根节点1压入栈中【1】
+2. 将1节点弹出，找到1的两个子节点3，2，首先压入3节点，再压入2节点（后压入左节点的话，会先取出左节点，这样就保证了先遍历左节点），2节点再栈的顶部，最先出来【2，3】
+3. 弹出2节点，将2节点的两个子节点5，4压入【4，5，3】
+4. 弹出4节点，将4的子节点9，8压入【8，9，5，3】
+5. 弹出8，8没有子节点，不压入【9，5，3】
+6. 弹出9，9没有子节点，不压入【5，3】
+7. 弹出5，5有一个节点，压入10，【10，3】
+8. 弹出10，10没有节点，不压入【3】
+9. 弹出3，压入3的子节点7，6【6，7】
+10. 弹出6，没有子节点【7】
+11. 弹出7，没有子节点，栈为空【】，算法结束
+
+出栈顺序【1，2，4，8，9，5，10，3，6，7】
+
+```C++
+    #include <stack>
+    #include <memory>
+    #include <vector>
+
+    //树结构
+    typedef struct Node {
+        int value;
+        vector<shared_ptr<Node>> pChild;
+        weak_ptr<Node> pParent;
+    } Node;
+
+    //深度优先打印节点
+    void printNodesDeepFirst(const shared_ptr<Node> &node) {
+        stack<shared_ptr<Node>> myStack;
+        myStack.push(node);
+        while (myStack.size() > 0) {
+            shared_ptr<Node> pTmp = myStack.top();
+            myStack.pop();
+            PRINT("%d ", pTmp->value);
+            
+            //由于栈的后进先出特性，需要倒序使左节点先出
+            for (int i = pTmp->pChild.size(); i != 0; --i) {
+                myStack.push(pTmp->pChild[i - 1]);
+            }
+        }
+        PRINT("\r\n");
+    }
+```
+
+##### 广度优先遍历
+
+广度优先遍历（Breadth First Search），简称BFS；广度优先遍历的原则就是对每一层的节点依次访问，一层访问结束后，进入下一层，直到最后一个节点，同样的，每个节点都只访问一次。
+
+###### 算法步骤：
+
+使用队列的数据结构实现
+
+1. 节点1，插入队列【1】
+2. 取出节点1，插入1的子节点2，3 ，节点2在队列的前端【2，3】
+3. 取出节点2，插入2的子节点4，5，节点3在队列的最前端【3，4，5】
+4. 取出节点3，插入3的子节点6，7，节点4在队列的最前端【4，5，6，7】
+5. 取出节点4，插入3的子节点8，9，节点5在队列的最前端【5，6，7，8，9】
+6. 取出节点5，插入5的子节点10，节点6在队列的最前端【6，7，8，9，10】
+7. 取出节点6，没有子节点，不插入，节点7在队列的最前端【7，8，9，10】
+8. 取出节点7，没有子节点，不插入，节点8在队列的最前端【8，9，10】
+9. 取出节点8，没有子节点，不插入，节点9在队列的最前端【9，10】
+10. 取出节点9，没有子节点，不插入，节点10在队列的最前端【10】
+11. 取出节点10，队列为空，算法结束
+
+我们看一下节点出队的顺序【1，2，3，4，5，6，7，8，9，10】
+
+```C++
+    #include <queue>
+    #include <memory>
+    #include <vector>
+
+    //树结构
+    typedef struct Node {
+        int value;
+        vector<shared_ptr<Node>> pChild;
+        weak_ptr<Node> pParent;
+    } Node;
+
+    //广度优先打印节点
+    void printNodesWidthFirst(const shared_ptr<Node> &node) {
+        queue<shared_ptr<Node>> myQueue;
+        myQueue.push(node);
+        while (myQueue.size() > 0) {
+            shared_ptr<Node> pTmp = myQueue.front();
+            myQueue.pop();
+            PRINT("%d ", pTmp->value);
+
+            for (auto tmp : pTmp->pChild) {
+                myQueue.push(tmp);
+            }
+        }
+        PRINT("\r\n");
+    }
+```
+
+#### 二叉树前中后序遍历
+
+- 前序遍历指先访问根，然后访问子树的遍历方式
+
+<img src = "2019_02_22_05.png" width = "40%">
 
 ```C
     void in_order_traversal(TreeNode *root) {
@@ -489,11 +598,9 @@ Floyd-Warshall算法（Floyd-Warshall algorithm）是解决任意两点间的最
     }
 ```
 
-#### 二叉树中序遍历
+- 中序遍历指先访问左（右）子树，然后访问根，最后访问右（左）子树的遍历方式
 
-- 指先访问左（右）子树，然后访问根，最后访问右（左）子树的遍历方式
-
-<img src = "2019_02_22_06.png" width = "80%">
+<img src = "2019_02_22_06.png" width = "40%">
 
 ```C
     void in_order_traversal(TreeNode *root) {
@@ -505,11 +612,9 @@ Floyd-Warshall算法（Floyd-Warshall algorithm）是解决任意两点间的最
     }
 ```
 
-#### 二叉树后序遍历
+- 后序遍历指先访问子树，然后访问根的遍历方式
 
-- 指先访问子树，然后访问根的遍历方式
-
-<img src = "2019_02_22_07.png" width = "80%">
+<img src = "2019_02_22_07.png" width = "40%">
 
 ```C
     void in_order_traversal(TreeNode *root) {
