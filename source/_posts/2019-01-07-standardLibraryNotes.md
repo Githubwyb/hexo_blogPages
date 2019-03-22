@@ -7,6 +7,25 @@ categories: [notes, study]
 
 # C标准库
 
+## string.h
+
+### 初始化函数 memset()
+
+```C
+    #include <string.h>
+
+    /*
+     * @description 将n bytes起始地址为s的内存全部初始化为c
+     * @param __s 初始化地址
+     * @param __c 初始化的值
+     * @param __n 初始化的大小
+     * @return __s的地址
+     */
+    void *memset (void *__s, int __c, size_t __n);
+```
+
+**函数是按byte(8 bits)进行初始化的，每个字节均会被初始化为__c取前八位的值。**
+
 ## setjmp
 
 ### 非局部跳转函数 setjmp()/longjmp()
