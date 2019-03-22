@@ -1,5 +1,5 @@
 ---
-title: Operation DustySky文档翻译----网安组任务
+title: Operation DustySky文档翻译
 date: 2019-03-01 15:46:33
 tags: [source]
 categories: [notes, work]
