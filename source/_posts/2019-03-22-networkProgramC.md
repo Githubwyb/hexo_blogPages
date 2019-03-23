@@ -100,26 +100,26 @@ __addr 指向要绑定给sockfd的协议地址
     struct in_addr {
         uint32_t       s_addr;     /* address in network byte order */
     };
-    
-    //ipv6取值 
-    struct sockaddr_in6 { 
-        sa_family_t     sin6_family;   /* AF_INET6 */ 
-        in_port_t       sin6_port;     /* port number */ 
-        uint32_t        sin6_flowinfo; /* IPv6 flow information */ 
-        struct in6_addr sin6_addr;     /* IPv6 address */ 
-        uint32_t        sin6_scope_id; /* Scope ID (new in 2.4) */ 
+
+    //ipv6取值
+    struct sockaddr_in6 {
+        sa_family_t     sin6_family;   /* AF_INET6 */
+        in_port_t       sin6_port;     /* port number */
+        uint32_t        sin6_flowinfo; /* IPv6 flow information */
+        struct in6_addr sin6_addr;     /* IPv6 address */
+        uint32_t        sin6_scope_id; /* Scope ID (new in 2.4) */
     };
 
-    struct in6_addr { 
-        unsigned char   s6_addr[16];   /* IPv6 address */ 
+    struct in6_addr {
+        unsigned char   s6_addr[16];   /* IPv6 address */
     };
-    
-    //Unix取值 
+
+    //Unix取值
     #define UNIX_PATH_MAX    108
 
-    struct sockaddr_un { 
-        sa_family_t sun_family;               /* AF_UNIX */ 
-        char        sun_path[UNIX_PATH_MAX];  /* pathname */ 
+    struct sockaddr_un {
+        sa_family_t sun_family;               /* AF_UNIX */
+        char        sun_path[UNIX_PATH_MAX];  /* pathname */
     };
 ```
 
@@ -159,7 +159,7 @@ __addr 指向要绑定给sockfd的协议地址
      * @param __n 等待连接的队列长度
      * @return 0，成功；-1，错误，原因存于errno
      */
-    
+
 ```
 
 # 网络编程工具函数
@@ -169,13 +169,10 @@ __addr 指向要绑定给sockfd的协议地址
 ```C
     #include <netinet/in.h>
 
-    extern uint32_t ntohl (uint32_t __netlong) __THROW __attribute__ ((__const__));
-    extern uint16_t ntohs (uint16_t __netshort)
-        __THROW __attribute__ ((__const__));
-    extern uint32_t htonl (uint32_t __hostlong)
-        __THROW __attribute__ ((__const__));
-    extern uint16_t htons (uint16_t __hostshort)
-        __THROW __attribute__ ((__const__));
+    uint32_t ntohl (uint32_t __netlong);
+    uint16_t ntohs (uint16_t __netshort);
+    uint32_t htonl (uint32_t __hostlong);
+    uint16_t htons (uint16_t __hostshort);
 ```
 
 ## <span id = "networkAddress">网络地址转换 in_addr_t和char *</span>
