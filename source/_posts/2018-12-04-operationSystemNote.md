@@ -270,6 +270,9 @@ categories: [notes, study]
     int shmget(key_t key, size_t size, int shmflg)
 
     errno               //错误码
+
+    #include <string.h>
+    
     strerror(errno)     //错误信息字符串
 ```
 
