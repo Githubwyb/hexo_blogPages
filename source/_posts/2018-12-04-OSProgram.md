@@ -1,5 +1,5 @@
 ---
-title: 操作系统笔记（C语言）
+title: 操作系统编程笔记（C语言）
 date: 2018-12-04 16:57:43
 tags: 
 categories: [Program, C/C++]
