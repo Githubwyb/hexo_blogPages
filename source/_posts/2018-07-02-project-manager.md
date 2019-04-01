@@ -1,8 +1,8 @@
 ---
 title: 项目管理笔记
 date: 2018-07-02 19:58:27
-tags: [project]
-categories: [notes, work]
+tags: 
+categories: [Work]
 ---
 
 # 团队凝聚力

@@ -1,8 +1,8 @@
 ---
 title: 面试可以问的问题
 date: 2018-10-10 20:10:20
-tags: [面试, question]
-categories: [notes, work]
+tags: 
+categories: [Work]
 ---
 
 # 性格

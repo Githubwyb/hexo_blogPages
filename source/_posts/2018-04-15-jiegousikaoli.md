@@ -1,8 +1,8 @@
 ---
 title: 结构思考力
 date: 2018-04-15 09:31:02
-tags: [点石创校]
-categories: [notes, course]
+tags: [讲座笔记]
+categories: [Knowledge, Course]
 ---
 
 思考更清晰、表达更有力

@@ -1,8 +1,8 @@
 ---
 title: 标准库函数记录
 date: 2019-01-07 14:35:37
-tags: [C/C++]
-categories: [notes, study]
+tags: 
+categories: [Program, C/C++]
 ---
 
 # C标准库

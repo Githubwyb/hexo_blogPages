@@ -1,8 +1,8 @@
 ---
 title: 快捷键记录
 date: 2018-10-16 10:03:38
-tags: [shortcuts]
-categories: [notes, work]
+tags: 
+categories: [Software Usage, Shortcut]
 ---
 
 # 软件快捷键

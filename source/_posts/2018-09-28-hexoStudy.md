@@ -1,8 +1,8 @@
 ---
 title: hexo搭建中的学习笔记
 date: 2018-09-28 17:06:17
-tags: [hexo]
-categories: [notes, study]
+tags: 
+categories: [Program, Document]
 ---
 
 # 安装

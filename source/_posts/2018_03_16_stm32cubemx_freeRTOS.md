@@ -1,8 +1,8 @@
 ---
 title: stm32cubemx使用freertos的介绍
 date: 2018-03-30 11:17:54
-tags: [软件, 使用教程, stm32cubemx, freertos]
-categories: [technology]
+tags: [单片机]
+categories: [Software Usage, Stm32cubemx]
 top: true
 ---
 

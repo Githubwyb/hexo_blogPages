@@ -1,8 +1,8 @@
 ---
 title: 论文翻译——毕设任务
 date: 2018-12-27 15:15:49
-tags: [reading]
-categories: [notes, reading]
+tags: 
+categories: [Knowledge, Book]
 ---
 
 # 抬头

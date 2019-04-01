@@ -1,8 +1,8 @@
 ---
 title: 读书笔记————市场营销学第七版
 date: 2018-10-31 20:07:08
-tags: [reading]
-categories: [notes, reading]
+tags: 
+categories: [Knowledge, Book]
 ---
 
 # 市场营销原理第七版

@@ -1,8 +1,8 @@
 ---
 title: 算法与数据结构学习
 date: 2018-09-18 15:07:21
-tags: [algorithm]
-categories: [notes, study]
+tags: [算法]
+categories: [Knowledge, Study]
 top: true
 ---
 

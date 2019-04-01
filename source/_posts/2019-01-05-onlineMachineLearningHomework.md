@@ -1,8 +1,8 @@
 ---
 title: 在线机器学习作业
 date: 2019-01-05 10:30:36
-tags: [homework, AI]
-categories: [homework]
+tags: 
+categories: [Knowledge, Course]
 ---
 
 # Homework 1

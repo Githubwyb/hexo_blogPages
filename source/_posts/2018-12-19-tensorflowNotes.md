@@ -1,8 +1,8 @@
 ---
 title: tensorflow学习笔记
 date: 2018-12-19 14:00:46
-tags: [python, AI]
-categories: [notes, study]
+tags: 
+categories: [Program, Python]
 ---
 
 # TensorFlow是什么

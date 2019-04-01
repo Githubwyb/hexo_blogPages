@@ -1,8 +1,8 @@
 ---
 title: 计算机网络学习
 date: 2018-09-28 11:30:07
-tags: [network]
-categories: [notes, study]
+tags: [网络]
+categories: [Knowledge, Study]
 ---
 
 # 网络OSI七层模型

@@ -1,8 +1,8 @@
 ---
 title: 火柴人成长之路
 date: 2018-04-07 14:28:56
-tags: [点石创校]
-categories: [notes, course]
+tags: [讲座笔记]
+categories: [Knowledge, Course]
 ---
 
 讲课老师: 唐德华顾问

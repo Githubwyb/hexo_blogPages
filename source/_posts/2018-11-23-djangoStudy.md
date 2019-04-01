@@ -1,8 +1,8 @@
 ---
 title: Django框架学习
 date: 2018-11-23 16:42:23
-tags: [python, web]
-categories: [notes, study]
+tags: 
+categories: [Program, Python]
 ---
 
 # 安装

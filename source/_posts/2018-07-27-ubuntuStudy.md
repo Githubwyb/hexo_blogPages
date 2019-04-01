@@ -1,8 +1,8 @@
 ---
 title: ubuntu学习
 date: 2018-07-27 20:58:22
-tags: [linux]
-categories: [notes, study]
+tags: [Linux]
+categories: [Program, Shell]
 ---
 
 # 解决依赖关系

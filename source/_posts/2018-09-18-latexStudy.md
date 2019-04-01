@@ -1,8 +1,8 @@
 ---
 title: latex笔记
 date: 2018-09-18 15:16:39
-tags: [latex]
-categories: [notes, study]
+tags: 
+categories: [Program, Document]
 ---
 
 # markdown中的latex

@@ -1,8 +1,8 @@
 ---
 title: p2p协议资料收集
 date: 2019-03-13 14:05:29
-tags: [source]
-categories: [notes, work]
+tags: [网络]
+categories: [Knowledge, Study]
 ---
 
 # 常见p2p协议

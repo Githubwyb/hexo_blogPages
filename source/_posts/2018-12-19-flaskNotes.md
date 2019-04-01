@@ -1,8 +1,8 @@
 ---
 title: Flask学习笔记
 date: 2018-12-19 14:44:00
-tags: [python, web]
-categories: [notes, study]
+tags: 
+categories: [Program, Python]
 ---
 
 # Flask是什么

@@ -1,8 +1,8 @@
 ---
 title: 在线机器学习作业解答
 date: 2019-01-11 09:27:18
-tags: [homework, AI]
-categories: [homework]
+tags: 
+categories: [Knowledge, Course]
 ---
 
 # Homework 1

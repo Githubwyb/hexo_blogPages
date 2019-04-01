@@ -1,8 +1,8 @@
 ---
 title: python学习笔记
 date: 2018-09-16 13:17:51
-tags: [python]
-categories: [notes, study]
+tags: 
+categories: [Program, Python]
 top: true
 ---
 

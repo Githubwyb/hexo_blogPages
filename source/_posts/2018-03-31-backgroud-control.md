@@ -1,8 +1,8 @@
 ---
 title: 场控注意事项
 date: 2018-03-31 13:15:43
-tags: [场控]
-categories: [notes, work]
+tags: 
+categories: [Work]
 ---
 
 # 操作步骤

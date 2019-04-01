@@ -1,8 +1,8 @@
 ---
 title: zsh配置记录
 date: 2018-10-25 13:18:21
-tags: [linux]
-categories: [notes, work]
+tags: [Linux]
+categories: [Program, Shell]
 ---
 
 # 安装zsh

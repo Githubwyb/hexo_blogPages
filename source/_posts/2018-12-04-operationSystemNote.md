@@ -1,8 +1,8 @@
 ---
 title: 操作系统笔记（C语言）
 date: 2018-12-04 16:57:43
-tags: [os, C/C++]
-categories: [notes, study]
+tags: 
+categories: [Program, C/C++]
 ---
 
 操作系统课程设计总结出来的笔记，源码见: https://github.com/Githubwyb/operation_system_homework

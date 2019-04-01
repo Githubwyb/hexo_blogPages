@@ -1,8 +1,8 @@
 ---
 title: markdown学习笔记
 date: 2018-10-08 14:37:39
-tags: [markdown]
-categories: [notes, study]
+tags: 
+categories: [Program, Document]
 ---
 
 # 写文档
