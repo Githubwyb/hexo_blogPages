@@ -1,11 +1,17 @@
 ---
 title: 快捷键记录
 date: 2018-10-16 10:03:38
-tags: 
+tags:
 categories: [Software Usage, Shortcut]
 ---
 
 # 软件快捷键
+
+## 文本基础快捷键
+
+| 按键               | 描述             |
+| ------------------ | ---------------- |
+| Ctrl + Shift + End | 当前位置向后全选 |
 
 ## vscode
 
