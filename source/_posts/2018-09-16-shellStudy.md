@@ -73,6 +73,12 @@ watch命令以周期性的方式执行给定的指令，指令输出以全屏方
     zip -r (filename.zip) (path)
 ```
 
+# 工具
+
+## 网络嗅探 nmap
+
+[nmap使用](https://baike.baidu.com/item/nmap/1400075?fr=aladdin)
+
 # 系统命令
 
 ## 修改卷标名称

@@ -15,6 +15,20 @@ categories: [Program, Document]
 
 ## 超链接
 
+### 链接写在文中
+
+代码
+
+```markdown
+    [我的博客](https://githubwyb.github.io/)
+```
+
+效果
+
+[我的博客](https://githubwyb.github.io/)
+
+### 链接写在文后
+
 代码
 
 ```markdown
