@@ -61,6 +61,16 @@ watch命令以周期性的方式执行给定的指令，指令输出以全屏方
     tail -f (fileName)
 ```
 
+## grep 查找文件内容
+
+### 查找目录下所有文件匹配对应字符串
+
+```shell
+    grep -r -n "test" ./
+```
+- `-r`遍历子目录
+- `-n`遍历行数
+
 ## 压缩和解压缩命令
 
 ### zip格式
@@ -80,5 +90,19 @@ watch命令以周期性的方式执行给定的指令，指令输出以全屏方
 分区为`ext2/ext3`类型使用
 
 ```shell
-    sudo e2label /dev/(partition) "(name)"
+    e2label /dev/(partition) "(name)"
 ```
+
+# 脚本语法
+
+## 函数调用
+
+```shell
+    abc() {
+        # ...
+    }
+
+    abc
+```
+
+函数调用不加括号
