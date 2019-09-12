@@ -13,6 +13,16 @@ categories: [Program, Document]
     &nbsp;
 ```
 
+## 删除线
+
+```markdown
+    ~~删除线~~
+```
+
+效果
+
+~~删除线~~
+
 ## 超链接
 
 ### 链接写在文中
