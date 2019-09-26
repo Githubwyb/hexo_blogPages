@@ -2,7 +2,7 @@
 title: 后台开发笔记
 date: 2019-03-29 14:34:51
 tags: 
-categories: [Knowledge, Study]
+categories: [Program, Web]
 ---
 
 # http header
@@ -426,3 +426,10 @@ There are too many connections from your internet address
 ### 600 Unparseable Response Headers
 
 源站没有返回响应头部，只返回实体内容。
+
+# 踩坑记
+
+## url编码
+
+- url在请求时，除了规定的格式中的符号，参数中的符号必须要转码
+- 例如get请求中的参数如果有特殊字符，需要使用一个在线转码工具转码才能上传，不然服务端解析会失败
