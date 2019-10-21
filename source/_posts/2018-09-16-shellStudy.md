@@ -103,11 +103,15 @@ watch命令以周期性的方式执行给定的指令，指令输出以全屏方
 
 参数-f是必须的
 
+```shell
+    -C: 解压到什么目录
+```
+
 #### 示例
 
 ```shell
-    tar -xzf xxx.tar.gz     # 解压tar.gz文件
-    tar -xzvf xxx.tar.gz    # 解压tar.gz文件显示过程
+    tar -xzf xxx.tar.gz             # 解压tar.gz文件
+    tar -xzvf xxx.tar.gz -C tmp     # 解压tar.gz文件显示过程，解压到tmp目录
 ```
 
 ### zip格式
@@ -119,6 +123,14 @@ watch命令以周期性的方式执行给定的指令，指令输出以全屏方
 ```shell
     zip -r (filename.zip) (path)
 ```
+
+#### 解压
+
+```shell
+    unzip (filename.zip) -d (path)
+```
+
+- 不加`-d`就解压到当前目录
 
 # 工具
 

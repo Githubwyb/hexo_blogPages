@@ -433,3 +433,8 @@ There are too many connections from your internet address
 
 - url在请求时，除了规定的格式中的符号，参数中的符号必须要转码
 - 例如get请求中的参数如果有特殊字符，需要使用一个在线转码工具转码才能上传，不然服务端解析会失败
+
+## 备份
+
+- 大的逻辑改动一定要备份
+- 环境初始状态要备份
