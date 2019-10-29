@@ -5,7 +5,7 @@ tags:
 categories: [Knowledge, Study]
 ---
 
-# 1. 二维数组查找
+# 二维数组查找
 
 ## 题目
 
@@ -24,16 +24,16 @@ n<=39
 
 ## 思路
 
-### 2.1. 硬解
+### 硬解
 
 保存前一次和前前一次，一步一步算
 
-### 2.2. 递归
+### 递归
 
 - 每次计算中直接调用自己的`n - 1`和`n - 2`的值
 - 防止递归过大，预留一个40的int数组，如果数组相应索引有值直接返回，没值递归算出保存返回
 
-### 2.3. 动态规划
+### 动态规划
 
 - 两个变量，g保存当前和前一次，f保存前一次和前两次
 - 计算方法
@@ -52,7 +52,7 @@ n<=39
     };
 ```
 
-# 3. 青蛙跳台阶
+# 青蛙跳台阶
 
 ## 题目
 
@@ -75,7 +75,7 @@ $$f(0) = 0, f(1) = 1，f(2) = 2$$
 
 分析可以看出和[斐波那切数列输出](#H2)除了初始值基本一致
 
-# 4. 两个栈实现队列
+# 两个栈实现队列
 
 ## 题目
 
@@ -119,7 +119,7 @@ $$f(0) = 0, f(1) = 1，f(2) = 2$$
     };
 ```
 
-# 5. 旋转数组查找最小值
+# 旋转数组查找最小值
 
 ## 题目
 
@@ -167,7 +167,7 @@ NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。
     };
 ```
 
-# 6. 变态跳台阶的问题
+# 变态跳台阶的问题
 
 ## 题目
 
@@ -177,3 +177,47 @@ NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。
 
 - 数学统计题，$f(n) = f(n - 1) + f(n - 2) + ... + f(1) + 1 = 2^{n - 1}$
 - 使用`1 << (number - 1)`计算2的`n - 1`次冪更快
+
+# 重建二叉树
+
+## 问题
+
+输入某二叉树的前序遍历和中序遍历的结果，请重建出该二叉树。假设输入的前序遍历和中序遍历的结果中都不含重复的数字。例如输入前序遍历序列{1,2,4,7,3,5,6,8}和中序遍历序列{4,7,2,1,5,3,8,6}，则重建二叉树并返回。
+
+## 思路
+
+- 中序遍历的头结点左边为左子树，右边为右子树
+- 前序遍历第一个为头结点
+- 两个结合，找到头结点在中序遍历中的位置，左边递归出来为左子树，右边递归出来为右子树
+
+```C++
+    class Solution {
+    public:
+        static TreeNode* reConstructBinaryTree(vector<int> pre,vector<int> vin) {
+            if (pre.size() != vin.size()) {
+                return nullptr;
+            }
+            return reConstructBinaryTree(pre.begin().base(), vin.begin().base(), pre.size());
+        }
+
+    private:
+        static TreeNode* reConstructBinaryTree(const int *pre, const int *vin, int size) {
+            if (size == 0) {
+                return nullptr;
+            }
+
+            //头结点从pre第一个取
+            auto head = new TreeNode(pre[0]);
+            //找到和vin中和pre[0]相等的点，左边为左子树，右边为右子树
+            for (int i = 0; i < size; ++i) {
+                if (vin[i] == pre[0]) {
+                    head->left = reConstructBinaryTree(pre + 1, vin, i);
+                    head->right = reConstructBinaryTree(pre + i + 1, vin + i + 1, size - i - 1);
+                    break;
+                }
+            }
+
+            return head;
+        }
+    };
+```
