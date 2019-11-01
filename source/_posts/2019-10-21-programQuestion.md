@@ -15,7 +15,7 @@ categories: [Knowledge, Study]
 
 从右侧最上方开始，查到小于后，竖着找大于的，然后横着，直到数组溢出或者找到为止
 
-# <span id = "H2">2. 斐波那切数列输出</span>
+# <span id = "H2">斐波那切数列输出</span>
 
 ## 题目
 
@@ -38,7 +38,7 @@ n<=39
 - 两个变量，g保存当前和前一次，f保存前一次和前两次
 - 计算方法
 
-```C++
+```c++
     class Solution {
     public:
         int Fibonacci(int n) {
@@ -52,7 +52,7 @@ n<=39
     };
 ```
 
-# 青蛙跳台阶
+# <span id = "H4">青蛙跳台阶</span>
 
 ## 题目
 
@@ -132,7 +132,7 @@ NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。
 
 - 数组旋转后，最小值为分界点的值，利用二分查找方式最快到达最小值输出。
 
-```C++
+```c++
     class Solution {
     public:
         int minNumberInRotateArray(vector<int> rotateArray) {
@@ -176,7 +176,7 @@ NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。
 ## 思路
 
 - 数学统计题，$f(n) = f(n - 1) + f(n - 2) + ... + f(1) + 1 = 2^{n - 1}$
-- 使用`1 << (number - 1)`计算2的`n - 1`次冪更快
+- 使用`1 << (number - 1)`计算2的`n - 1`次幂更快
 
 # 重建二叉树
 
@@ -190,7 +190,7 @@ NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。
 - 前序遍历第一个为头结点
 - 两个结合，找到头结点在中序遍历中的位置，左边递归出来为左子树，右边递归出来为右子树
 
-```C++
+```c++
     class Solution {
     public:
         static TreeNode* reConstructBinaryTree(vector<int> pre,vector<int> vin) {
@@ -218,6 +218,234 @@ NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。
             }
 
             return head;
+        }
+    };
+```
+
+# 链表倒数第k个值
+
+## 题目
+
+输入一个链表，输出该链表中倒数第k个结点。
+
+## 思路
+
+- 两个指针，一个比另一个先走k步，直到遍历完整个链表返回第二个指针
+
+# 链表翻转
+
+## 题目
+
+输入一个链表，反转链表后，输出新链表的表头。
+
+## 思路
+
+- 三个指针，一个遍历，一个翻转next，一个保存前一个节点
+
+```c++
+    class Solution {
+    public:
+        static ListNode* ReverseList(ListNode* pHead) {
+            ListNode *p1 = nullptr;     //跟在后面翻转next的指针
+            ListNode *p2 = nullptr;     //保存前一次
+
+            while (pHead != nullptr) {
+                p2 = p1;
+                p1 = pHead;
+                pHead = pHead->next;
+                p1->next = p2;
+            }
+            
+            return p1;
+        }
+    };
+```
+
+# 矩形覆盖
+
+## 问题
+
+我们可以用2*1的小矩形横着或者竖着去覆盖更大的矩形。请问用n个2*1的小矩形无重叠地覆盖一个2*n的大矩形，总共有多少种方法？
+
+## 思路
+
+- 分析一下，相当于[青蛙跳台阶](#H4)，竖着放就是跳一阶，横着放就是跳两阶
+
+
+# 调整数组中奇数位于偶数前面
+
+## 题目
+
+输入一个整数数组，实现一个函数来调整该数组中数字的顺序，使得所有的奇数位于数组的前半部分，所有的偶数位于数组的后半部分，并保证奇数和奇数，偶数和偶数之间的相对位置不变。
+
+## 思路
+
+### 硬解
+
+- 查找到第一个偶数和后面第一个奇数
+- 将中间的偶数后移一位，奇数前移到偶数的位置
+- 编译直到完成
+
+### 另加队列
+
+- 遍历，偶数放入新队列，奇数前移
+- 遍历完后拷贝新队列到老队列最后一个奇数后面
+
+```c++
+    class Solution {
+    public:
+        static void reOrderArray(vector<int> &array) {
+            vector<int> Odd;     //偶数队列
+            int size = array.size();
+            int j = 0;              //保存最后待放偶数的位置
+            for (int i = 0; i < size; ++i) {
+                if ((array[i] % 2) == 0) {
+                    //偶数加到新队列
+                    Odd.emplace_back(array[i]);
+                    continue;
+                }
+
+                if (i != j) {
+                    //奇数前移
+                    array[j] = array[i];
+                }
+
+                ++j;
+            }
+
+            memcpy(array.begin().base() + j, Odd.begin().base(), Odd.size() * sizeof(int));
+        }
+    };
+```
+
+### 标准库 stable_partition
+
+```c++
+    class Solution {
+    public:
+        static void reOrderArray(vector<int> &array) {
+            // 奇数放前面，偶数放后面，两边分别的相对位置保持不变
+            stable_partition(array.begin(), array.end(),
+                                [](const int &value) { return (value % 2 == 1); });
+        }
+    };
+```
+
+# 数值的整数次幂
+
+## 题目
+
+给定一个double类型的浮点数base和int类型的整数exponent。求base的exponent次方。
+保证base和exponent不同时为0
+
+## 思路
+
+- 简单快速幂算法
+
+```c++
+    class Solution {
+    public:
+        static double Power(double base, int exponent) {
+            unsigned int tmp = abs(exponent);
+            double r = 1.0;
+            while (tmp) {
+                if (tmp & (unsigned) 1) {
+                    //对应位是1时，乘以base
+                    r *= base;
+                }
+                //tmp移位，base要平方
+                base *= base;
+                tmp >>= (unsigned) 1;
+            }
+            return exponent < 0 ? 1 / r : r;
+        }
+    };
+```
+
+# 合并两个排序的列表
+
+## 题目
+
+输入两个单调递增的链表，输出两个链表合成后的链表，当然我们需要合成后的链表满足单调不减规则。
+
+## 思路
+
+### 非递归版本
+
+```c++
+    class Solution {
+    public:
+        static ListNode *Merge(ListNode *pHead1, ListNode *pHead2) {
+            if (pHead1 == nullptr) {
+                return pHead2;
+            }
+
+            if (pHead2 == nullptr) {
+                return pHead1;
+            }
+
+            ListNode* result = nullptr;
+            if (pHead1->val < pHead2->val) {
+                result = pHead1;
+                pHead1 = pHead1->next;
+            } else {
+                result = pHead2;
+                pHead2 = pHead2->next;
+            }
+
+            ListNode* pTmp = result;
+            while (true) {
+                if (pHead1 == nullptr) {
+                    pTmp->next = pHead2;
+                    break;
+                }
+                
+                if (pHead2 == nullptr) {
+                    pTmp->next = pHead1;
+                    break;
+                }
+                
+                if (pHead1->val < pHead2->val) {
+                    pTmp->next = pHead1;
+                    pHead1 = pHead1->next;
+                } else {
+                    pTmp->next = pHead2;
+                    pHead2 = pHead2->next;
+                }
+                pTmp = pTmp->next;
+            }
+
+            return result;
+        }
+    };
+```
+
+### 递归版本
+
+- 合并链表选出较大的节点，下一跳时剩下两个链表再选
+
+```c++
+    class Solution {
+    public:
+        static ListNode *Merge(ListNode *pHead1, ListNode *pHead2) {
+            if (pHead1 == nullptr) {
+                return pHead2;
+            }
+
+            if (pHead2 == nullptr) {
+                return pHead1;
+            }
+
+            ListNode* result = nullptr;
+            if (pHead1->val < pHead2->val) {
+                result = pHead1;
+                result->next = Merge(pHead1->next, pHead2);
+            } else {
+                result = pHead2;
+                result->next = Merge(pHead2->next, pHead1);
+            }
+
+            return result;
         }
     };
 ```

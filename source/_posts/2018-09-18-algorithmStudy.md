@@ -50,7 +50,7 @@ $$ \sum_{i = 0}^{N}A^i = \frac{A^{N+1} - 1}{A - 1} $$
 
 <img src = "2018_09_26_02.gif" width = "80%" />
 
-```C++
+```c++
     /*
      * @function 用插入排序数组
      * @param data 数组首地址
@@ -82,7 +82,7 @@ $$ \sum_{i = 0}^{N}A^i = \frac{A^{N+1} - 1}{A - 1} $$
 
 <img src = "2018_09_26_03.gif" width = "80%" />
 
-```C++
+```c++
     /*
      * @function 用希尔增量的希尔排序数组
      * @param data 数组首地址
@@ -130,7 +130,7 @@ Dijkstra(迪杰斯特拉)算法是典型的单源最短路径算法，用于计�
 
 示例，自己写的，没有考虑内存和时间，改了一下，变成有向路径算法。无向路径可以使用上述U集作为while判断，减少循环次数
 
-```C++
+```c++
     #include "log.hpp"
 
     #include <iostream>
@@ -304,7 +304,7 @@ Floyd-Warshall算法（Floyd-Warshall algorithm）是解决任意两点间的最
 
 示例
 
-```C++
+```c++
     #include "log.hpp"
 
     #include <iostream>
@@ -501,7 +501,7 @@ Floyd-Warshall算法（Floyd-Warshall algorithm）是解决任意两点间的最
 
 出栈顺序【1，2，4，8，9，5，10，3，6，7】
 
-```C++
+```c++
     #include <stack>
     #include <memory>
     #include <vector>
@@ -553,7 +553,7 @@ Floyd-Warshall算法（Floyd-Warshall algorithm）是解决任意两点间的最
 
 我们看一下节点出队的顺序【1，2，3，4，5，6，7，8，9，10】
 
-```C++
+```c++
     #include <queue>
     #include <memory>
     #include <vector>
