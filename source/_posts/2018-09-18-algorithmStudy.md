@@ -473,7 +473,7 @@ Floyd-Warshall算法（Floyd-Warshall algorithm）是解决任意两点间的最
 
 ### 遍历
 
-#### 树的深度优先和广度优先遍历
+#### <span id = "treeSpan">树的深度优先和广度优先遍历</span>
 
 定义树结构
 
@@ -582,7 +582,7 @@ Floyd-Warshall算法（Floyd-Warshall algorithm）是解决任意两点间的最
     }
 ```
 
-#### 二叉树前中后序遍历
+#### <span id = "towTree">二叉树前中后序遍历</span>
 
 - 前序遍历指先访问根，然后访问子树的遍历方式
 
