@@ -478,10 +478,10 @@ NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。
 ### 递归版本
 
 - 二叉树遍历，前序和后序都行，做操作即可
-- 详见: [二叉树遍历](https://githubwyb.github.io/2018/09/18/2018-09-18-algorithmStudy/#towTree)
+- 详见: [二叉树遍历](/2018/09/18/2018-09-18-algorithmStudy/#towTree)
 
 ### 非递归版本
 
 - 进行广度优先遍历或者深度优先遍历
 - 弹出一个节点就交换其左右子树
-- 详见: [广度优先和深度优先遍历](https://githubwyb.github.io/2018/09/18/2018-09-18-algorithmStudy/#treeSpan)
+- 详见: [广度优先和深度优先遍历](/2018/09/18/2018-09-18-algorithmStudy/#treeSpan)
