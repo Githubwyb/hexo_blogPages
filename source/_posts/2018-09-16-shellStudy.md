@@ -17,10 +17,14 @@ categories: [Program, Shell]
 ## > 输出
 
 ```shell
-    ls ./ >a.text       # 正确输出到a.txt(覆盖)
-    ls ./ 2>a.txt       # 错误输出到a.txt(覆盖)
-    ls ./ >>a.text      # 正确输出到a.txt(追加)
-    ls ./ 2>>a.txt      # 错误输出到a.txt(追加)
+    ls ./ >a.text           # 正确输出到a.txt(覆盖)
+    ls ./ 1>a.text          # 正确输出到a.txt(覆盖)
+    ls ./ 2>a.txt           # 错误输出到a.txt(覆盖)
+    ls ./ 2>a.txt           # 错误输出到a.txt(覆盖)
+    ls ./ >a.txt 2>&1       # 标准输出和标准错误输出到a.txt(覆盖)
+    ls ./ &>a.txt           # 标准输出和标准错误输出到a.txt(覆盖)
+    # 追加使用>>
+    ls ./ >>a.text          # 正确输出到a.txt(追加)
 ```
 
 ## $ 意义
@@ -54,7 +58,8 @@ $1～n   # 添加到Shell的各参数值。$1是第1参数、$2是第2参数…
 ### 文件表达式
 
 ```shell
-    if [ -f file ]      # 如果文件存在
+    if [ -e file ]      # 如果文件或者目录存在，不管有没有权限
+    if [ -f file ]      # 如果文件是普通文件，不是目录或者设备文件
     if [ -d ...  ]      # 如果目录存在
     if [ -s file ]      # 如果文件存在且非空 
     if [ -r file ]      # 如果文件存在且可读

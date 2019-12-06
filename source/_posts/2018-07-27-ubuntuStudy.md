@@ -26,6 +26,12 @@ categories: [Program, Shell]
     sudo apt-mark unhold (pack)
 ```
 
+# 添加编码
+
+```shell
+    sudo dpkg-reconfigure locales   # 跟着步骤配一下自己需要的编码
+```
+
 # 安装中文输入法
 
 ## 1. 安装fcitx

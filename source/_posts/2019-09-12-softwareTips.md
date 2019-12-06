@@ -22,3 +22,13 @@ categories: [Software Usage]
 针对在内网环境下需要更新chrome需要下载离线包，官网下载为在线安装包，下载离线包的网址为，也就是在原本的网址上添加`?standalone=1`
 
 [https://www.google.cn/intl/zh-CN/chrome/?standalone=1](https://www.google.cn/intl/zh-CN/chrome/?standalone=1)
+
+# <span id = "tmux">tmux</span>
+
+## 快捷键
+
+- 工具特定命令前缀为`Ctrl + b`
+- `<方向键>`: 切换到相应窗口
+- `shift + "`: 纵向分屏
+- `shift + %`: 横向分屏
+- `Ctrl + <方向键>`: 朝相应方向移动边界
