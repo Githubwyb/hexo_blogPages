@@ -76,6 +76,27 @@ categories: [Program, C/C++]
 
 ## 线程锁
 
+- 初始化和销毁
+
+```C
+    #include <pthread.h>
+
+    /*
+     * @description 初始化锁
+     * @param mutex 线程互斥锁指针
+     * @param attr 互斥锁属性，可以传NULL使用默认值
+     * @return 0，成功；其他，错误码
+     */
+    int pthread_mutex_init(pthread_mutex_t *restrict mutex, const pthread_mutexattr_t *restrict attr);
+    
+    /*
+     * @description 销毁互斥锁
+     * @param mutex 线程互斥锁指针
+     * @return 0，成功；其他，错误码
+     */
+    int pthread_mutex_destroy(pthread_mutex_t *mutex);
+```
+
 - 上锁函数，被占用将阻塞线程
 
 ```C
