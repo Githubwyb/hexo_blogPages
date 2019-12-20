@@ -3,7 +3,7 @@ title: python学习笔记
 date: 2018-09-16 13:17:51
 tags: 
 categories: [Program, Python]
-top: true
+top: 1
 ---
 
 # 环境

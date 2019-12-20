@@ -35,6 +35,24 @@ categories: [Software Usage]
 
 # <span id = "ctags">ctags</span>
 
+## C/C++
+
+### 基本选项
+
+- `-I xxx`: 许多函数定义最后有一个`__THROW`类似的，ctags将解析出错，加上此选项会忽略xxx
+- `--fields=+iaS`: 
+- `--extra=+q`
+- `--c-kinds=+p`
+
+### 添加系统头文件支持
+
+- 执行以下命令生成系统头文件的tags
+- 添加`set tags+=~/.vim/systags`包含系统头文件tags
+
+```shell
+    ctags -I __wur -I __THROW -I __THROWNL -I __attribute_pure__ -I __nonnull -I __attribute__ --file-scope=yes --langmap=c:+.h --languages=c,c++ --links=yes --c-kinds=+p --c++-kinds=+p --fields=+iaS --extra=+q -f ~/.vim/systags /usr/include/* /usr/include/c++/* /usr/include/linux/*
+```
+
 ## php支持
 
 转载自 [https://www.cnblogs.com/longdouhzt/archive/2013/04/15/3022908.html](https://www.cnblogs.com/longdouhzt/archive/2013/04/15/3022908.html)
