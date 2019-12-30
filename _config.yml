@@ -95,3 +95,10 @@ symbols_count_time:
   time: true
   total_symbols: true
   total_time: true
+
+live2d:
+  enable: true
+  log: true
+  model:
+    use: live2d-widget-model-shizuku
+  bottom: -30
