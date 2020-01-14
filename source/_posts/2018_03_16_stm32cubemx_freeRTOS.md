@@ -19,4 +19,4 @@ top: true
 
 本文是在上一篇文章（[stm32cubemx配置介绍][1]）的基础上，利用freeRTOS的一些介绍，希望对想要了解或者使用freeRTOS的码友们提供帮助。本文只是自己在使用时的总结，仅供参考。
 
-[1]: http://localhost:4000/2018/03/30/2018_03_16_stm32cubemx_config/
+[1]: /2018/03/30/2018_03_16_stm32cubemx_config/
