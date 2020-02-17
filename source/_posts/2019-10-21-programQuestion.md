@@ -1,7 +1,7 @@
 ---
 title: 编程题思路记录
 date: 2019-10-21 10:54:51
-tags: 
+tags:
 categories: [Knowledge, Study]
 ---
 
@@ -255,7 +255,7 @@ NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。
                 pHead = pHead->next;
                 p1->next = p2;
             }
-            
+
             return p1;
         }
     };
@@ -399,12 +399,12 @@ NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。
                     pTmp->next = pHead2;
                     break;
                 }
-                
+
                 if (pHead2 == nullptr) {
                     pTmp->next = pHead1;
                     break;
                 }
-                
+
                 if (pHead1->val < pHead2->val) {
                     pTmp->next = pHead1;
                     pHead1 = pHead1->next;
@@ -459,7 +459,7 @@ NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。
 输入描述:
 
 ```
-二叉树的镜像定义：源二叉树 
+二叉树的镜像定义：源二叉树
                     8
                    /  \
                   6   10
@@ -485,3 +485,200 @@ NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。
 - 进行广度优先遍历或者深度优先遍历
 - 弹出一个节点就交换其左右子树
 - 详见: [广度优先和深度优先遍历](/2018/09/18/2018-09-18-algorithmStudy/#treeSpan)
+
+# 树的子结构
+
+## 题目
+
+输入两棵二叉树A，B，判断B是不是A的子结构。（ps：我们约定空树不是任意一个树的子结构）
+
+## 思路
+
+直接递归实现，查找根节点，然后递归查找子节点
+
+```C++
+    /*
+    struct TreeNode {
+        int val;
+        struct TreeNode *left;
+        struct TreeNode *right;
+        TreeNode(int x) :
+                val(x), left(NULL), right(NULL) {
+        }
+    };*/
+    class Solution {
+    public:
+        static bool HasSubtree(TreeNode* pRoot1, TreeNode* pRoot2)
+        {
+            if (pRoot1 == nullptr || pRoot2 == nullptr) {
+                return false;
+            }
+
+            return HasSubtree1(pRoot1, pRoot2);
+        }
+
+    private:
+        static bool HasSubtree1(TreeNode* pRoot1, TreeNode* pRoot2)
+        {
+            if (pRoot1 == nullptr || pRoot2 == nullptr) {
+                return pRoot2 == nullptr;
+            }
+
+            if (pRoot1->val == pRoot2->val &&
+                HasSubtree1(pRoot1->right, pRoot2->right) &&
+                HasSubtree1(pRoot1->left, pRoot2->left)) {
+                return true;
+            }
+
+            return HasSubtree1(pRoot1->right, pRoot2) || HasSubtree1(pRoot1->left, pRoot2);
+        }
+    };
+```
+
+# 从上往下打印二叉树
+
+## 题目
+
+从上往下打印出二叉树的每个节点，同层节点从左至右打印。
+
+## 思路
+
+二叉树的广度优先遍历，参考[广度优先遍历](/2018/09/18/2018-09-18-algorithmStudy/#treeSpan)
+
+# 栈的压入、弹出序列
+
+## 题目
+
+输入两个整数序列，第一个序列表示栈的压入顺序，请判断第二个序列是否可能为该栈的弹出顺序。假设压入栈的所有数字均不相等。例如序列1,2,3,4,5是某栈的压入顺序，序列4,5,3,2,1是该压栈序列对应的一个弹出序列，但4,3,5,1,2就不可能是该压栈序列的弹出序列。（注意：这两个序列的长度是相等的）
+
+## 思路
+
+模拟这个过程
+
+```C++
+    class Solution {
+    public:
+        static bool IsPopOrder(vector<int> pushV, vector<int> popV) {
+            int size = pushV.size();
+            if (size == 0 || size != popV.size()) {
+                return false;
+            }
+
+            stack<int> test;
+            int j = 0;
+            int i = 0;
+            while (i < size) {
+                test.push(pushV[i++]);
+                while (!test.empty() && test.top() == popV[j]) {
+                    test.pop();
+                    j++;
+                }
+            }
+
+            return test.empty();
+        }
+    };
+```
+
+# 包含min函数的栈
+
+## 题目
+
+定义栈的数据结构，请在该类型中实现一个能够得到栈中所含最小元素的min函数（时间复杂度应为O（1））。
+
+## 思路
+
+两个栈，一个放数据，一个放最小值的一个栈
+
+```C++
+    class Solution {
+    public:
+        void push(int value) {
+            if (m_minData.empty() || value <= m_minData.top()) {
+                m_minData.push(value);
+            }
+
+            m_data.push(value);
+        }
+
+        void pop() {
+            if (m_minData.top() == m_data.top()) {
+                m_minData.pop();
+            }
+            m_data.pop();
+        }
+
+        int top() { return m_data.top(); }
+        int min() {
+            if (m_minData.empty()) {
+                return -1;
+            }
+            return m_minData.top();
+        }
+
+    private:
+        stack<int> m_data;
+        stack<int> m_minData;
+    };
+```
+
+# 顺时针打印矩阵
+
+## 题目
+
+输入一个矩阵，按照从外向里以顺时针的顺序依次打印出每一个数字，例如，如果输入如下4 X 4矩阵： 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 则依次打印出数字1,2,3,4,8,12,16,15,14,13,9,5,6,7,11,10.
+
+## 思路
+
+强解，直接使用四个变量保存起始位置，不断循环打印即可
+
+# 数组中出现次数超过一半的数字
+
+## 题目
+
+数组中有一个数字出现的次数超过数组长度的一半，请找出这个数字。例如输入一个长度为9的数组{1,2,3,2,2,2,5,4,2}。由于数字2在数组中出现了5次，超过数组长度的一半，因此输出2。如果不存在则输出0。
+
+## 思路
+
+### 统计
+
+使用map储存，遍历将数组每个值出现次数统计出来，找最多的对比size
+
+### 排序取中值
+
+将数组排序，中位数即为出现超过一半的，找出验证一下出现次数是否超过一半
+
+### 相消
+
+由于出现次数超过一半，所以不断排除两个不一样的数字，超过一半的数字一定会留在最后一个，验证一下输出
+
+```C++
+    class Solution {
+    public:
+        //巧解，排除相同的数，留下的即为所求
+        static int MoreThanHalfNum_Solution2(vector<int> numbers) {
+            int size = numbers.size();
+
+            int times = 0;
+            int result = 0;
+            for (auto &tmp : numbers) {
+                if (times == 0) {
+                    result = tmp;
+                }
+
+                if (result == tmp) {
+                    times++;
+                    continue;
+                }
+
+                times--;
+            }
+
+            if (count(numbers.begin(), numbers.end(), result) > size / 2) {
+                return result;
+            }
+
+            return 0;
+        }
+    };
+```
