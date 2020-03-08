@@ -682,3 +682,264 @@ NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。
         }
     };
 ```
+
+# 二叉搜索树后序遍历数组校验
+
+## 题目
+
+输入一个整数数组，判断该数组是不是某二叉搜索树的后序遍历的结果。如果是则输出Yes,否则输出No。假设输入的数组的任意两个数字都互不相同。
+
+## 思路
+
+- 二叉树搜索树满足根节点比左边大，比右边小
+- 后序遍历，根节点在最后
+- 从后向前，判断最后一个树比数组前一部分都大，比后一部分都小
+- 找到分割点，递归判断前一部分和后一部分分别满足二叉搜索树后序遍历
+
+```C++
+    class Solution {
+    public:
+        static bool VerifySquenceOfBST(vector<int> sequence) {
+            return !sequence.empty() &&
+                VerifySquenceOfBST(sequence.begin().base(), sequence.size());
+        }
+
+    private:
+        static bool VerifySquenceOfBST(const int arr[], int length) {
+            if (length <= 0) {
+                return true;
+            }
+
+            bool flag = false;
+            int result = length;
+            int i = 0;
+            for (i = 0; i < length - 1; i++) {
+                //异或，当false时，最后一位要比前面大，否则进判断；true时最后一位要比前面小，否则进逻辑
+                if (flag ^ (arr[i] > arr[length - 1])) {
+                    if (flag) {
+                        //找到中间点后，出现小的，返回false
+                        return false;
+                    }
+                    //中间点转判断
+                    flag = true;
+                    result = i;
+                }
+            }
+            return (i == length - 1) ||
+                (VerifySquenceOfBST(arr, result) &&
+                    VerifySquenceOfBST(arr + result, length - result - 1));
+        }
+    };
+```
+
+# <span id="minKNumber">最小k个数</span>
+
+## 题目
+
+输入n个整数，找出其中最小的K个数。例如输入4,5,1,6,2,7,3,8这8个数字，则最小的4个数字是1,2,3,4,。
+
+## 思路
+
+### 排序后取前k个值
+
+- 将数组排序后取前k个值返回
+
+### 维护一个k个值的数组，找到最小的k个值
+
+```c++
+    class Solution {
+    public:
+        // 遍历，找到最小的k个值
+        static vector<int> GetLeastNumbers_Solution(vector<int> input, int k) {
+            int inputSize = input.size();
+            if (k == 0 || k > inputSize) {
+                return {};
+            }
+            vector<int> result(k);
+            int size = 1;
+            result[0] = input[0];
+            // 遍历数组
+            for (int i = 1; i < inputSize; i++) {
+                // 不到k，且大于最后一位，直接放到最后一位
+                if (size < k && input[i] > result[size - 1]) {
+                    result[size] = input[i];
+                    size++;
+                    continue;
+                }
+
+                // 数组个数不到k，或者tmp小于数组最大值
+                LOG_DEBUG("size %d, result[size - 1] %d, input[i] %d", size,
+                        result[size - 1], input[i]);
+                if (size < k || input[i] < result[size - 1]) {
+                    if (size < k) {
+                        // 不到k，最后一位在上面判断了肯定大于输入
+                        result[size] = result[size - 1];
+                        size++;
+                    }
+                    // 从最后一位开始，如果前一位大于tmp，后移，直到不大于跳出
+                    int j = size - 1;
+                    for (; j > 0 && result[j - 1] > input[i]; --j) {
+                        LOG_DEBUG("j %d, result[j - 1] %d", j, result[j - 1]);
+                        result[j] = result[j - 1];
+                    }
+                    // 跳出后，j指向要放的位置
+                    result[j] = input[i];
+                }
+            }
+            return result;
+        }
+    };
+```
+
+### 大根堆
+
+- 维护一个k个值的大根堆
+- 遍历和堆顶比，小于则弹出堆顶，插入新元素排序
+
+```c++
+    class Solution {
+    public:
+        // 最小堆解问题，C++标准接口
+        static vector<int> GetLeastNumbers_Solution(vector<int> input, int k) {
+            int inputSize = input.size();
+            if (k == 0 || k > inputSize) {
+                return {};
+            }
+
+            vector<int> result(k + 1);
+            // 插入前k个值并构造最大堆
+            for (int i = 0; i < k; i++) {
+                result[i] = input[i];
+                // 插入构建大根堆
+                push_heap(result.begin(), result.begin() + i + 1);
+            }
+
+            // 判断，如果大于最大节点，替换并重构最大堆
+            for (int i = k; i < inputSize; i++) {
+                if (input[i] < result[0]) {
+                    result[k] = input[i];
+                    // 弹出堆顶，重排序大根堆
+                    pop_heap(result.begin(), result.end());
+                }
+            }
+
+            // 多余一个删掉
+            result.pop_back();
+            return result;
+        }
+    };
+```
+
+# 明明的随机数
+
+## 题目
+
+明明想在学校中请一些同学一起做一项问卷调查，为了实验的客观性，他先用计算机生成了N个1到1000之间的随机整数（N≤1000），对于其中重复的数字，只保留一个，把其余相同的数去掉，不同的数对应着不同的学生的学号。然后再把这些数从小到大排序，按照排好的顺序去找同学做调查。请你协助明明完成“去重”与“排序”的工作(同一个测试用例里可能会有多组数据，希望大家能正确处理)。
+
+## 思路
+
+- C++标准库有两个接口可以直接实现，一个排序，一个去重
+
+```c++
+    int main() {
+        int num;
+        while (cin >> num) {
+            vector<int> input;
+            for (int i = 0; i < num; i++) {
+                int tmp = 0;
+                cin >> tmp;
+                input.push_back(tmp);
+            }
+
+            sort(input.begin(), input.end());
+            input.erase(unique(input.begin(), input.end()), input.end());
+            for (auto &tmp : input) {
+                cout << tmp << endl;
+            }
+        }
+}
+```
+
+# 连续子数组的最大和
+
+## 题目
+
+HZ偶尔会拿些专业问题来忽悠那些非计算机专业的同学。今天测试组开完会后,他又发话了:在古老的一维模式识别中,常常需要计算连续子向量的最大和,当向量全为正数的时候,问题很好解决。但是,如果向量中包含负数,是否应该包含某个负数,并期望旁边的正数会弥补它呢？例如:{6,-3,-2,7,-15,1,2,2},连续子向量的最大和为8(从第0个开始,到第3个为止)。给一个数组，返回它的最大连续子序列的和，你会不会被他忽悠住？(子向量的长度至少是1)
+
+## 思路
+
+- 动态规划
+- 找函数，以第$i$个元素结尾的最大和是$f(i)$，则第$i + 1$个元素结尾的最大和应为$max(f(i) + array[i - 1], array[i - 1])$
+- 所以可以表示为$f(i + 1) = max(f(i) + array[i - 1], array[i - 1])$
+
+```c++
+    class Solution {
+    public:
+        static int FindGreatestSumOfSubArray(vector<int> array) {
+            int maxTail = -1;
+            int max = 0x80000000;
+            for (auto &tmp : array) {
+                // f(i + 1) = max(f(i) + array[i - 1], array[i - 1])
+                maxTail = (maxTail + tmp) > tmp ? (maxTail + tmp) : tmp;
+                max = max < maxTail ? maxTail : max;
+            }
+            return max;
+        }
+    };
+```
+
+# 二叉树中和为某一值的路径
+
+## 题目
+
+输入一颗二叉树的根节点和一个整数，打印出二叉树中结点值的和为输入整数的所有路径。路径定义为从树的根结点开始往下一直到叶结点所经过的结点形成一条路径。(注意: 在返回值的list中，数组长度大的数组靠前)
+
+## 思路
+
+- 从根节点向下递归
+- 维持一个vector放入经过的路径，返回时弹出最后一个元素
+- 到根部则判断是否为所求，是则插入结果中
+
+```c++
+    class Solution {
+    public:
+        static vector<vector<int>> FindPath(TreeNode *root, int expectNumber) {
+            if (root == nullptr) {
+                return {};
+            }
+            vector<vector<int>> result;
+            vector<int> road;
+            FindPath(root, expectNumber, result, road);
+            sort(result.begin(), result.end(), comp);
+            return result;
+        }
+
+    private:
+        static bool comp(vector<int> a, vector<int> b) {
+            return a.size() > b.size();
+        }
+
+        static void FindPath(TreeNode *root, int expectNumber,
+                            vector<vector<int>> &result, vector<int> &road) {
+            if (root == nullptr) {
+                return;
+            }
+
+            // 不到根部，sum增加，road放入此节点，继续递归
+            expectNumber -= root->val;
+            road.emplace_back(root->val);
+
+            if (root->right == nullptr && root->left == nullptr &&
+                expectNumber == 0) {
+                // 查到根部，判断是否相等，相等则存入结果
+                result.emplace_back(road);
+            }
+
+            FindPath(root->right, expectNumber, result, road);
+            FindPath(root->left, expectNumber, result, road);
+
+            expectNumber += root->val;
+            road.pop_back();
+        }
+    };
+```
