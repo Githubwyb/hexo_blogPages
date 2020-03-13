@@ -63,17 +63,17 @@ categories: [Program, Shell]
     if [ -e file ]      # 如果文件或者目录存在，不管有没有权限
     if [ -f file ]      # 如果文件是普通文件，不是目录或者设备文件
     if [ -d ...  ]      # 如果目录存在
-    if [ -s file ]      # 如果文件存在且非空 
+    if [ -s file ]      # 如果文件存在且非空
     if [ -r file ]      # 如果文件存在且可读
     if [ -w file ]      # 如果文件存在且可写
-    if [ -x file ]      # 如果文件存在且可执行   
+    if [ -x file ]      # 如果文件存在且可执行
 ```
 
 ### 整数变量表达式
 
 ```shell
-    if [ int1 -eq int2 ]        # 如果int1等于int2   
-    if [ int1 -ne int2 ]        # 如果不等于    
+    if [ int1 -eq int2 ]        # 如果int1等于int2
+    if [ int1 -ne int2 ]        # 如果不等于
     if [ int1 -ge int2 ]        # 如果>=
     if [ int1 -gt int2 ]        # 如果>
     if [ int1 -le int2 ]        # 如果<=
@@ -85,10 +85,10 @@ categories: [Program, Shell]
 ```shell
     if  [ $a = $b ]                     # 如果string1等于string2
                                         # 字符串允许使用赋值号做等号
-    if  [ $string1 != $string2 ]        # 如果string1不等于string2       
-    if  [ -n $string ]                  # 如果string 非空(非0），返回0(true)  
+    if  [ $string1 != $string2 ]        # 如果string1不等于string2
+    if  [ -n $string ]                  # 如果string 非空(非0），返回0(true)
     if  [ -z $string ]                  # 如果string 为空
-    if  [ $sting ]                      # 如果string 非空，返回0 (和-n类似)    
+    if  [ $sting ]                      # 如果string 非空，返回0 (和-n类似)
 ```
 
 ## watch
@@ -136,6 +136,25 @@ watch命令以周期性的方式执行给定的指令，指令输出以全屏方
 - `-r`遍历子目录
 - `-n`遍历行数
 - `-i`大小写无关
+
+# 快捷键
+
+## 搜索历史命令输入
+
+- `Ctrl + r`
+- 支持模糊搜索
+
+# 工具
+
+## 网络嗅探 nmap
+
+[nmap使用](https://baike.baidu.com/item/nmap/1400075?fr=aladdin)
+
+## ssh生成公钥和私钥
+
+```shell
+    ssh-keygen -t rsa -C "xxx@xxx.com"
+```
 
 ## 压缩和解压缩命令
 
@@ -197,19 +216,6 @@ watch命令以周期性的方式执行给定的指令，指令输出以全屏方
 ```
 
 - 不加`-d`就解压到当前目录
-
-# 快捷键
-
-## 搜索历史命令输入
-
-- `Ctrl + r`
-- 支持模糊搜索
-
-# 工具
-
-## 网络嗅探 nmap
-
-[nmap使用](https://baike.baidu.com/item/nmap/1400075?fr=aladdin)
 
 # 系统命令
 

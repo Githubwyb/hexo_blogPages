@@ -104,6 +104,21 @@ apt安装的pip一般只有8.1版本，而最新已经有19.1版本了，所以�
 [1]: https://www.w3cschool.cn/uqmpir/
 [2]: http://www.runoob.com/python/python-tutorial.html
 
+
+## 指定编码格式
+
+源文件第一行或第二行直接定义
+
+```python
+    # coding=utf-8
+```
+
+或者
+
+```python
+    # -*- coding:utf-8 -*-
+```
+
 ## 变量
 
 ### None
@@ -123,6 +138,30 @@ python中矩阵索引使用None表示此维度不切片，同样意味着此维�
 ```python
     del var
 ```
+
+## 遍历
+
+### for遍历list
+
+```python
+listValues = list(xxx)
+
+for value in listValues:
+    print(value)
+    value = 'a'     # list本身不会修改
+
+for index in range(len(listValues)):
+    print(listValues[index])
+    listValues[index] = 'a'         # list本身会修改
+
+for index, value in enumerate(listValues):
+    print(value)
+    value = 'a'                 # list不会修改
+    listValues[index] = 'a'     # list会修改
+
+```
+
+- 普通的`for value in listValues:`无法修改list的值，list值修改只能用index的方式
 
 ## 函数
 
@@ -263,27 +302,13 @@ with处理相当于`try-finally`
     In __exit__()
 ```
 
-# 指定编码格式
+# 系统内置module介绍
 
-## 格式1
+## 操作系统组件 os
 
-源文件第一行或第二行直接定义
+### 路径相关操作
 
-```python
-    # coding=utf-8
-```
-
-或者
-
-```python
-    # -*- coding:utf-8 -*-
-```
-
-# 特殊操作
-
-## 路径相关操作
-
-### 获取当前路径
+#### 获取当前路径
 
 ```python
     import os
@@ -295,7 +320,7 @@ with处理相当于`try-finally`
     print(os.path.abspath(os.curdir))   #获取当前工作目录路径
 ```
 
-### 改变当前路径
+#### 改变当前路径
 
 ```python
     import os
@@ -303,7 +328,7 @@ with处理相当于`try-finally`
     os.chdir(path)
 ```
 
-### 遍历目录
+#### 遍历目录
 
 此命令会遍历目录下的所有文件包括子文件
 
@@ -315,9 +340,44 @@ with处理相当于`try-finally`
         print('fileNames', fileNames)   # 该目录下所有的文件名字组成的列表
 ```
 
+### 调用可执行文件
+
+#### 获取输出结果
+
+```python
+    import os
+
+    f = os.popen("(cmd) (param)")
+    data = f.readlines()
+    f.close()
+```
+
+#### 获取返回值
+
+```python
+    import os
+
+    r_v = os.system("(cmd) (param)")
+    print r_v
+```
+
+## 系统组件 sys
+
+### 内置常亮
+
+```python
+    import sys
+
+    print(sys.executable)       # 当前python命令所在路径，/usr/bin/python
+```
+
+# 好用的module推荐
+
 ## 压缩
 
 ### zip格式
+
+创建压缩
 
 ```python
     import zipfile
@@ -328,8 +388,6 @@ with处理相当于`try-finally`
     z.write('folderName/fileName')  # 可以在没有上级目录的情况下直接写一个文件
     z.close()                       # 关闭文件
 ```
-
-#### 实例
 
 压缩目录下的所有文件
 
@@ -350,34 +408,7 @@ with处理相当于`try-finally`
     z.close()
 ```
 
-## 调用可执行文件
-
-### 获取输出结果
-
-```python
-    import os
-
-    f = os.popen("(cmd) (param)")
-    data = f.readlines()
-    f.close()
-```
-
-### 获取返回值
-
-```python
-    import os
-
-    r_v = os.system("(cmd) (param)")
-    print r_v
-```
-
-## 汉字转拼音
-
-需要安装xpinyin模块
-
-```shell
-    pip install xpinyin
-```
+## 汉字转拼音 xpinyin
 
 简单用例
 
@@ -389,4 +420,40 @@ with处理相当于`try-finally`
 
     test2 = pin.get_pinyin("大河向东流", "")
     print(test2)
+```
+
+## 参数解析器 argparse
+
+很方便的管理命令行参数，支持选项添加
+
+## 文件、文件夹对比 filecmp
+
+一个开源比较好的文件夹对比仓库: [https://github.com/Pixinn/compare_folders](https://github.com/Pixinn/compare_folders)
+
+## git操作 gitpython
+
+# 工具代码
+
+## 判断文件是否为二进制
+
+```python
+    import codecs
+    import os
+
+    def is_binary_file(file_path):
+        file_path = os.path.abspath(file_path)
+
+        #: BOMs to indicate that a file is a text file even if it contains zero bytes.
+        _TEXT_BOMS = (
+            codecs.BOM_UTF16_BE,
+            codecs.BOM_UTF16_LE,
+            codecs.BOM_UTF32_BE,
+            codecs.BOM_UTF32_LE,
+            codecs.BOM_UTF8,
+        )
+
+        with open(file_path, 'rb') as file:
+            initial_bytes = file.read(8192)
+            file.close()
+        return not any(initial_bytes.startswith(bom) for bom in _TEXT_BOMS) and b'\0' in initial_bytes
 ```
