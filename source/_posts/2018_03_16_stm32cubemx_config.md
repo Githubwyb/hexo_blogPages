@@ -1,8 +1,9 @@
 ---
 title: stm32cubemx配置介绍
 date: 2018-03-30 11:17:54
-tags: [软件,使用教程,stm32cubemx]
-categories: technology
+tags: [单片机]
+categories: [Software Usage, Stm32cubemx]
+top: true
 ---
 
 本博客仅为自己在使用时的总结，希望有所帮助
@@ -94,12 +95,6 @@ GPIO的配置比较简单，直接点选芯片引脚相应的GPIO引脚，比如
     HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
 
 可以用这两个函数控制灯的闪烁了。
-
-#### *持续更新中......*
-
--------------------
-
-<center> ------我是有底线的------- </center>
 
 [1]: https://www.douban.com/note/206867792/
 [2]: http://www.st.com/content/st_com/zh/products/development-tools/software-development-tools/stm32-software-development-tools/stm32-configurators-and-code-generators/stm32cubemx.html

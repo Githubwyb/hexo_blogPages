@@ -1,8 +1,8 @@
 ---
 title: keil5常见编译错误的原因
 date: 2018-03-30 11:17:54
-tags: [keil5,编译]
-categories: problems
+tags: [单片机]
+categories: [Debug]
 ---
 
 本博客仅为自己记录所遇到的问题的解决方案，希望有所帮助
@@ -25,8 +25,4 @@ categories: problems
 
 ### errors
 
-#### *持续更新中......*
 
--------------------
-
-<center> ------我是有底线的------- </center>

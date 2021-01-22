@@ -1,8 +1,9 @@
 ---
 title: stm32cubemx使用freertos的介绍
 date: 2018-03-30 11:17:54
-tags: [软件,使用教程,stm32cubemx,freertos]
-categories: technology
+tags: [单片机]
+categories: [Software Usage, Stm32cubemx]
+top: true
 ---
 
 本博客仅为自己在使用时的总结，希望有所帮助
@@ -18,10 +19,4 @@ categories: technology
 
 本文是在上一篇文章（[stm32cubemx配置介绍][1]）的基础上，利用freeRTOS的一些介绍，希望对想要了解或者使用freeRTOS的码友们提供帮助。本文只是自己在使用时的总结，仅供参考。
 
-#### *持续更新中......*
-
--------------------
-
-<center> ------我是有底线的------- </center>
-
-[1]: http://localhost:4000/2018/03/30/2018_03_16_stm32cubemx_config/
+[1]: /2018/03/30/2018_03_16_stm32cubemx_config/
