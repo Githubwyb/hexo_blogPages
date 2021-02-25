@@ -1070,9 +1070,11 @@ dp[n][sum] &= dp[n - 1][sum - 0 * coins[n]] + dp[n - 1][sum - 1 * coins[n]] +...
 - 计算可以强行累加或者运用公式$\frac{n(n + 1)}{2}$
 - 运用公式则使用了乘法的位运算
 
-$$ x \times y =
+$$
+x \times y =
 ((y >> 0) \& 1) \times x \times 2^{0} + ((y >> 1) \& 1) \times x \times 2^{1} +...+ ((y >> 31) \& 1) \times x \times 2^{31} \\\\
-x \times 2^n = x << n $$
+x \times 2^n = x << n
+$$
 
 ```C++
     class Solution {

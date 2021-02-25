@@ -382,6 +382,60 @@ usage: netstat [-vWeenNcCF] [<Af>] -r         netstat {-V|--version|-h|--help}
     x25 (CCITT X.25)
 ```
 
+- `-a`: 显示所有连接，包括正在连接的
+- `-l`: 显示监听的连接，只显示被监听的端口和套接字文件
+- `-p`: 显示进程名
+- `-n`: 不把端口自动推测成服务，显示原始端口
+
+## 16. service linux服务管理
+
+- service有两种管理方式，一个是用service命令，一个使用systemctl，自己感觉没啥区别，都需要写一个service文件
+- service文件位置: `/usr/lib/systemd/system/`
+- 服务文件内容一般如下，具体作用查看`man systemd.service`
+
+```ini
+[Unit]
+Description=OpenBSD Secure Shell server
+Documentation=man:sshd(8) man:sshd_config(5)
+After=network.target auditd.service
+ConditionPathExists=!/etc/ssh/sshd_not_to_be_run
+
+[Service]
+EnvironmentFile=-/etc/default/ssh
+ExecStartPre=/usr/sbin/sshd -t
+ExecStart=/usr/sbin/sshd -D $SSHD_OPTS
+ExecReload=/usr/sbin/sshd -t
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+RestartPreventExitStatus=255
+Type=notify
+RuntimeDirectory=sshd
+RuntimeDirectoryMode=0755
+
+[Install]
+# 这个是用来配置开机启动的目标，在multi-user模式下启动服务
+WantedBy=multi-user.target
+Alias=sshd.service
+```
+
+- 配置了WantedBy后，使用`systemctl enable xxx`可以设置服务在某个模式下启动，会创建一个连接到`/etc/systemd/system/xxx.target.wanted/`
+- 一般配置开机启动设置WantedBy为`multi-user.target`，然后执行上一行的命令即可
+
+## 17. sed 文件查找替换打印
+
+- sed命令有点复杂，一直不会用，但是很强大
+
+### 17.1. 选项
+
+- `-i[suffix]`: 替换文件内容，如果定义了suffix，会备份一份到`xxxsuffix`
+
+### 17.2. pattern
+
+就是sed命令的字符串段，上面是选项
+
+- `s/aaa/bbb/`: 将aaa换成bbb
+
 # 三、工具命令
 
 ## 1. 文件夹目录大小 du
@@ -399,8 +453,9 @@ usage: netstat [-vWeenNcCF] [<Af>] -r         netstat {-V|--version|-h|--help}
 ```shell
     -c: 抓取的包的数量
     -i: 要监听的网口，不给默认为第一个网口
-    -n: 对地址以数字方式显式，否则显式为主机名，也就是说-n选项不做主机名解析
+    -n: 对地址以数字方式显式，否则显示为主机名，也就是说-n选项不做主机名解析
     -nn: 除了-n的作用外，还把端口显示为数值，否则显示端口服务名
+    -w: 保存的文件，cap结尾，用于wirshark分析
 ```
 
 ### 2.2. 示例
@@ -527,6 +582,13 @@ objdump -DS xxxx > xxx.dump
 
 ## 9. strace 查看系统调用
 
+- `-t`: 打印时间
+- `-tt`: 打印时间，精确到微秒
+- `-T`: 打印系统调用占用时间
+- `-f`: 打印进程号，可针对多进程程序
+- `-v`: 参数打全，不省略
+- `-o file`: 结果输出到文件
+
 ### 9.1. 查看单进程的系统调用，不重启进程
 
 ```shell
@@ -610,6 +672,7 @@ openssl ca -in domain.csr -cert cacert.pem -keyfile private/cakey.pem -days 365 
 - `Ctrl + e` / `end`: 移到行首
 - `Ctrl + r`: 历史命令搜索，不支持模糊搜索，只支持连续字符
 - `Ctrl + k`: 清空光标后面的字符
+- `Ctrl + u`: 清空光标前面的字符
 
 ## 4. 安装软件
 

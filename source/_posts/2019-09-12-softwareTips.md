@@ -40,7 +40,7 @@ categories: [Software Usage]
 ### 基本选项
 
 - `-I xxx`: 许多函数定义最后有一个`__THROW`类似的，ctags将解析出错，加上此选项会忽略xxx
-- `--fields=+iaS`: 
+- `--fields=+iaS`:
 - `--extra=+q`
 - `--c-kinds=+p`
 
@@ -72,3 +72,14 @@ categories: [Software Usage]
 ```
 
 3. 到工程目录下`phptags -R`即可生成相应tags
+
+# fzf
+
+## 配置
+
+1. 安装完成后，将下面配置加到`.zshrc`或者`.bashrc`中
+
+```shell
+# 40%屏显示非全屏，展示反向（输入框在上面，文件在下面正序），文件在右侧展示前50行
+export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --preview 'head -n 50 {} 2>/dev/null'"
+```
