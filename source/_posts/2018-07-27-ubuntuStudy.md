@@ -23,6 +23,12 @@ categories: [Program, Shell]
 
 - `Ctrl + d`: 收藏文件夹
 
+# 添加移除开机启动程序
+
+```shell
+update-rc.d xxx enable/disable
+```
+
 # 忽略某个包的更新
 
 使用以下命令可以忽略某个包的更新
