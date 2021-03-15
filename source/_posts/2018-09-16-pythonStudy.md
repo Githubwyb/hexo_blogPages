@@ -95,7 +95,7 @@ python -m ensurepip
     [NotebookPasswordApp] Wrote hashed password to /home/wangyubo/.jupyter/jupyter_notebook_config.json
 ```
 
-编辑jupyter_notebook_config.py，找到以下配置，改成这样
+编辑`jupyter_notebook_config.py`，找到以下配置，改成这样
 
 ```python
     c.NotebookApp.ip = '*'              # 允许所有ip访问

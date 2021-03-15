@@ -102,39 +102,185 @@ categories: [Program, Shell]
 
 ### 3.5. for 循环
 
-#### 数组遍历
+#### 文件遍历
 
 ```shell
-    # 此行代表以换行符为分割，默认为空格、\t和\n
-    IFS=$'\n'
-    # 将test.txt的内容按行分割到value输出
-    for value in $(cat test.txt)
-    do
-        echo "$value"
-    done
+# 此行代表以换行符为分割，默认为空格、\t和\n
+IFS=$'\n'
+# 将test.txt的内容按行分割到value输出
+for value in $(cat test.txt)
+do
+    echo "$value"
+done
 ```
 
 ### 3.6. while 循环
 
 ```shell
-    # 按行读取文件内容
-    while IFS= read -r value
-    do
-        echo "$value"
-    done < "test.txt"
+# 按行读取文件内容
+while IFS= read -r value
+do
+    echo "$value"
+done < "test.txt"
+```
+
+### 3.7. switch 语句
+
+```shell
+case "$1" in
+start)
+    check_start "$@"
+    ;;
+stop)
+    check_stop "$@"
+    ;;
+check)
+    check_service "$@"
+    ;;
+*)
+    echo "Usage: check_handle_service.sh start|stop|check [service]"
+    exit 1
+    ;;
+esac
 ```
 
 ## 4. 函数调用
 
 ```shell
-    abc() {
-        # ...
-    }
+abc() {
+    # ...
+}
 
-    abc
+abc
 ```
 
 函数调用不加括号
+
+## 5. 字符串操作
+
+```shell
+string="12348213"
+
+# 字符串长度
+echo ${#string}
+
+# 字符串最后一个字符，注意中间有一个空格
+echo "${string: -1}"
+```
+
+### 5.1. 字符串替换
+
+```shell
+echo ${string/23/bb}   # 替换一次
+echo ${string//23/bb}  # 双斜杠替换所有匹配
+echo ${string/#abc/bb} # #以什么开头来匹配，根php中的^有点像
+echo ${string/%41/bb}  # %以什么结尾来匹配，根php中的$有点像
+```
+
+### 5.2. 字符串截取
+
+```shell
+# 删除最后一个/及前面所有。作用是删除路径，只留文件名
+echo ${string##*/}
+# 删除最后一个/及后面所有。作用是删除文件名，只留路径名
+echo ${string%/*}
+```
+
+- #:表示从左开始算起，并且截取第一个匹配的字符
+- ##:表示从左开始算起，并且截取最后一个匹配的字符
+- %:表示从右开始算起，并且截取第一个匹配的字符
+- %%:表示从右开始算起，并且截取最后一个匹配的字符
+
+### 5.3. 字符串遍历
+
+```shell
+string="abc
+b c     d"
+
+# 这样会根据空格、换行和制表符分开
+for item in $string; do
+    echo "s $item e"
+done
+# 加了引号会认为整个字符串为一个
+for item in "$string"; do
+    echo "s $item e"
+done
+```
+
+## 6. 数组
+
+```shell
+# 数组声明
+test_arr=(
+    "abc"
+    "dce"
+)
+
+# 数组长度，bash 5.0不用加[@]，但是4.2就需要
+len="${#test_arr[@]}"
+```
+
+### 6.1. 数组遍历
+
+数组遍历分为几种形式
+
+```shell
+service_list=(
+    "abc"
+    "ddd"
+    "dd d"
+)
+# for in 形式，在脚本中，不加双引号，第三个元素会拆分成两个元素
+for sv in "${service_list[@]}"; do
+    echo "$sv"
+done
+
+# i遍历的形式
+len="${#service_list[@]}"
+for ((i=0;i<"$len";i++)); do
+    echo "a ${service_list[i]} b"
+done
+```
+
+- 低版本shell中，local不能修饰数组
+
+### 6.2. 数组拷贝
+
+```shell
+service_list=(
+    "abc"
+    "ddd"
+    "dd d"
+)
+
+# 这样拿到的是原数组
+arr_cp=("${service_list[@]}")
+# 这样拿到的是数组转字符串再次根据空格、换行和制表符再次分割的数组
+arr1_cp=({service_list[@]})
+# 这样拿到的是个字符串
+arr2_cp="${service_list[@]}"
+```
+
+## 7. eval
+
+- eval是将字符串转成命令执行
+- 可用于在脚本中将字符串转成变量名执行
+
+```shell
+service_list=(
+    "abc"
+    "ddd"
+    "dd d"
+)
+
+str="service_list"
+# 下面这句话将转成 test=("${service_list[@]}") 执行，即拷贝数组
+eval "test=(\"\${${str}[@]}\")"
+
+for item in "${test[@]}"; do
+    echo "s $item e"
+done
+```
 
 # 二、系统命令详解
 
@@ -387,54 +533,23 @@ usage: netstat [-vWeenNcCF] [<Af>] -r         netstat {-V|--version|-h|--help}
 - `-p`: 显示进程名
 - `-n`: 不把端口自动推测成服务，显示原始端口
 
-## 16. service linux服务管理
-
-- service有两种管理方式，一个是用service命令，一个使用systemctl，自己感觉没啥区别，都需要写一个service文件
-- service文件位置: `/usr/lib/systemd/system/`
-- 服务文件内容一般如下，具体作用查看`man systemd.service`
-
-```ini
-[Unit]
-Description=OpenBSD Secure Shell server
-Documentation=man:sshd(8) man:sshd_config(5)
-After=network.target auditd.service
-ConditionPathExists=!/etc/ssh/sshd_not_to_be_run
-
-[Service]
-EnvironmentFile=-/etc/default/ssh
-ExecStartPre=/usr/sbin/sshd -t
-ExecStart=/usr/sbin/sshd -D $SSHD_OPTS
-ExecReload=/usr/sbin/sshd -t
-ExecReload=/bin/kill -HUP $MAINPID
-KillMode=process
-Restart=on-failure
-RestartPreventExitStatus=255
-Type=notify
-RuntimeDirectory=sshd
-RuntimeDirectoryMode=0755
-
-[Install]
-# 这个是用来配置开机启动的目标，在multi-user模式下启动服务
-WantedBy=multi-user.target
-Alias=sshd.service
-```
-
-- 配置了WantedBy后，使用`systemctl enable xxx`可以设置服务在某个模式下启动，会创建一个连接到`/etc/systemd/system/xxx.target.wanted/`
-- 一般配置开机启动设置WantedBy为`multi-user.target`，然后执行上一行的命令即可
-
-## 17. sed 文件查找替换打印
+## 16. sed 文件查找替换打印
 
 - sed命令有点复杂，一直不会用，但是很强大
 
-### 17.1. 选项
+### 16.1. 选项
 
 - `-i[suffix]`: 替换文件内容，如果定义了suffix，会备份一份到`xxxsuffix`
 
-### 17.2. pattern
+### 16.2. pattern
 
 就是sed命令的字符串段，上面是选项
 
 - `s/aaa/bbb/`: 将aaa换成bbb
+
+## 17. echo 输出
+
+- `-n`: 不换行
 
 # 三、工具命令
 
@@ -595,6 +710,10 @@ objdump -DS xxxx > xxx.dump
 strace -p xxx
 ```
 
+## 10. tree 查看文件树
+
+- `-L n`: 目录深度
+
 # 四、小技巧
 
 ## 1. swap临时空间（可用于编译时内存不足问题）
@@ -739,6 +858,84 @@ To see these additional updates run: apt list --upgradable
 
 Your Hardware Enablement Stack (HWE) is supported until April 2025.
 Last login: Tue Jan 5 10:13:40 2021 from 192.168.0.2
+```
+
+### 8.2. x11vnc linux远程桌面
+
+**设置密码**
+
+- 默认储存到`/home/<username>/.vnc/passwd`
+
+```shell
+x11vnc -storepasswd
+```
+
+**设置开机启动**
+
+- 写一个service文件到`/usr/lib/systemd/system/x11vnc.service`
+- 要修改passwd的路径
+
+```ini
+[Unit]
+Description=Start x11vnc at startup.
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/x11vnc -auth guess -forever -loop -noxdamage -repeat -rfbauth /home/<username>/.vnc/passwd -rfbport 5900 -shared
+
+[Install]
+WantedBy=multi-user.target
+```
+
+- `systemctl enable x11vnc`，加到开机启动项中
+- `service x11vnc start`，当前开启服务
+
+**无显示器模拟显示器**
+
+- 在没有显示器的情况下x11vnc特别慢，插上显示器就快了，因为没有显示器显卡不工作
+- 安装`xserver-xorg-video-dummy`模拟显示器
+- 新增配置文件`/usr/share/X11/xorg.conf.d/xorg.conf`
+
+```ini
+Section "Device"
+    Identifier  "Configured Video Device"
+    Driver      "dummy"
+EndSection
+
+Section "Monitor"
+    Identifier  "Configured Monitor"
+    HorizSync 31.5-48.5
+    VertRefresh 50-70
+EndSection
+
+Section "Screen"
+    Identifier  "Default Screen"
+    Monitor     "Configured Monitor"
+    Device      "Configured Video Device"
+    DefaultDepth 24
+    SubSection "Display"
+    Depth 24
+    Modes "1920x1080"
+    EndSubSection
+EndSection
+```
+
+- 重启设备就好了
+
+**x11vnc服务启动无法连接**
+
+- gdm3的桌面管理器没有使用xserver，所以无法使用x11vnc，见 [XServer基本概念 + x11vnc配置远程桌面](https://blog.csdn.net/lovewangtaotao/article/details/102907540)
+- 切换为lightdm就好了
+
+```shell
+sudo dpkg-reconfigure lightdm
+```
+
+## 9. 查看电量
+
+```shell
+cat /sys/class/power_supply/battery/capacity
 ```
 
 # 踩坑记

@@ -5,6 +5,20 @@ tags: [Linux]
 categories: [Program, Shell]
 ---
 
+# 踩坑记
+
+## 1. ubuntu安装deepin-terminal，设置默认
+
+- `x-terminal-emulator`里面没有`deepin-terminal`，无法更新成默认terminal
+- 需要执行下面命令进行注册
+
+```shell
+# 注册deepin-terminal
+sudo update-alternatives --install /usr/bin/x-terminal-emulator x-terminal-emulator /usr/bin/deepin-terminal 50
+# 设置默认终端
+sudo update-alternatives --config x-terminal-emulator
+```
+
 # 解决依赖关系
 
 ## 不指名解决依赖关系
