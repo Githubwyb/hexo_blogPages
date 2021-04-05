@@ -69,6 +69,15 @@ update-rc.d xxx enable/disable
     dpkg -l |grep "^rc"|awk '{print $2}' |xargs apt -y purge
 ```
 
+# 添加删除ppa源
+
+```shell
+# 添加ppa源
+sudo add-apt-repository xxx
+# 删除ppa源
+sudo add-apt-repository -r xxx
+```
+
 # 安装中文输入法
 
 ## 1. 安装fcitx

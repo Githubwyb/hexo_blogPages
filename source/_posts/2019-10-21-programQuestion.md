@@ -6,7 +6,7 @@ categories: [Knowledge, Study]
 top: 15
 ---
 
-# 二维数组查找
+# 1. 二维数组查找
 
 ## 题目
 
@@ -16,7 +16,7 @@ top: 15
 
 从右侧最上方开始，查到小于后，竖着找大于的，然后横着，直到数组溢出或者找到为止
 
-# <span id = "H2">斐波那切数列输出</span>
+# <span id = "H2">2. 斐波那切数列输出</span>
 
 ## 题目
 
@@ -53,7 +53,7 @@ n<=39
     };
 ```
 
-# <span id = "H4">青蛙跳台阶</span>
+# <span id = "H4">3. 青蛙跳台阶</span>
 
 ## 题目
 
@@ -76,7 +76,7 @@ $$f(0) = 0, f(1) = 1，f(2) = 2$$
 
 分析可以看出和[斐波那切数列输出](#H2)除了初始值基本一致
 
-# 两个栈实现队列
+# 4. 两个栈实现队列
 
 ## 题目
 
@@ -798,37 +798,34 @@ NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。
 - 遍历和堆顶比，小于则弹出堆顶，插入新元素排序
 
 ```cpp
-    class Solution {
-    public:
-        // 最小堆解问题，C++标准接口
-        static vector<int> GetLeastNumbers_Solution(vector<int> input, int k) {
-            int inputSize = input.size();
-            if (k == 0 || k > inputSize) {
-                return {};
-            }
-
-            vector<int> result(k + 1);
-            // 插入前k个值并构造最大堆
-            for (int i = 0; i < k; i++) {
-                result[i] = input[i];
-                // 插入构建大根堆
-                push_heap(result.begin(), result.begin() + i + 1);
-            }
-
-            // 判断，如果大于最大节点，替换并重构最大堆
-            for (int i = k; i < inputSize; i++) {
-                if (input[i] < result[0]) {
-                    result[k] = input[i];
-                    // 弹出堆顶，重排序大根堆
-                    pop_heap(result.begin(), result.end());
-                }
-            }
-
-            // 多余一个删掉
-            result.pop_back();
-            return result;
+class Solution {
+public:
+    // 最小堆解问题，C++标准接口
+    static vector<int> GetLeastNumbers_Solution(vector<int> input, int k) {
+        int inputSize = input.size();
+        if (k == 0 || k > inputSize) {
+            return {};
         }
-    };
+
+        vector<int> result(input.begin(), input.begin() + k + 1);
+        // 插入前k+1个值并对前k个值构造最大堆
+        make_heap(result.begin(), result.begin() + k);
+
+        // 判断，如果大于最大节点，替换并重构最大堆
+        for (int i = k; i < inputSize; i++) {
+            if (input[i] < result[0]) {
+                result[k] = input[i];
+                // 弹出堆顶，重排序大根堆
+                // pop_heap做的操作是将头部和尾部互换，然后对[begin, end - 1)构造最大堆
+                pop_heap(result.begin(), result.end());
+            }
+        }
+
+        // 多余一个删掉
+        result.pop_back();
+        return result;
+    }
+};
 ```
 
 # 明明的随机数
@@ -1303,3 +1300,284 @@ $$
         }
     };
 ```
+
+# 34、检查链表是否有环路（空间复杂度O(1)）
+
+## 题目
+
+判断给定的链表中是否有环。如果有环则返回true，否则返回false。
+你能给出空间复杂度O(1)的解法么？
+
+## 思路
+
+```cpp
+class Solution {
+   public:
+    bool hasCycle(ListNode *head) {
+		/* 思路1
+         * 想象两个人在捉迷藏，一个人先走到一个地方，另一个人去找
+         * 如果找到他的时候和他走的路程一样长，那就是原路找的
+         * 如果比他路程还短，说明另外一个人绕了一圈，也就是有环路
+         *
+         * 思路2（当前实现代码）
+         * 两个人追逐，一个走的快（一次2步），一个走的慢（一次一步）
+         * 如果相遇，说明有环路
+         *
+         * 思路3
+         * 破坏链表，遍历的同时，让前一个节点指向头指针
+         * 遍历如果到了头指针就说明有环路
+		 */
+        ListNode *pFast = head;     // 跑的快的指针
+        ListNode *pSlow = head;     // 跑得慢的指针
+        while (pFast != nullptr && pFast->next != nullptr) {
+            pSlow = pSlow->next;
+            pFast = pFast->next->next;
+            if (pSlow == pFast) return true;
+        }
+        return false;
+    }
+};
+```
+
+# 35. 设计实现LRU缓存结构
+
+## 题目
+
+设计LRU缓存结构，该结构在构造时确定大小，假设大小为K，并有如下两个功能
+
+1. set(key, value)：将记录(key, value)插入该结构
+2. get(key)：返回key对应的value值
+
+[要求]
+
+1. set和get方法的时间复杂度为O(1)
+2. 某个key的set或get操作一旦发生，认为这个key的记录成了最常使用的。
+3. 当缓存的大小超过K时，移除最不经常使用的记录，即set或get最久远的。
+
+## 思路
+
+- 查找使用hashmap，时间复杂度O(1)满足
+- lru管理用链表，方便调整位置
+
+```cpp
+class lru_cache {
+   public:
+    lru_cache(int k) : cache_size(k) {
+        m_lruList.clear();
+        m_cache.clear();
+    }
+    void set(int key, int value) {
+        // 先查找value
+        auto it = m_cache.find(key);
+        if (it != m_cache.end()) {
+            // 找到修改值
+            (*it->second).second = value;
+            // 找到，将缓存插入到最前面
+            m_lruList.splice(m_lruList.begin(), m_lruList, it->second);
+            return;
+        }
+
+        // 没找到，插入
+        // 判断是否超过最大个数，删除最后一个，map也要删除
+        if (m_lruList.size() >= cache_size) {
+            auto delIt = m_lruList.back();
+            m_cache.erase(delIt.first);
+            m_lruList.pop_back();
+        }
+
+        m_lruList.emplace_front(make_pair(key, value));
+        m_cache[key] = m_lruList.begin();
+    }
+
+    int get(int key) {
+        // 先查找value
+        auto it = m_cache.find(key);
+        if (it == m_cache.end()) {
+            // 没找到返回-1
+            return -1;
+        }
+
+        // 找到，将缓存插入到最前面
+        m_lruList.splice(m_lruList.begin(), m_lruList, it->second);
+        // 这里返回值
+        return (*it->second).second;
+    }
+
+   private:
+    int cache_size;                  // cache最大大小
+    list<pair<int, int>> m_lruList;  // 用于存放lru的链表，值为value
+    unordered_map<int, list<pair<int, int>>::iterator>
+        m_cache;  // 用于O(1)查找的map
+};
+
+```
+
+# 36. 二叉树之字型遍历
+
+## 题目
+
+给定一个二叉树，返回该二叉树的之字形层序遍历，（第一层从左向右，下一层从右向左，一直这样交替）
+
+## 思路
+
+- 肯定要用栈的，不然做不到先入后出
+
+**思路1**
+
+- 两个栈，一进一出
+
+**思路2**
+
+- 一个栈一个队列
+- 每一层，出栈进队列
+- 再出队列
+
+**思路3**
+
+- 一个链表搞定（模拟两个栈，栈底对在一起）
+- 左出右进，右出左进
+
+# 37. 股票（一次交易）
+
+## 题目
+
+假设你有一个数组，其中第 i 个元素是股票在第 i 天的价格。
+你有一次买入和卖出的机会。（只有买入了股票以后才能卖出）。请你设计一个算法来计算可以获得的最大收益。
+
+## 思路
+
+**动态规划**
+
+- f(n)为n天卖出的收益，max(f(n)) = prices[n] - min(prices[n])
+- 遍历数组，找到f(n)最大值
+
+# 38. 找出第k大
+
+## 题目
+
+有一个整数数组，请你根据快速排序的思路，找出数组中第K大的数。
+给定一个整数数组a,同时给定它的大小n和要找的K(K在1到n之间)，请返回第K大的数，保证答案存在。
+
+## 思路
+
+- 快排，找节点，插入
+- 节点左右，k在哪里，对哪里做快排
+
+```cpp
+class Solution {
+   public:
+    /**
+     * @brief 转递归函数实现，a传入指针方便递归
+     *
+     * @param a 头指针
+     * @param n 数组长度
+     * @param K K值
+     *
+     * @return 返回第K大的值
+     */
+    int findKth(int *a, int n, int K) {
+        assert(K > 0 && n > 0);
+        assert(n >= K);
+        // use the first item to be the axis
+        int axis = a[0];
+        int left = 0;
+        int right = n - 1;
+        // First, the right run, when right > axis, left = right, then left run
+        // when left < axis, right = left, then right run
+        // equal won't handle
+        // with this way, we can avoid swap item too frequently
+        bool isRightRun = true;
+        while (left != right) {
+            // right run
+            if (isRightRun) {
+                // right less than axis
+                if (a[right] <= axis) {
+                    right--;
+                    continue;
+                }
+                a[left] = a[right];
+                isRightRun = false;
+                continue;
+            }
+            // left run
+            // left bigger than axis
+            if (a[left] >= axis) {
+                left++;
+                continue;
+            }
+            a[right] = a[left];
+            isRightRun = true;
+        }
+        a[left] = axis;
+        // if left is K
+        if ((left + 1) == K) return axis;
+        // left bigger than K, use right part to sort
+        if ((left + 1) < K) return findKth(a + left + 1, n - 1 - left, K - left - 1);
+        // left bigger than K, use right part to sort
+        return findKth(a, left, K);
+    }
+
+    int findKth(vector<int> a, int n, int K) {
+        // write code here
+        /* 思路1
+         * 小根堆实现
+         *
+         * 思路2（当前）
+         * 快排思想
+         */
+        return findKth(&a[0], n, K);
+    }
+};
+```
+
+# 39. 二分查找
+
+## 问题
+
+请实现有重复数字的升序数组的二分查找
+给定一个 元素有序的（升序）整型数组 nums 和一个目标值 target  ，写一个函数搜索 nums 中的 target，如果目标值存在返回下标，否则返回 -1
+
+## 思路
+
+- 思路就是二分查找思路
+
+```cpp
+class Solution {
+   public:
+    /**
+     * 代码中的类名、方法名、参数名已经指定，请勿修改，直接返回方法规定的值即可
+     *
+     * 如果目标值存在返回下标，否则返回 -1
+     * @param nums int整型vector
+     * @param target int整型
+     * @return int整型
+     */
+    int search(vector<int>& nums, int target) {
+        // write code here
+        int len = nums.size();
+        int left = 0;
+        int right = len - 1;
+
+        // check array boundary
+        if (len == 0 || target < nums.front() || target > nums[right])
+            return -1;
+        if (target == nums.front()) return 0;
+        // left move faster than mid and mid is more close to left, finally left
+        // will be equal or bigger than right
+        while (left < right) {
+            int mid = (right + left) >> 1;  // 0-3 mid 1, more close to left
+            // fast convergence, mid +- 1
+            if (target > nums[mid])
+                left = mid + 1;  // left - 1 must less than target
+            else
+                right = mid - 1;  // right + 1 maybe equal target
+        }
+        // if left bigger than right, judge left only
+        // if left == right, judge left and right + 1
+        if (nums[left] == target) return left;
+        if (left == right && nums[++left] == target) return left;
+        return -1;
+    }
+};
+```
+

@@ -132,7 +132,7 @@ Restart=on-failure
 sudo apt install proxychains
 ```
 
-** 配置 **
+**配置**
 
 - 修改`/etc/proxychains.conf`
 
@@ -142,7 +142,7 @@ sudo apt install proxychains
 socks5 127.0.0.1 1080
 ```
 
-** 使用 **
+**使用**
 
 ```shell
 proxychains -q git clone xxx
@@ -157,7 +157,7 @@ proxychains -q git clone xxx
 sudo apt intall privoxy
 ```
 
-** 配置 **
+**配置**
 
 - 编辑`/etc/privoxy/config`，新增配置
 - 想配置端口自己搜，默认8118
@@ -168,7 +168,7 @@ forward-socks5   /               127.0.0.1:1080 .
 
 - 改完重启服务`sudo service privoxy restart`
 
-** 使用 **
+**使用**
 
 - 直接在需要修改代理的地方加上`http://127.0.0.1:8118`即可
 - 命令行配置

@@ -938,6 +938,14 @@ sudo dpkg-reconfigure lightdm
 cat /sys/class/power_supply/battery/capacity
 ```
 
+## 10. 当前运行命令转后台
+
+1. `Ctrl + z`: 暂停当前程序
+2. `bg`: 后台继续运行暂停的程序
+
+- `fg`: 后台运行程序转前台
+- `jobs`: 查看所有程序
+
 # 踩坑记
 
 ## 1. ssh用rsakey无法免密登陆
