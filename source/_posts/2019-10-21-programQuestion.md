@@ -1581,3 +1581,99 @@ class Solution {
 };
 ```
 
+# 40. 最长无重复子串
+
+## 题目
+
+给定一个数组arr，返回arr的最长无的重复子串的长度(无重复指的是所有数字都不相同)。
+
+## 思路
+
+- 动态规划思想，查找最快是hashmap
+- 用hashmap维持无重复子串的队列，
+- 遍历数组，一个一个插入hashmap，遇到重复的，当前hashmap大小就是z无重复子串大小
+- 将上一个重复的点包括之前的全部删掉（hashmap删除重建更好写，或许更快）
+- 数组遍历一遍即可
+
+```cpp
+class Solution {
+   public:
+    /**
+     *
+     * @param arr int整型vector the array
+     * @return int整型
+     */
+    int maxLength(vector<int>& arr) {
+        // write code here
+        unordered_map<int, int> um_map;
+        int len = arr.size();
+        int result = 0;
+        for (int i = 0; i < len; i++) {
+            // if value in map, map size may be the result, then i = last common value + 1
+            auto it = um_map.find(arr[i]);
+            if (it != um_map.end()) {
+                int mapLen = um_map.size();
+                result = result > mapLen ? result : mapLen;
+                i = it->second + 1;
+                um_map.clear();
+            }
+            um_map[arr[i]] = i;
+        }
+        int mapLen = um_map.size();
+        result = result > mapLen ? result : mapLen;
+        return result;
+    }
+};
+```
+
+# 41. 最长回文长度
+
+## 题目
+
+对于一个字符串，请设计一个高效算法，计算其中最长回文子串的长度。
+给定字符串A以及它的长度n，请返回最长回文子串的长度。
+
+## 思路
+
+- 遍历数组，每一个点和点后面的间隔为中心，分别找到重复最大值
+- 遍历完成得到结果
+
+```cpp
+class Solution {
+   public:
+    int getLongestPalindrome(string A, int n) {
+        // write code here
+        int result = 0;
+        for (int i = 0; i < n; i++) {
+            // think every char as mid, caculate the same len
+            // 1234321
+            int j = 0;
+            for (j = 1; j < (i + 1) && j < (n - i); ++j) {
+                if (A[i + j] != A[i - j]) {
+                    int len = (j - 1) * 2 + 1;
+                    result = result > len ? result : len;
+                    break;
+                }
+            }
+            if (j == (i + 1) || j == (n - i)) {
+                int len = (j - 1) * 2 + 1;
+                result = result > len ? result : len;
+            }
+            // think every char as left first, caculate the same len
+            // 123321
+            for (j = 0; j < (i + 1) && j < (n - i - 1); ++j) {
+                if (A[i + j + 1] != A[i - j]) {
+                    int len = j * 2;
+                    result = result > len ? result : len;
+                    break;
+                }
+            }
+            if (j == (i + 1) || j == (n - i - 1)) {
+                int len = j * 2;
+                result = result > len ? result : len;
+            }
+        }
+        return result;
+    }
+};
+```

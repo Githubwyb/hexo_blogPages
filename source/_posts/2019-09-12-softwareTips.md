@@ -49,8 +49,22 @@ categories: [Software Usage]
 - 执行以下命令生成系统头文件的tags
 - 添加`set tags+=~/.vim/systags`包含系统头文件tags
 
+系统头文件检索列表，里面尖括号字段根据系统适配
+```
+/usr/include
+/usr/include/linux
+/usr/include/net
+/usr/include/netinet
+/usr/include/arpa
+/usr/include/c++/<version>
+/usr/include/<sys-version>-linux-gnu/sys
+```
+
 ```shell
-    ctags -I __wur -I __THROW -I __THROWNL -I __attribute_pure__ -I __nonnull -I __attribute__ --file-scope=yes --langmap=c:+.h --languages=c,c++ --links=yes --c-kinds=+p --c++-kinds=+p --fields=+iaS --extra=+q -f ~/.vim/systags /usr/include/* /usr/include/c++/* /usr/include/linux/*
+# 把上面列表文件都扫出来，加到files.list里面
+find xxx -maxdepth 1 -type f >> files.list
+# ctags根据files.list生成tags文件
+ctags -I __wur -I __THROW -I __THROWNL -I __attribute_pure__ -I __nonnull -I __attribute__ --file-scope=yes --language-force=C++ --links=yes --c-kinds=+p --c++-kinds=+p --fields=+iaS --extra=+q -f ~/.vim/systags -L files.list
 ```
 
 ## php支持

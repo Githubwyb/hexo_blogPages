@@ -23,17 +23,26 @@ categories: [Program, Shell]
 
 ## 3. 常用语法详解
 
-### 3.1. > 输出重定向
+### 3.1. `<>` 输入出重定向
 
 ```shell
-    ls ./ >a.text           # 正确输出到a.txt(覆盖)
-    ls ./ 1>a.text          # 正确输出到a.txt(覆盖)
-    ls ./ 2>a.txt           # 错误输出到a.txt(覆盖)
-    ls ./ 2>a.txt           # 错误输出到a.txt(覆盖)
-    ls ./ >a.txt 2>&1       # 标准输出和标准错误输出到a.txt(覆盖)
-    ls ./ &>a.txt           # 标准输出和标准错误输出到a.txt(覆盖)
-    # 追加使用>>
-    ls ./ >>a.text          # 正确输出到a.txt(追加)
+ls ./ >a.text           # 正确输出到a.txt(覆盖)
+ls ./ 1>a.text          # 正确输出到a.txt(覆盖)
+ls ./ 2>a.txt           # 错误输出到a.txt(覆盖)
+ls ./ 2>a.txt           # 错误输出到a.txt(覆盖)
+ls ./ >a.txt 2>&1       # 标准输出和标准错误输出到a.txt(覆盖)
+ls ./ &>a.txt           # 标准输出和标准错误输出到a.txt(覆盖)
+# 追加使用>>
+ls ./ >>a.text          # 正确输出到a.txt(追加)
+
+# < 将文件内容作为标准输入
+while read -r line; do
+    echo "$line"
+done < test.txt
+
+# <<<的含义，相当于管道，把字符串当作标准输入传给命令
+echo "$a" | grep "xxx"
+grep "xxx" <<< "$a"
 ```
 
 ### 3.2. $ 意义
@@ -122,6 +131,12 @@ while IFS= read -r value
 do
     echo "$value"
 done < "test.txt"
+
+# 按行读取变量内容
+while IFS= read -r value
+do
+    echo "$value"
+done <<< "$test"
 ```
 
 ### 3.7. switch 语句
@@ -369,6 +384,13 @@ watch命令以周期性的方式执行给定的指令，指令输出以全屏方
 
 ## 7. grep 查找内容
 
+- `-r`: 遍历子目录
+- `-n`: 遍历行数
+- `-i`: 大小写无关
+- `-v`: 排除
+- `-E`: 衍生为正则表达式（用|代表或等）
+- `-o`: 正则只输出PATTERN部分
+
 ### 7.1. 内容匹配
 
 - 查找字符串用`^`代表开头，用`$`代表结束，可以使用`^xxx$`进行全匹配
@@ -385,7 +407,6 @@ watch命令以周期性的方式执行给定的指令，指令输出以全屏方
 ### 7.2. 查找进程排除grep
 
 - 通常使用`ps + grep`查找进程，但是会多出一行当前查找的grep进程
-- `grep -v grep`可以排除含有grep的行，`-v`为反向查找
 
 ```shell
     ps -aux | grep xxx | grep -v grep
@@ -403,9 +424,12 @@ watch命令以周期性的方式执行给定的指令，指令输出以全屏方
 ```shell
     grep -nr "test" ./
 ```
-- `-r`遍历子目录
-- `-n`遍历行数
-- `-i`大小写无关
+### 7.5. 正则查找，只显示匹配段
+
+```shell
+# 显示 APPVERSION=abc 到|停止，即所有非|都匹配，匹配多个
+echo "APPVERSION=abc|ddd" | grep -o "APPVERSION=[^|]*"
+```
 
 ## 8. wc 查看文件或者内容行数
 
@@ -547,9 +571,69 @@ usage: netstat [-vWeenNcCF] [<Af>] -r         netstat {-V|--version|-h|--help}
 
 - `s/aaa/bbb/`: 将aaa换成bbb
 
+### 16.3. 添加
+
+**添加一行**
+
+```shell
+sed -i "/^start()/a\
+	if ! "${script}" check "${proc_name}"; then exit 0; fi
+" "${file_name}"
+```
+
+**添加多行**
+
+```shell
+sed -i "/^start()/a\
+	if ! \"${script}\" check \"${proc_name}\"; then\n\
+		/bin/run.sh \"${file}\" &\n\ 
+		exit 0\n\ 
+	fi
+" "${file_name}"
+```
+
 ## 17. echo 输出
 
 - `-n`: 不换行
+
+## 18. diff & patch 差异输出和应用
+
+**diff**
+
+- `-r`: 递归对比文件夹改动
+- `-u`: 合并的方式输出，类似git diff，用于生成patch
+
+**git diff**
+
+- `-w`: 忽略空格改动
+- `--relative`: 相对目录，不使用git绝对目录
+
+**patch**
+
+- `-p<n>`: 裁剪前导`/`和目录，p1忽略第一个`/`，以此类推
+- `-l`: 忽略空格
+- `-i <patch_path>`: 输入patch文件
+- `--no-backup-if-mismatch`: 如果改动不完全，不要备份文件
+
+### 18.1 git改动应用到某个目录上（非git标准目录）
+
+```shell
+# 和某个提交做diff，输出到patch文件
+git diff 09e99a0b6273c26007c16dae48822a6d107eadef -w --relative . > ~/temp/patch
+# 将patch文件应用到当前目录下
+patch -p1 -l --no-backup-if-mismatch -i ~/temp/patch
+```
+
+### 18.2 文件夹改动应用到另一个文件夹
+
+```shell
+# 两个同级目录对比（必须同级，不然应用差异时目录会有问题）
+diff -ru dir1 dir2 > ~/temp/patch
+# 进入到目录里面，不然patch删除目录会不识别
+cd dir3
+# 将patch文件应用到当前目录下
+patch -p1 -l --no-backup-if-mismatch -i ~/temp/patch
+```
 
 # 三、工具命令
 
@@ -882,7 +966,7 @@ After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/x11vnc -auth guess -forever -loop -noxdamage -repeat -rfbauth /home/<username>/.vnc/passwd -rfbport 5900 -shared
+ExecStart=/usr/bin/x11vnc -auth guess -forever -loop -noxdamage -repeat -rfbauth /home/<username>/.vnc/passwd -rfbport 5900 -shared -capslock
 
 [Install]
 WantedBy=multi-user.target
@@ -907,6 +991,8 @@ Section "Monitor"
     Identifier  "Configured Monitor"
     HorizSync 31.5-48.5
     VertRefresh 50-70
+    Modeline "1920x1080"  173.00  1920 2048 2248 2576  1080 1083 1088 1120 -hsync +vsync
+    VideoRam 256000
 EndSection
 
 Section "Screen"
@@ -915,8 +1001,8 @@ Section "Screen"
     Device      "Configured Video Device"
     DefaultDepth 24
     SubSection "Display"
-    Depth 24
-    Modes "1920x1080"
+        Depth 24
+        Modes "1920x1080"
     EndSubSection
 EndSection
 ```
@@ -930,6 +1016,22 @@ EndSection
 
 ```shell
 sudo dpkg-reconfigure lightdm
+```
+
+**sddm管理桌面x11vnc起不来**
+
+- 可能需要单独写一个脚本处理，上面service的exec就指定这个脚本的目录即可
+- sddm使用单独的auth模式
+
+```shell
+#!/bin/bash
+
+while [ -z "$(ls -t /run/sddm)" ]; do
+    sleep 1
+done
+authFile="$(ls -t /run/sddm | head -n 1)"
+
+/usr/bin/x11vnc -auth "/run/sddm/$authFile" -forever -loop -noxdamage -repeat -rfbauth "/home/wangyubo/.vnc/passwd" -rfbport 5900 -shared -capslock
 ```
 
 ## 9. 查看电量
