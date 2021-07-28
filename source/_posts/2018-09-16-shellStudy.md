@@ -35,6 +35,8 @@ ls ./ &>a.txt           # 标准输出和标准错误输出到a.txt(覆盖)
 # 追加使用>>
 ls ./ >>a.text          # 正确输出到a.txt(追加)
 
+ls ./ 2>&1              # 错误输出到标准输出
+
 # < 将文件内容作为标准输入
 while read -r line; do
     echo "$line"
@@ -205,6 +207,13 @@ echo ${string%/*}
 - ##:表示从左开始算起，并且截取最后一个匹配的字符
 - %:表示从右开始算起，并且截取第一个匹配的字符
 - %%:表示从右开始算起，并且截取最后一个匹配的字符
+
+```shell
+# 截取给定一段，m开始截取n个
+echo "${str:m:n}"
+# 截取给定一段，m开始到结尾
+echo "${str:m}"
+```
 
 ### 5.3. 字符串遍历
 
@@ -586,8 +595,8 @@ sed -i "/^start()/a\
 ```shell
 sed -i "/^start()/a\
 	if ! \"${script}\" check \"${proc_name}\"; then\n\
-		/bin/run.sh \"${file}\" &\n\ 
-		exit 0\n\ 
+		/bin/run.sh \"${file}\" &\n\
+		exit 0\n\
 	fi
 " "${file_name}"
 ```
@@ -670,10 +679,19 @@ patch -p1 -l --no-backup-if-mismatch -i ~/temp/patch
 
 [nmap使用](https://baike.baidu.com/item/nmap/1400075?fr=aladdin)
 
-## 4. ssh生成公钥和私钥
+## 4. 远程连接 ssh
+
+### 4.1. ssh生成公钥和私钥
 
 ```shell
     ssh-keygen -t rsa -C "xxx@xxx.com"
+```
+
+### 4.2. ssh通过代理访问
+
+```shell
+# socks5代理
+ssh -o "ProxyCommand=nc -x 127.0.0.1:1080 %h %p" wangyubo@172.22.2.108
 ```
 
 ## 5. 压缩和解压缩命令
@@ -797,6 +815,13 @@ strace -p xxx
 ## 10. tree 查看文件树
 
 - `-L n`: 目录深度
+
+## 11. sshfs 挂载远程目录
+
+```shell
+# 和mount一样，将远程的/aaa挂载到本地~/xxx
+sshfs xxx@xxx.xxx.xxx.xxx:/aaa ~/xxx
+```
 
 # 四、小技巧
 
@@ -1045,8 +1070,29 @@ cat /sys/class/power_supply/battery/capacity
 1. `Ctrl + z`: 暂停当前程序
 2. `bg`: 后台继续运行暂停的程序
 
+**其他命令**
+
 - `fg`: 后台运行程序转前台
 - `jobs`: 查看所有程序
+
+## 11. 安装fcitx5输入法
+
+- 需要安装`fcitx5`基础包和`fcitx5-chinese-addons`中文输入包
+- 在桌面系统中配置开机启动，程序路径通过`which fcitx5`
+- 安装完成后，需要在环境变量配置一下，不然命令行会用不了
+
+```shell
+# /etc/environment
+GTK_IM_MODULE=fcitx
+QT_IM_MODULE=fcitx
+XMODIFIERS=@im=fcitx
+```
+
+- 安装完成后找到`fcitx5-configure`配置自己输入习惯
+
+**主题**
+
+- github搜索`fcitx5-themes`下载后，将里面的文件夹拷贝到`~/.local/share/fcitx5/themes`下就可以配置了
 
 # 踩坑记
 

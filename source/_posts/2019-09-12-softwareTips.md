@@ -97,3 +97,9 @@ ctags -I __wur -I __THROW -I __THROWNL -I __attribute_pure__ -I __nonnull -I __a
 # 40%屏显示非全屏，展示反向（输入框在上面，文件在下面正序），文件在右侧展示前50行
 export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --preview 'head -n 50 {} 2>/dev/null'"
 ```
+
+# vscode
+
+## 下载加速
+
+- 将下载链接的地址替换为国内镜像地址`vscode.cdn.azure.cn`即可

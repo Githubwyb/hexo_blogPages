@@ -48,17 +48,17 @@ ssserver -c /etc/shadowsocks.json start
 - 使用绝对路径防止没有加载PATH环境变量
 
 ```ini
- [Unit]
- Description=Shadowsocks server
+[Unit]
+Description=Shadowsocks server
 
- [Install]
- WantedBy=multi-user.target
+[Install]
+WantedBy=multi-user.target
 
- [Service]
- User=root
- Group=root
- ExecStart=/usr/local/bin/ssserver -c /etc/shadowsocks.json start
- Restart=on-failure
+[Service]
+User=root
+Group=root
+ExecStart=/usr/local/bin/ssserver -c /etc/shadowsocks.json start
+Restart=on-failure
 ```
 
 - 调用`sudo systemctl enable ssserver`来添加开机启动项

@@ -22,6 +22,7 @@ linux deploy是在android手机上使用chroot搭建的linux环境，可以在�
 ## 2. <span id="source_url">镜像站列表</span>
 
 - ubuntu: `http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports`
+- arch linux: `http://mirrors.ustc.edu.cn/archlinuxarm`
 
 ## 3. 安装
 
@@ -75,8 +76,8 @@ linux deploy是在android手机上使用chroot搭建的linux环境，可以在�
     - `run-parts`是将`/etc/rc.local/`下的所有脚本依次执行
     - `sysv`是根据启动级别执行相应的`/etc/rc(x).c/`下的脚本，一般软件类似nginx会注册一个到这里面
 9. 挂载，将目录挂载到系统中
-    - 挂载组是`aid_everybody`，如果想要访问需要自己将用户添加到这个组里面
     - source和target都要设置
+    - 挂载组是`aid_everybody`，如果想要访问需要自己将用户添加到这个组里面
 10. ssh启用会帮你安装sshd，最好启用
 11. 图形化看情况，反正性能没那么高
 
@@ -87,4 +88,61 @@ linux deploy是在android手机上使用chroot搭建的linux环境，可以在�
 2. 如果改了配置，点配置就好了
 3. 启动后，电脑或手机找个ssh客户端连接即可
 
+# 三、archlinux在手机的安装
 
+## 1. 软件配置
+
+### 1.1. mysql安装配置
+
+- 需要安装mariadb包，这个是arch官方的mysql社区包
+- 装好后需要执行`sudo mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql`进行初始化
+- 启动MySQL `sudo /usr/bin/mysqld_safe --datadir='/var/lib/mysql' &`
+- 进行安全配置 `sudo mysql_secure_installation`
+
+# 踩坑记
+
+## 1. adb调试本机
+
+- 安装的是linux系统，自然可以安装adb，但是adb监听的端口和android自带的adbd监听端口冲突了，所以需要修改端口
+- 保证adb没有启动，然后执行下面命令修改端口，然后可以愉快的使用adb了
+
+```shell
+export ANDROID_ADB_SERVER_PORT=9999
+```
+
+- 手机开启adb网络调试
+- 如果adb启动前开启网络调试，adb启动后可以直接看到设备
+- 如果adb启动后开启网络调试，可以使用`adb connect 127.0.0.1:5555`连接本机
+
+## 2. arm64架构安装`opencv_python`
+
+### 2.1. 先装opencv，再装`opencv_python`
+
+- arch下面配置编译安装`opencv_python`步骤太繁琐了，没配好
+- 直接`sudo pacman -Sy opencv`然后`pip install opencv_python`完事
+- apt包就是`sudo apt install libopencv-dev`然后`pip install opencv_python`完事
+
+### 2.2. 编译安装
+
+- 默认的pip安装`opencv_python`包会报错，无法识别架构之类的，默认的安装只支持`x86_64/amd64`
+- 想要使用opencv，需要使用源码编译
+
+```shell
+# clone opencv代码
+git clone https://github.com/opencv/opencv.git
+git clone https://github.com/opencv/opencv_contrib.git
+# 到opencv目录进行编译
+mkdir opencv/build
+cd opencv/build
+# 用cmake进行配置，注意修改里面的每个路径的值到真实的路径
+# cmake过程报的错自己解决
+cmake -D BUILD_opencv_python3=YES -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/home/wangyubo/miniforge3/opencv4.5.2 -D OPENCV_EXTRA_MODULES=../../opencv_contrib/modules -D PYTHON3_LIBRARIES=/home/wangyubo/miniforge3/lib/libpython3.9.so -D PYTHON3_EXECUTABLE=/home/wangyubo/miniforge3/bin/python -D PYTHON3_NUMPY_INCLUDE_DIRS=/home/wangyubo/miniforge3/lib/python3.9/site-packages/numpy/core/include/ -D PYTHON3_PACKAGES_PATH=/home/wangyubo/miniforge3/lib/python3.9/site-packages ..
+# 编译安装
+make -j4
+make install
+```
+
+## 3. armv8l和conda
+
+- miniforge和archiforge都识别不出来armv8l，会认为是`x86_64`安装的python无法使用
+- 暂时没有解决方案，armv8l先不要用conda吧
