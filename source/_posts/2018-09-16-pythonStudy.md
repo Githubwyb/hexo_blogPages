@@ -505,7 +505,16 @@ r = requests.get("https://127.0.0.1:1234", params=params)
 r = requests.post("https://127.0.0.1:1234", params=params, data=data, json=json_data)
 ```
 
+## 8. 接口测试框架 robot framework
 
+### 8.1. 命令使用
+
+```shell
+# 执行tag为xxx的用例
+robot -i xxx caseDir/
+# 执行tag为xxx的用例，日志级别为TRACE，默认显示级别INFO
+robot -i xxx -L TRACE:INFO caseDir/
+```
 
 # 五、工具代码
 

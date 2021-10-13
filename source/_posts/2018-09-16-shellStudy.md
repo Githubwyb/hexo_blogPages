@@ -321,10 +321,10 @@ done
 ### 1.2. 实例
 
 ```shell
-    # 查找当前目录下文件类型的，修改时间在0.5天以内的文件
-    find ./ -type f -mtime -0.5
-    # 查找当前目录下文件类型的所有php文件
-    find ./ -type f -name "*.php"
+# 查找当前目录下文件类型的，修改时间在0.5天以内的文件
+find ./ -type f -mtime -0.5
+# 查找当前目录下文件类型的所有php文件
+find ./ -type f -name "*.php"
 ```
 
 ## 2. file
@@ -332,9 +332,9 @@ done
 ### 2.1. 实例
 
 ```shell
-    # 查看文件类型，不显示文件名
-    => file -b test.txt
-    ASCII text
+# 查看文件类型，不显示文件名
+=> file -b test.txt
+ASCII text
 ```
 
 ## 3. tr
@@ -342,53 +342,51 @@ done
 ### 3.1. 实例
 
 ```shell
-    # 大小写转化
-    echo "HELLO" | tr '[:upper:]' '[:lower:]'
-    echo "hello" | tr '[:lower:]' '[:upper:]'
+# 大小写转化
+echo "HELLO" | tr '[:upper:]' '[:lower:]'
+echo "hello" | tr '[:lower:]' '[:upper:]'
 ```
 
 ## 4. watch
 
 watch命令以周期性的方式执行给定的指令，指令输出以全屏方式显示。watch是一个非常实用的命令，基本所有的Linux发行版都带有这个小工具，如同名字一样，watch可以帮你监测一个命令的运行结果，省得你一遍遍的手动运行。
 
-### 4.1. 语法
-
-    watch(选项)(参数)
-
-### 4.2. 选项
+### 4.1. 选项
 
 - -n：指定指令执行的间隔时间（秒）；
 - -d：高亮显示指令输出信息不同之处；
 - -t：不显示标题。
 
-### 4.3. 参数
+### 4.2. 参数
 指令：需要周期性执行的指令。
 
-### 4.4. 实例
+### 4.3. 实例
 
 ```shell
-    watch uptime
-    watch -t uptime
-    watch -d -n 1 netstat -ntlp
-    watch -d 'ls -l | fgrep goface'     //监测goface的文件
-    watch -t -differences=cumulative uptime
-    watch -n 60 from            //监控mail
-    watch -n 1 "df -i;df"       //监测磁盘inode和block数目变化情况
+watch uptime
+watch -t uptime
+watch -d -n 1 netstat -ntlp
+watch -d 'ls -l | fgrep goface'     //监测goface的文件
+watch -t -differences=cumulative uptime
+watch -n 60 from            //监控mail
+watch -n 1 "df -i;df"       //监测磁盘inode和block数目变化情况
 ```
 
 ## 5. tail 实时查看文件内容（可用于查看log文件）
 
 ```shell
-    tail -f (fileName)
+tail -f (fileName)
 ```
 
 ## 6. sort 排序
 
-### 6.1. 去重
+### 6.1. 一些基本操作
 
 ```shell
-    # 将test.txt中排序并去重，但是只输出到控制台，可以用>写到文件
-    cat test.txt | sort -u
+# 将test.txt中排序并去重，但是只输出到控制台，可以用>写到文件
+cat test.txt | sort -u
+# sort -V 可以排序版本号类型，如判断 2.1.9和2.1.10
+xxx | sort -V
 ```
 
 ## 7. grep 查找内容
@@ -405,12 +403,12 @@ watch命令以周期性的方式执行给定的指令，指令输出以全屏方
 - 查找字符串用`^`代表开头，用`$`代表结束，可以使用`^xxx$`进行全匹配
 
 ```shell
-    # 匹配ab开头的字符串
-    cat test.txt | grep "^ab"
-    # 匹配bc结束的字符串
-    cat test.txt | grep "ab$"
-    # 全匹配abc
-    cat test.txt | grep "^abc$"
+# 匹配ab开头的字符串
+cat test.txt | grep "^ab"
+# 匹配bc结束的字符串
+cat test.txt | grep "ab$"
+# 全匹配abc
+cat test.txt | grep "^abc$"
 ```
 
 ### 7.2. 查找进程排除grep
@@ -418,20 +416,20 @@ watch命令以周期性的方式执行给定的指令，指令输出以全屏方
 - 通常使用`ps + grep`查找进程，但是会多出一行当前查找的grep进程
 
 ```shell
-    ps -aux | grep xxx | grep -v grep
+ps -aux | grep xxx | grep -v grep
 ```
 
 ### 7.3. 查找包含内容的有几行
 
 ```shell
-    # 相当于 cat test.txt | grep "test" | wc -l
-    grep -c "test" < test.txt
+# 相当于 cat test.txt | grep "test" | wc -l
+grep -c "test" < test.txt
 ```
 
 ### 7.4. 查找目录下所有文件匹配对应字符串
 
 ```shell
-    grep -nr "test" ./
+grep -nr "test" ./
 ```
 ### 7.5. 正则查找，只显示匹配段
 
@@ -446,7 +444,7 @@ echo "APPVERSION=abc|ddd" | grep -o "APPVERSION=[^|]*"
 - <font color="red">`wc -l`返回的是`\n`的个数，如果最后一行没有换行，将不会统计最后一行</font>
 
 ```shell
-    ps -aux | grep xxx | grep -v grep | wc -l
+ps -aux | grep xxx | grep -v grep | wc -l
 ```
 
 ## 9. addr2line 根据地址定位代码位置
@@ -523,7 +521,7 @@ sudo iptables -A INPUT -p tcp --dport 22 -j DROP
 
 ## 15. netstat 网络状态查看
 
-```shell
+```
 usage: netstat [-vWeenNcCF] [<Af>] -r         netstat {-V|--version|-h|--help}
        netstat [-vWnNcaeol] [<Socket> ...]
        netstat { [-vWeenNac] -i | [-cnNe] -M | -s [-6tuw] }
@@ -601,6 +599,16 @@ sed -i "/^start()/a\
 " "${file_name}"
 ```
 
+### 特殊用法
+
+**1. pattern带大括号，需要转义**
+
+- 将大括号单独用单引号包裹，两边闭合单引号
+
+```shell
+sed -i 's/aaa''{''/bbb''{''/' aaa.txt
+```
+
 ## 17. echo 输出
 
 - `-n`: 不换行
@@ -651,28 +659,26 @@ patch -p1 -l --no-backup-if-mismatch -i ~/temp/patch
 当前目录下所有子文件夹和文件的大小
 
 ```shell
-    du ./ -h --max-depth=1
+du ./ -h --max-depth=1
 ```
 
 ## 2. 抓包工具 tcpdump
 
 ### 2.1. 选项
 
-```shell
-    -c: 抓取的包的数量
-    -i: 要监听的网口，不给默认为第一个网口
-    -n: 对地址以数字方式显式，否则显示为主机名，也就是说-n选项不做主机名解析
-    -nn: 除了-n的作用外，还把端口显示为数值，否则显示端口服务名
-    -w: 保存的文件，cap结尾，用于wirshark分析
-```
+- `-c`: 抓取的包的数量
+- `-i`: 要监听的网口，不给默认为第一个网口
+- `-n`: 对地址以数字方式显式，否则显示为主机名，也就是说-n选项不做主机名解析
+- `-nn`: 除了-n的作用外，还把端口显示为数值，否则显示端口服务名
+- `-w`: 保存的文件，cap结尾，用于wirshark分析
 
 ### 2.2. 示例
 
 ```shell
-    # 抓5个192.168.100.62到本机eth0的icmp（ping）包
-    tcpdump -c 5 -nn -i eth0 icmp and src 192.168.100.62
-    # 抓取10个本机ens33的目的端口为22的tcp包
-    tcpdump -c 10 -nn -i ens33 tcp dst port 22
+# 抓5个192.168.100.62到本机eth0的icmp（ping）包
+tcpdump -c 5 -nnvv -i eth0 icmp and src 192.168.100.62
+# 抓取10个本机ens33的目的端口为22的tcp包
+tcpdump -c 10 -nnvv -i ens33 tcp dst port 22
 ```
 
 ## 3. 网络嗅探 nmap
@@ -684,7 +690,7 @@ patch -p1 -l --no-backup-if-mismatch -i ~/temp/patch
 ### 4.1. ssh生成公钥和私钥
 
 ```shell
-    ssh-keygen -t rsa -C "xxx@xxx.com"
+ssh-keygen -t rsa -C "xxx@xxx.com"
 ```
 
 ### 4.2. ssh通过代理访问
@@ -700,43 +706,32 @@ ssh -o "ProxyCommand=nc -x 127.0.0.1:1080 %h %p" wangyubo@172.22.2.108
 
 #### 5.1.1. 参数解析
 
-```shell
-    -c: 建立压缩档案
-    -x：解压
-    -t：查看内容
-    -r：向压缩归档文件末尾追加文件
-    -u：更新原压缩包中的文件
-```
+- `-c`: 建立压缩档案
+- `-x`: 解压
+- `-t`: 查看内容
+- `-r`: 向压缩归档文件末尾追加文件
+- `-u`: 更新原压缩包中的文件
 
 这五个是独立的命令，压缩解压都要用到其中一个，可以和别的命令连用但只能用其中一个。
 
-```shell
-    -z：有gzip属性的 tar.gz
-    -j：有bz2属性的 tar.bz2
-    -J：tar.xz
-    -Z：有compress属性的 tar.Z
-    -v：显示所有过程
-    -O：将文件解开到标准输出
-```
+- `-z`: 有gzip属性的 tar.gz
+- `-j`: 有bz2属性的 tar.bz2
+- `-J`: tar.xz
+- `-Z`: 有compress属性的 tar.Z
+- `-v`: 显示所有过程
+- `-O`: 将文件解开到标准输出
 
 这几个根据需要在压缩或解压档案时可选的。
 
-```
-    -f: 使用档案名字，切记，这个参数是最后一个参数，后面只能接档案名。
-```
-
-参数-f是必须的
-
-```shell
-    -C: 解压到什么目录，压缩时的父目录
-```
+- `-f [tar_file_name]`: 必须，使用档案名字，多选项时，此参数为最后一个。
+- `-C [dir_name]`: 解压到什么目录，压缩时的父目录
 
 #### 5.1.2. 示例
 
 ```shell
-    tar -xzf xxx.tar.gz             # 解压tar.gz文件
-    tar -xzvf xxx.tar.gz -C tmp     # 解压tar.gz文件显示过程，解压到tmp目录
-    tar -czvf xxx.tar.gz -C tmp ./  # 将tmp目录下的所有文件压缩，以tmp为根目录
+tar -xzf xxx.tar.gz             # 解压tar.gz文件
+tar -xzvf xxx.tar.gz -C tmp     # 解压tar.gz文件显示过程，解压到tmp目录
+tar -czvf xxx.tar.gz -C tmp ./  # 将tmp目录下的所有文件压缩，以tmp为根目录
 ```
 
 #### 5.1.3. 加密压缩
@@ -753,20 +748,31 @@ dd if=xxx.des3 | openssl des3 -d -k 'xxx' | tar -zxf - -C xxx/
 在OpenSSL 1.1.0中，我们从MD5更改为SHA-256。我们这样做是作为整体改变的一部分，以摆脱现在不安全和破碎的MD5算法。如果您有旧文件，请使用“-md md5”标志对其进行解密
 ```
 
-### 5.2. zip格式
+### 5.2. zip命令
 
 #### 5.2.1. 压缩
 
-压缩目录和目录下所有文件
+压缩只会追加不会删除已经存在zip文件中的文件
+
+- `-j`: 去除路径
+- `-r`: 递归压缩所有文件
+- `-m`: 打包后删除压缩的源文件
 
 ```shell
+# 去除路径
 zip -r (filename.zip) (path)
+# 去除路径
+zip -jr (filename.zip) (path)
 ```
 
 #### 5.2.2. 解压
 
 ```shell
-unzip (filename.zip) -d (path)
+unzip xxx.zip -d xxx
+# 解压特定文件
+unzip xxx.zip "b/c" -d xxx
+# 查看文件列表
+unzip -l xxx.zip
 # 指定编码
 unzip -O gbk (filename.zip) -d (path)
 ```
@@ -821,6 +827,210 @@ strace -p xxx
 ```shell
 # 和mount一样，将远程的/aaa挂载到本地~/xxx
 sshfs xxx@xxx.xxx.xxx.xxx:/aaa ~/xxx
+```
+
+## 12. cmake 跨平台编译命令
+
+CMakeLists.txt编写参见[CMakeLists.txt](/blogs/2019-06-03-makefile/#CMakeLists)
+
+### 12.1 基本使用命令
+
+```shell
+# 指定build目录生成工程
+cmake -B build/
+# 编译指定目标文件，会自动编译依赖，4线程编译
+# 不指定target编译所有
+cmake --build build/ --target xxx -j 4
+# 清理工程，相当于make clean
+cmake --build build/ --target clean -j 4
+```
+
+## 13. gdb c/c++单步调试工具
+
+### 13.1 基本使用命令
+
+```shell
+start                       # 开始调试,停在第一行代码处,(gdb)start
+l                           #list的缩写查看源代码,(gdb) l [number/function]
+b <lines>                   # b: Breakpoint的简写，设置断点。(gdb) b 10
+b <func>                    # b: Breakpoint的简写，设置断点。(gdb) b main
+b filename:[line/function]  # b:在文件filename的某行或某个函数处设置断点
+i breakpoints               # :info 的简写。(gdb)i breakpoints
+d [bpNO]                    # d: Delete breakpoint的简写，删除指定编号的某个断点，或删除所有断点。断点编号从1开始递增。 (gdb)d 1
+s                           # s: step执行一行源程序代码，如果此行代码中有函数调用，则进入该函数；(gdb) s
+n                           # n: next执行一行源程序代码，此行代码中的函数调用也一并执行。(gdb) n
+r                           # Run的简写，运行被调试的程序。如果此前没有下过断点，则执行完整个程序；如果有断点，则程序暂停在第一个可用断点处。(gdb) r
+c                           # Continue的简写，继续执行被调试程序，直至下一个断点或程序结束。(gdb) c
+finish                      # 函数结束
+p [var]                     # Print的简写，显示指定变量（临时变量或全局变量 例如 int a）的值。(gdb) p a
+display [var]               # display，设置想要跟踪的变量(例如 int a)。(gdb) display a
+undisplay [varnum]          # undisplay取消对变量的跟踪，被跟踪变量用整型数标识。(gdb) undisplay 1
+set args                    # 可指定运行时参数。(gdb)set args 10 20
+show args                   # 查看运行时参数。
+q                           # Quit的简写，退出GDB调试环境。(gdb) q
+help [cmd]                  # GDB帮助命令，提供对GDB名种命令的解释说明。如果指定了“命令名称”参数，则显示该命令的详细说明；如果没有指定参数，则分类显示所有GDB命令，供用户进一步浏览和查询。(gdb)help
+回车                        # 重复前面的命令，(gdb)回车
+```
+
+## <span id = "tmux">14. tmux</span>
+
+### 快捷键
+
+- 工具特定命令前缀为`Ctrl + b`
+
+**session操作**
+- `tmux ls`: 查看session列表
+- `prefix, d`: 离开当前session，但是session继续跑
+- `tmux a -t <session-name>`: 重新回到一个session
+- `tmux kill-session -t <session-name>`: 杀死一个session
+
+**窗口操作**
+- `prefix, c`: 创建新窗口
+- `prefix, n`: 下一个窗口
+- `prefix, p`: 上一个窗口
+- `prefix, l`: 进入前一个操作的窗口
+- `prefix, w`: 列出窗口进行选择
+- `prefix, ,`: 重命名当前窗口
+- `prefix, Shift + &`: 删除当前窗口
+
+**窗格操作**
+- `prefix, <方向键>`: 切换到相应窗格
+- `prefix, Shift + "`: 纵向分屏
+- `prefix, Shift + %`: 横向分屏
+- `prefix, Ctrl + <方向键>`: 朝相应方向移动边界
+- `prefix, x`: 关闭当前窗格
+- `prefix, z`: 当前窗格放大（专注，切换窗格就恢复了）
+- `prefix, ;`: 切换到上一个窗格
+- `prefix, o`: 切换到下一个窗格
+- `prefix, [`: 进入copy mode
+
+**copy mode**
+
+- `Ctrl + s`: 向下查找，输入字符串回车后，使用n和N选择下一个或者上一个
+- `Ctrl + r`: 向上查找
+
+## 15. fzf
+
+### 配置
+
+1. 安装完成后，将下面配置加到`.zshrc`或者`.bashrc`中
+
+```shell
+# 40%屏显示非全屏，展示反向（输入框在上面，文件在下面正序），文件在右侧展示前50行
+export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --preview 'head -n 50 {} 2>/dev/null'"
+```
+
+
+## <span id = "ctags">16. ctags</span>
+
+### 16.1. C/C++
+
+#### 基本选项
+
+- `-I xxx`: 许多函数定义最后有一个`__THROW`类似的，ctags将解析出错，加上此选项会忽略xxx
+- `--fields=+iaS`:
+- `--extra=+q`
+- `--c-kinds=+p`
+
+#### 添加系统头文件支持
+
+- 执行以下命令生成系统头文件的tags
+- 添加`set tags+=~/.vim/systags`包含系统头文件tags
+
+系统头文件检索列表，里面尖括号字段根据系统适配
+```
+/usr/include
+/usr/include/linux
+/usr/include/net
+/usr/include/netinet
+/usr/include/arpa
+/usr/include/c++/<version>
+/usr/include/<sys-version>-linux-gnu/sys
+```
+
+```shell
+# 把上面列表文件都扫出来，加到files.list里面
+find xxx -maxdepth 1 -type f >> files.list
+# ctags根据files.list生成tags文件
+ctags -I __wur -I __THROW -I __THROWNL -I __attribute_pure__ -I __nonnull -I __attribute__ --file-scope=yes --language-force=C++ --links=yes --c-kinds=+p --c++-kinds=+p --fields=+iaS --extra=+q -f ~/.vim/systags -L files.list
+```
+
+### 16.2. php支持
+
+转载自 [https://www.cnblogs.com/longdouhzt/archive/2013/04/15/3022908.html](https://www.cnblogs.com/longdouhzt/archive/2013/04/15/3022908.html)
+
+1. 添加以下命令到`~/.bashrc`或者`~/.zshrc`等当前使用的bash的起始配置文件中，可以使用phptags来生成php的tags文件
+
+```shell
+alias phptags='ctags --langmap=php:.engine.inc.module.theme.php  --php-kinds=cdf  --languages=php'
+```
+
+2. 添加以下配置到`~/.ctags`中，添加一些匹配规则
+
+```vim
+--regex-php=/^[ \t]*[(private|public|static)( \t)]*function[ \t]+([A-Za-z0-9_]+)[ \t]*\(/\1/f, function, functions/
+--regex-php=/^[ \t]*[(private|public|static)]+[ \t]+\$([A-Za-z0-9_]+)[ \t]*/\1/p, property, properties/
+--regex-php=/^[ \t]*(const)[ \t]+([A-Za-z0-9_]+)[ \t]*/\2/d, const, constants/
+```
+
+3. 到工程目录下`phptags -R`即可生成相应tags
+
+## 17. gcc
+
+### 17.1. 选项解释
+
+- `-s`: strip掉所有符号
+- `-fsanitize=address`: 监听内存泄漏，需要同时加上`-lasan`并且保证已经安装libasan
+- `-fno-omit-frame-pointer`
+
+## 18. firewalld 防火墙
+
+### 18.1. 选项解释
+
+- `--permanent`: 永久生效，加了这个选项，需要执行reload才能生效；不加，会立即生效，但是reload后会消失
+
+### 18.2. 几个应用实例
+
+```shell
+########## 查看规则 ##########
+# 只显示/etc/firewalld/zones/public.xml中防火墙策略
+firewall-cmd --list-all
+# 查看所有的防火墙策略
+firewall-cmd --list-all-zone
+
+########## 添加规则 ##########
+# 禁止ip 123.44.55.66 访问
+firewall-cmd --permanent --add-rich-rule='rule family=ipv4 source address="123.44.55.66" drop'
+# 开启22端口访问
+firewall-cmd --permanent --add-port=22/tcp
+
+########## 删除规则 ##########
+# 禁止ip 123.44.55.66 访问
+firewall-cmd --permanent --remove-rich-rule='rule family=ipv4 source address="123.44.55.66" drop'
+# 开启22端口访问
+firewall-cmd --permanent --remove-port=22/tcp
+
+########## 其他命令 ##########
+#重新加载配置文件，遇到防火墙规则不生效的，需要调用此命令
+firewall-cmd --reload
+```
+
+## 19. jq linux的json解析工具
+
+### 1. 几种基本用法
+
+```shell
+# 检查key是否存在
+=> echo '{"a":1}' | jq 'has("b")'
+false
+=> echo '{"a":1}' | jq 'has("a")'
+true
+
+# 取值
+=> echo '{"a":1}' | jq '.'
+1
+=> echo '{"a":"1"}' | jq '.a'
+"1"
 ```
 
 # 四、小技巧
