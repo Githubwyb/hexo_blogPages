@@ -37,6 +37,8 @@ ls ./ >>a.text          # 正确输出到a.txt(追加)
 
 ls ./ 2>&1              # 错误输出到标准输出
 
+echo "test" >&2         # 将字符串输出到stderr
+
 # < 将文件内容作为标准输入
 while read -r line; do
     echo "$line"
@@ -50,17 +52,17 @@ grep "xxx" <<< "$a"
 ### 3.2. $ 意义
 
 ```shell
-    $$      # Shell本身的PID（ProcessID）
-    $!      # Shell最后运行的后台Process的PID
-    $UID    # 当前用户的id
-    $PPID   # 父进程id
-    $?      # 最后运行的命令的结束代码（返回值）
-    $-      # 使用Set命令设定的Flag一览
-    $*      # 所有参数列表。如*所有参数列表。如"*“用「”」括起来的情况、以"$1 $2 … $n"的形式输出所有参数。
-    $@      # 所有参数列表。如@所有参数列表。如"@“用「”」括起来的情况、以"$1 $2 … $n" 的形式输出所有参数。
-    $#      # 添加到Shell的参数个数
-    $0      # Shell本身的文件名
-    $1～n   # 添加到Shell的各参数值。$1是第1参数、$2是第2参数…
+$$      # Shell本身的PID（ProcessID）
+$!      # Shell最后运行的后台Process的PID
+$UID    # 当前用户的id
+$PPID   # 父进程id
+$?      # 最后运行的命令的结束代码（返回值）
+$-      # 使用Set命令设定的Flag一览
+$*      # 所有参数列表。如*所有参数列表。如"*“用「”」括起来的情况、以"$1 $2 … $n"的形式输出所有参数。
+$@      # 所有参数列表。如@所有参数列表。如"@“用「”」括起来的情况、以"$1 $2 … $n" 的形式输出所有参数。
+$#      # 添加到Shell的参数个数
+$0      # Shell本身的文件名
+$1～n   # 添加到Shell的各参数值。$1是第1参数、$2是第2参数…
 ```
 
 ### 3.3. cd 跳转目录命令
@@ -80,35 +82,35 @@ grep "xxx" <<< "$a"
 **文件表达式**
 
 ```shell
-    if [ -e file ]      # 如果文件或者目录存在，不管有没有权限
-    if [ -f file ]      # 如果文件是普通文件，不是目录或者设备文件
-    if [ -d ...  ]      # 如果目录存在
-    if [ -s file ]      # 如果文件存在且非空
-    if [ -r file ]      # 如果文件存在且可读
-    if [ -w file ]      # 如果文件存在且可写
-    if [ -x file ]      # 如果文件存在且可执行
+if [ -e file ]      # 如果文件或者目录存在，不管有没有权限
+if [ -f file ]      # 如果文件是普通文件，不是目录或者设备文件
+if [ -d ...  ]      # 如果目录存在
+if [ -s file ]      # 如果文件存在且非空
+if [ -r file ]      # 如果文件存在且可读
+if [ -w file ]      # 如果文件存在且可写
+if [ -x file ]      # 如果文件存在且可执行
 ```
 
 **整数变量表达式**
 
 ```shell
-    if [ int1 -eq int2 ]        # 如果int1等于int2
-    if [ int1 -ne int2 ]        # 如果不等于
-    if [ int1 -ge int2 ]        # 如果>=
-    if [ int1 -gt int2 ]        # 如果>
-    if [ int1 -le int2 ]        # 如果<=
-    if [ int1 -lt int2 ]        # 如果<
+if [ int1 -eq int2 ]        # 如果int1等于int2
+if [ int1 -ne int2 ]        # 如果不等于
+if [ int1 -ge int2 ]        # 如果>=
+if [ int1 -gt int2 ]        # 如果>
+if [ int1 -le int2 ]        # 如果<=
+if [ int1 -lt int2 ]        # 如果<
 ```
 
 **字符串变量表达式**
 
 ```shell
-    if  [ $a = $b ]                     # 如果string1等于string2
-                                        # 字符串允许使用赋值号做等号
-    if  [ $string1 != $string2 ]        # 如果string1不等于string2
-    if  [ -n $string ]                  # 如果string 非空(非0），返回0(true)
-    if  [ -z $string ]                  # 如果string 为空
-    if  [ $sting ]                      # 如果string 非空，返回0 (和-n类似)
+if  [ $a = $b ]                     # 如果string1等于string2
+                                    # 字符串允许使用赋值号做等号
+if  [ $string1 != $string2 ]        # 如果string1不等于string2
+if  [ -n $string ]                  # 如果string 非空(非0），返回0(true)
+if  [ -z $string ]                  # 如果string 为空
+if  [ $sting ]                      # 如果string 非空，返回0 (和-n类似)
 ```
 
 ### 3.5. for 循环
@@ -481,9 +483,11 @@ main
 2020-05-08 Friday 19:12:22
 ```
 
-## 11. dd 占用空间
+## 11. dd 批量拷贝命令
 
 ### 11.1. 实例
+
+**1. 生成大文件**
 
 ```shell
 # 生成指定大小文件，1M一个单位，120个单位，生成到/sftmpfs/test
@@ -572,15 +576,9 @@ usage: netstat [-vWeenNcCF] [<Af>] -r         netstat {-V|--version|-h|--help}
 
 - `-i[suffix]`: 替换文件内容，如果定义了suffix，会备份一份到`xxxsuffix`
 
-### 16.2. pattern
+### 16.2. 示例
 
-就是sed命令的字符串段，上面是选项
-
-- `s/aaa/bbb/`: 将aaa换成bbb
-
-### 16.3. 添加
-
-**添加一行**
+**1. 添加一行**
 
 ```shell
 sed -i "/^start()/a\
@@ -588,7 +586,7 @@ sed -i "/^start()/a\
 " "${file_name}"
 ```
 
-**添加多行**
+**2. 添加多行**
 
 ```shell
 sed -i "/^start()/a\
@@ -598,6 +596,25 @@ sed -i "/^start()/a\
 	fi
 " "${file_name}"
 ```
+
+**3. 替换**
+
+```shell
+# 将aaa替换成bbb
+sed -i "s/aaa/bbb/" "${file_name}"
+```
+
+**3. 删除所有的html标签**
+
+```shell
+sed -i 's/<[^>]*>//g' "${file_name}"
+```
+
+### 16.3. 正则
+
+- ` *`: 匹配空格零次或多次
+- ` \?`: 匹配空格零次或一次
+- ` \+`: 匹配空格一次或多次
 
 ### 特殊用法
 
@@ -650,6 +667,62 @@ diff -ru dir1 dir2 > ~/temp/patch
 cd dir3
 # 将patch文件应用到当前目录下
 patch -p1 -l --no-backup-if-mismatch -i ~/temp/patch
+```
+
+## 19. fallocate 创建大文件
+
+fallocate创建的文件仅仅是占用磁盘，没有内容，所以只有很少的I/O操作，比dd快很多
+
+### 19.1. 几种基本用法
+
+```shell
+# 创建一个10G的文件
+fallocate -l 10G test.img
+```
+
+### 19.2. 注意
+
+- 不知道为什么，fallocate不能重复对一个文件执行，想要重新分配需要手动删除前一个文件
+
+## 20. lsof 查看系统文件占用（包括端口）
+
+### 20.1. 几种基本用法
+
+```shell
+# 根据进程号查看端口占用
+lsof -i | grep [pid]
+```
+
+## 21. top 查看系统占用
+
+### 21.1. 几个快捷键
+
+- `Shift + E`: 调整内存单位
+- `1`: 切换cpu统计模式，所有/详细
+- `Shift + P`: cpu占用排序
+- `Shift + M`: 内存占用排序
+- `m`: 切换内存显示样式
+- `c`: 显示进程详细命令
+
+## 22. awk 逐行处理显示
+
+### 22.1. 几种基本用法
+
+### 22.2. 骚操作实例
+
+**1. git计算代码行数**
+
+```shell
+git diff xxxx --numstat | awk '{add+=$1;del+=$2} END {print "Add =",add,"Delete =",del}'
+```
+
+## 23. md5sum 计算MD5
+
+### 23.1. 几种基本用法
+
+```shell
+# 计算字符串的md5
+echo -n "xxx" | md5sum
 ```
 
 # 三、工具命令
@@ -759,7 +832,6 @@ dd if=xxx.des3 | openssl des3 -d -k 'xxx' | tar -zxf - -C xxx/
 - `-m`: 打包后删除压缩的源文件
 
 ```shell
-# 去除路径
 zip -r (filename.zip) (path)
 # 去除路径
 zip -jr (filename.zip) (path)
@@ -838,9 +910,12 @@ CMakeLists.txt编写参见[CMakeLists.txt](/blogs/2019-06-03-makefile/#CMakeList
 ```shell
 # 指定build目录生成工程
 cmake -B build/
+# vscode常用的编译命令
+cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -H . -B build/ -G "Visual Studio 14 2015" -A win32
 # 编译指定目标文件，会自动编译依赖，4线程编译
 # 不指定target编译所有
-cmake --build build/ --target xxx -j 4
+# --config Release 编译release版
+cmake --build build/ --config Release --target xxx -j 4
 # 清理工程，相当于make clean
 cmake --build build/ --target clean -j 4
 ```
@@ -1303,6 +1378,30 @@ XMODIFIERS=@im=fcitx
 **主题**
 
 - github搜索`fcitx5-themes`下载后，将里面的文件夹拷贝到`~/.local/share/fcitx5/themes`下就可以配置了
+
+## 12. shell脚本单例
+
+```shell
+## 进程单例判断
+is_single_running() {
+    local lockfile=$1
+
+    exec 100> "$lockfile"
+    if /usr/bin/flock -xw 3 100
+    then
+        return 0
+    else
+        return 1
+    fi
+}
+
+## 用法
+if ! is_single_running /tmp/xxx; then
+    echo "has been running"
+    exit 1
+fi
+...
+```
 
 # 踩坑记
 

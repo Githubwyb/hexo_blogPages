@@ -145,7 +145,7 @@ python -m ensurepip
 
 python中矩阵索引使用None表示此维度不切片，同样意味着此维度大小未知
 
-## del 删除一个变量释放空间
+### del 删除一个变量释放空间
 
 ```python
 del var
@@ -165,6 +165,58 @@ str = str.replace('b', '')
 
 ```python
 str = str.dropip()
+```
+
+### 和ASCII码之间的转换
+
+```python
+# 转ASCII码，仅单个字符
+print(ord('a'))
+# ASCII码转字符，仅单个ascii码
+print(chr(97))
+```
+
+## 4. 类
+
+### 4.1. 类的几个特殊函数
+
+**1. 构造函数**
+
+```python
+class Test(object):
+    def __init__(self, a):
+        self.a = a
+
+tmp = Test(1)
+tmp = Test()        # 报错，需要传入1个参数
+```
+
+**2. 字符串输出**
+
+- 将类作为字符串时，会自动调用此函数输出
+
+```python
+class Test(object):
+    def __str__(self):
+        return f'ccccccc Test xxxxxxx'
+
+tmp = Test()
+print(tmp)
+print(str(tmp))
+```
+
+### 4.2. 多态
+
+**1. 虚函数**
+
+```python
+from abc import abstractmethod
+
+class Base(object):
+    @abstractmethod
+    def test_func(self):
+        pass
+
 ```
 
 ## 遍历
@@ -516,7 +568,7 @@ robot -i xxx caseDir/
 robot -i xxx -L TRACE:INFO caseDir/
 ```
 
-# 五、工具代码
+# 五、小技巧和踩坑记
 
 ## 1. 判断文件是否为二进制
 
@@ -540,4 +592,11 @@ def is_binary_file(file_path):
         initial_bytes = file.read(8192)
         file.close()
     return not any(initial_bytes.startswith(bom) for bom in _TEXT_BOMS) and b'\0' in initial_bytes
+```
+
+## 2. 动态添加PYTHONPATH
+
+```python
+import sys
+sys.path.append('/xxx/xxx')
 ```

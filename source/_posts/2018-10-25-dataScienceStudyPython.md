@@ -9,7 +9,7 @@ top: 16
 # 环境
 
 ```
-    Python 3.8.0
+Python 3.8.0
 ```
 
 # 1. 内建函数
@@ -296,14 +296,22 @@ test_series.value_counts()  # 统计各个值出现的次数
 
 ## 2.2. numpy
 
-### 内置函数
+### 1. 内置函数
 
-#### argmax获取最大值的位置
+#### 1.1. 数学函数汇总
 
 ```python
-    import numpy as np
+from numpy import *
+# e^12
+exp(12)
+```
 
-    print(np.argmax([1, 2, 4, 3]))  # 2
+#### 1.2. argmax获取最大值的位置
+
+```python
+import numpy as np
+
+print(np.argmax([1, 2, 4, 3]))  # 2
 ```
 
 ### numpy数据存取

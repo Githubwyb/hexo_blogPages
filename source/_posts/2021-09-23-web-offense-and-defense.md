@@ -9,6 +9,10 @@ categories: [Program, Web]
 
 记录一些攻防相关的web知识
 
+**学习网站**
+
+- (hackthissite)[https://www.hackthissite.org/] + Baidu
+
 # 一、特定语言的攻防
 
 ## 1. shtml 可以执行SSI指令的前端页面
@@ -97,6 +101,8 @@ SSI（Server Side Include），当客户端访问这些shtml文件时，服务�
 - `or 1=1`令整个where失效
 - `;`作为结束
 - `#`或者`--`将后续的字符串变成注释
+- `order by [n]`可以使用n（从1开始）来判断数据库一共有几列，大于某个n会报错，就证明有n列
+- `select * from table1 union select 1,2,passwd,4,5 from table2`: 使用union联表可以将另一个表的数据查出来拼接到整体数据中
 
 # 二、特定软件的攻防
 
@@ -111,3 +117,9 @@ SSI（Server Side Include），当客户端访问这些shtml文件时，服务�
 #### 1.1.2. 防
 
 关闭htaccess功能，需要修改httpd.conf，设置`AllowOverride none`，将会忽略所有的`.htaccess`配置
+
+# 三、通用知识
+
+## 1. 防止谷歌抓取页面
+
+- 一般会在网站根目录放上一个`robots.txt`，里面定义了哪些目录不允许抓取

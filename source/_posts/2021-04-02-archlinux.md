@@ -46,3 +46,50 @@ o
 只给efi分区作为主分区，其他全部逻辑分区
 U盘中这样搞启动时没检测到硬盘，GG了
 
+# 二、日常操作
+
+## 1. 常用命令
+
+### 1.1. pacman 安装软件
+
+#### 1.1.1. 一些基本用法
+
+```shell
+########## S --sync 同步（安装搜索） ##########
+# y 同步最新仓库
+# u update
+sudo pacman -Syu xxx
+
+# s 搜索软件
+sudo pacman -Sys xxx
+
+# c 从缓存仓库清理旧包，cc清理所有
+sudo pacman -Scc
+
+########## R --remove 移除 ##########
+# u 移除用不到的包
+# s 递归移除用不到的依赖
+# n 删除配置文件
+# c 移除包和依赖它的包
+sudo pacman -Rusnc xxx
+
+########## Q --query 查询（本地） ##########
+# d 列出作为依赖项安装的包
+# t 列出不被其他包需要的包
+# q 只展示包名，不展示版本号
+sudo pacman -Qdtq
+```
+
+### 1.2. journalctl
+
+#### 1.2.1. 一些基本用法
+
+```shell
+# 查看日志的磁盘使用量
+sudo journalctl --disk-usage
+
+# 清理5天之前的日志
+sudo journalctl --vacuum-time=5d
+```
+
+# 踩坑记

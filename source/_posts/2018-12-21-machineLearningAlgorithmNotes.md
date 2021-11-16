@@ -1,13 +1,13 @@
 ---
 title: 机器学习中的算法笔记
 date: 2018-12-21 10:15:36
-tags: [算法]
+tags: [AI, 算法]
 categories: [Knowledge, Study]
 ---
 
-# 机器学习的函数介绍
+# 一、机器学习的函数介绍
 
-## softmax函数
+## 1. softmax函数
 
 ### 函数形式
 
@@ -27,7 +27,7 @@ $$ S = \begin{bmatrix} 0.0057 \\\\ 0.8390 \\\\ 0.0418 \\\\ 0.1135 \end{bmatrix} 
 
 很明显，Softmax 的输出表征了不同类别之间的相对概率。我们可以清晰地看出，$ S_1 = 0.8390 $ ，对应的概率最大，则更清晰地可以判断预测为第2类的可能性更大。Softmax 将连续数值转化成相对概率，更有利于我们理解。
 
-## sigmoid函数
+## 2. sigmoid函数
 
 ### 函数形式
 
@@ -50,7 +50,7 @@ $$ \begin{aligned}
 
 函数值域为 $ (0, 1) $ ，用于将神经元的输出归一化，便于做二分类问题。在机器学习领域，将输出的值从 $ (-\infty, +\infty) $ 归一化到 $ (0, 1) $ 中，对于许多分类问题都是很好的函数，比如逻辑回归。
 
-# 传统机器学习算法
+# 二、传统机器学习算法
 
 ## 逻辑回归 Logistics Regression
 
@@ -100,9 +100,9 @@ $$ \begin{aligned}
     & = \sum_{i} [(\hat{y_i} - y_i)x_i]
 \end{aligned} $$
 
-# 神经网络
+# 三、神经网络
 
-## 感知器（神经元）
+## 1. 感知器（神经元）
 
 - 神经网络的组成单元——神经元。
 - 神经元也叫做感知器。
@@ -145,7 +145,7 @@ python编写感知器实现and运算符
 
 Github: <https://github.com/Githubwyb/zeroDeepLearning/tree/master/1.Perceptron>
 
-## 线性单元
+## 2. 线性单元
 
 ### 模型
 
@@ -200,7 +200,7 @@ python编写线性单元实现线性预测
 
 Github: <https://github.com/Githubwyb/zeroDeepLearning/tree/master/2.LinearUnit>
 
-## 神经网络和反向传播算法
+## 3. 神经网络和反向传播算法
 
 ### 神经元
 

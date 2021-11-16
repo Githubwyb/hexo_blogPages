@@ -1,7 +1,7 @@
 ---
 title: latex笔记
 date: 2018-09-18 15:16:39
-tags: 
+tags:
 categories: [Program, Document]
 ---
 
@@ -24,6 +24,8 @@ categories: [Program, Document]
 - 累加算子`$\Sigma$`: $\Sigma$
 - 梯度算子`$\nabla$`: $\nabla$
 - 偏导算子`$\partial$`: $\partial$
+- `$\eta$`: $\eta$
+- `$\delta$`: $\delta$
 - 属于`$\in$`: $\in$
 - 无穷`$\infty$`: $\infty$
 - 任意`$\forall$`: $\forall$
@@ -31,6 +33,7 @@ categories: [Program, Document]
 - 因为`$\because$`: $\because$
 - 所以`$\therefore$`: $\therefore$
 - 字母右上角一撇`$a^{\prime}$`: $a^{\prime}$
+- 箭头`$\leftarrow$`: $\leftarrow$
 
 ## 空格
 
