@@ -10,8 +10,8 @@ categories: [Program, Shell]
 ## 1. 进制数字表示
 
 ```shell
-    # 二进制转十进制输出，其他同理
-    echo $((2#100100))
+# 二进制转十进制输出，其他同理
+echo $((2#100100))
 ```
 
 ## 2. 目录特殊符号
@@ -947,7 +947,7 @@ help [cmd]                  # GDB帮助命令，提供对GDB名种命令的解�
 回车                        # 重复前面的命令，(gdb)回车
 ```
 
-## <span id = "tmux">14. tmux</span>
+## 14. <span id = "tmux">tmux</span>
 
 ### 快捷键
 
@@ -972,12 +972,14 @@ help [cmd]                  # GDB帮助命令，提供对GDB名种命令的解�
 - `prefix, <方向键>`: 切换到相应窗格
 - `prefix, Shift + "`: 纵向分屏
 - `prefix, Shift + %`: 横向分屏
+- `prefix, Shift + !`: 将当前窗格新起一个窗口存放
 - `prefix, Ctrl + <方向键>`: 朝相应方向移动边界
 - `prefix, x`: 关闭当前窗格
 - `prefix, z`: 当前窗格放大（专注，切换窗格就恢复了）
 - `prefix, ;`: 切换到上一个窗格
 - `prefix, o`: 切换到下一个窗格
 - `prefix, [`: 进入copy mode
+- `prefix, Ctrl + o`: 顺时针切换各个窗格
 
 **copy mode**
 
@@ -996,7 +998,7 @@ export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --preview 'head -n 50 {} 
 ```
 
 
-## <span id = "ctags">16. ctags</span>
+## 16. <span id = "ctags">ctags</span>
 
 ### 16.1. C/C++
 
@@ -1106,6 +1108,48 @@ true
 1
 => echo '{"a":"1"}' | jq '.a'
 "1"
+```
+
+## 20. iotop 磁盘占用统计工具
+
+### 1. 几种基本用法
+
+- 需要使用root权限
+- 类似与top，不需要跟参数
+
+**统计中快捷键**
+
+- `o`: 仅显示占用io的进程
+- `a`: 显示累计数据
+- `shift + P`: 只显示进程，不显示线程，默认显示所有线程
+- 使用左右方向键来选择排序的列
+
+## 21. 图片操作工具 imagemagick
+
+### 21.1. 图片转pdf
+
+- 按照图片名字顺序生成pdf
+
+```shell
+convert *.jpg +compress foo.pdf
+```
+
+### 21.2. pdf转图片
+
+- 执行了下面命令后，就会生成 image_name-0.jpg，image_name-1.jpg等等图片，数目由PDF页数决定。
+
+```shell
+convert pdf_name.pdf image_name.jpg
+```
+
+**额外的参数**
+
+- `-resize 1800x`: 指定生成的像素大小，越大生成的图片越大，转化的时间越久
+- `-density 150`: 参数指定密度，具体含义再查
+- `-quality 100`: 指定生成图片的质量
+
+```shell
+convert -resize 1800x -density 150 -quality 100 pdf_name.pdf image_name.jpg
 ```
 
 # 四、小技巧
@@ -1360,25 +1404,6 @@ cat /sys/class/power_supply/battery/capacity
 - `fg`: 后台运行程序转前台
 - `jobs`: 查看所有程序
 
-## 11. 安装fcitx5输入法
-
-- 需要安装`fcitx5`基础包和`fcitx5-chinese-addons`中文输入包
-- 在桌面系统中配置开机启动，程序路径通过`which fcitx5`
-- 安装完成后，需要在环境变量配置一下，不然命令行会用不了
-
-```shell
-# /etc/environment
-GTK_IM_MODULE=fcitx
-QT_IM_MODULE=fcitx
-XMODIFIERS=@im=fcitx
-```
-
-- 安装完成后找到`fcitx5-configure`配置自己输入习惯
-
-**主题**
-
-- github搜索`fcitx5-themes`下载后，将里面的文件夹拷贝到`~/.local/share/fcitx5/themes`下就可以配置了
-
 ## 12. shell脚本单例
 
 ```shell
@@ -1401,6 +1426,17 @@ if ! is_single_running /tmp/xxx; then
     exit 1
 fi
 ...
+```
+
+## 13. 挂载windows共享文件夹
+
+- `uid`和`gid`需要根据需要设置成对应的id，为挂在过来的所属用户和用户组
+
+```shell
+# 查看windows共享文件夹
+smbclient -U User -L //xxx.xxx.xxx.xxx/
+# 挂载
+mount -t cifs -o user=share,rw,uid=0,gid=0 //192.168.1.120/share /root/share
 ```
 
 # 踩坑记

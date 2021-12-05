@@ -92,4 +92,43 @@ sudo journalctl --disk-usage
 sudo journalctl --vacuum-time=5d
 ```
 
-# 踩坑记
+# 三、好用的工具
+
+## 1. kde桌面下
+
+### 1.1. xpad 桌面便签
+
+#### (1) 快捷键
+
+- `Ctrl + F8`: 置顶/取消置顶
+- `Ctrl + 鼠标`: 拖动位置
+
+# 踩坑记和小技巧
+
+## 1. 安装fcitx5输入法
+
+- 需要安装`fcitx5`基础包和`fcitx5-chinese-addons`中文输入包
+- 在桌面系统中配置开机启动，程序路径通过`which fcitx5`
+- 安装完成后，需要在环境变量配置一下，不然命令行会用不了
+
+```shell
+# /etc/environment
+GTK_IM_MODULE=fcitx
+QT_IM_MODULE=fcitx
+XMODIFIERS=@im=fcitx
+```
+
+- 安装完成后找到`fcitx5-configure`配置自己输入习惯
+
+**主题**
+
+- github搜索`fcitx5-themes`下载后，将里面的文件夹拷贝到`~/.local/share/fcitx5/themes`下就可以配置了
+
+## 2. 安装kde桌面后，发现特别卡慢
+
+- 原因是baloo_file_extractor这个进程占用太多的磁盘io，导致特别卡
+- 解决方法是执行
+
+```shell
+balooctl disable
+```

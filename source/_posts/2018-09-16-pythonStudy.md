@@ -532,6 +532,8 @@ print(test2)
 
 ## 7. url请求操作 requests
 
+### 7.1. 请求基本操作
+
 ```python
 import requests
 
@@ -557,6 +559,18 @@ r = requests.get("https://127.0.0.1:1234", params=params)
 r = requests.post("https://127.0.0.1:1234", params=params, data=data, json=json_data)
 ```
 
+### 7.2. 下载文件
+
+```python
+import requests
+
+url = "https://image.csslcloud.net/image.jpg".format(i)
+down_res = requests.get(url=url)
+
+with open('./tmp/test.png', "wb") as code:
+    code.write(down_res.content)
+```
+
 ## 8. 接口测试框架 robot framework
 
 ### 8.1. 命令使用
@@ -566,6 +580,54 @@ r = requests.post("https://127.0.0.1:1234", params=params, data=data, json=json_
 robot -i xxx caseDir/
 # 执行tag为xxx的用例，日志级别为TRACE，默认显示级别INFO
 robot -i xxx -L TRACE:INFO caseDir/
+```
+
+## 9. 浏览器自动化操作 selenium
+
+### 9.1. 操作chrome
+
+#### (1) 环境准备
+
+- 安装chromedriver，需要和当前电脑的chrome版本匹配
+
+#### (2) 基本操作
+
+```python
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
+options = webdriver.ChromeOptions()
+
+# 不打开图形化界面，也就是不启动chrome窗口
+# options.add_argument('--headless')
+
+# options.add_argument('--disable-gpu')
+options.add_argument('--no-sandbox')
+# options.add_argument('window-size=800x600')
+
+try:
+    # 打开chrome
+    driver = webdriver.Chrome(options=options)
+    # 设置windows窗口的大小
+    driver.set_window_size(760, 730)
+    # 打印当前窗口大小
+    print(driver.get_window_size())
+    # 打开页面
+    driver.get("https://www.baidu.com")
+    time.sleep(5)
+    # 将鼠标向x移动400，y移动300
+    ActionChains(driver).move_by_offset(400, 300).perform()
+    for i in range(200):
+        # 将当前页面截图
+        driver.get_screenshot_as_file('./tmp/bagao-{:0>4d}.png'.format(i+1))
+        # 当前鼠标位置点击
+        ActionChains(driver).click().perform()
+        time.sleep(2)
+except WebDriverException as e:
+    print(e)
+finally:
+    # 需要调用退出，不然会在后台留下一个进程
+    driver.quit()
 ```
 
 # 五、小技巧和踩坑记

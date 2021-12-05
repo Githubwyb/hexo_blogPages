@@ -12,7 +12,7 @@ top: 16
 Python 3.8.0
 ```
 
-# 1. 内建函数
+# 一、内建函数
 
 ## range 列表
 
@@ -98,9 +98,9 @@ dict2 = {"a": 2, "c": 3}
 dict3 = {**dict1, **dict2}  # 用dict2更新dict1
 ```
 
-# 2. 第三方module
+# 二、第三方module
 
-## 2.1. pandas
+## 1. pandas
 
 ### csv格式文件读写
 
@@ -294,11 +294,11 @@ test_series.value_counts()  # 统计各个值出现的次数
     writer.save()
 ```
 
-## 2.2. numpy
+## 2. numpy
 
-### 1. 内置函数
+### 2.1. 内置函数
 
-#### 1.1. 数学函数汇总
+#### (1) 数学函数汇总
 
 ```python
 from numpy import *
@@ -306,7 +306,7 @@ from numpy import *
 exp(12)
 ```
 
-#### 1.2. argmax获取最大值的位置
+#### (2) argmax获取最大值的位置
 
 ```python
 import numpy as np
@@ -314,83 +314,83 @@ import numpy as np
 print(np.argmax([1, 2, 4, 3]))  # 2
 ```
 
-### numpy数据存取
+### 2.2. numpy数据存取
 
 numpy有一个可以直接将numpy数组矩阵按照原来的格式储存和读取的函数
 
 ```python
-    import numpy as np
+import numpy as np
 
-    # 储存data
-    np.save("file directory", data)
+# 储存data
+np.save("file directory", data)
 
-    # 读取data
-    data = np.load("file directory")
+# 读取data
+data = np.load("file directory")
 ```
 
 这个方法可以直接将shape也存下来，不需要考虑格式、类型等，缺点是文件会有点大。
 
-### ndarray 矩阵
+### 2.3. ndarray 矩阵
 
 #### reshape 重置矩阵形状
 
 从最外层开始重置矩阵形状，默认按行读取，-1代表未知数量，由numpy自动计算
 
 ```python
-    test_ndarray = test_ndarray.reshape(-1, 28, 28, 1)
-    print(test_ndarray.shape)   #out: (42000, 28, 28, 1)
+test_ndarray = test_ndarray.reshape(-1, 28, 28, 1)
+print(test_ndarray.shape)   #out: (42000, 28, 28, 1)
 ```
 
-### 随机数
+### 2.4. 随机数
 
 - 随机种子
 
 ```python
-    import numpy as np
+import numpy as np
 
-    np.random.seed(2)
+np.random.seed(2)
 ```
 
-### linespace 列表
+### 2.5. linespace 列表
 
 ```python
-    import numpy as np
+import numpy as np
 
-    y = np.linspace(m, n, z) # 在[m, n]等距离取z个点
-    x = np.linspace(m, n) # 同上，z默认取50
+y = np.linspace(m, n, z) # 在[m, n]等距离取z个点
+x = np.linspace(m, n) # 同上，z默认取50
 ```
 
-## 2.3. matplotlib
+## 3. matplotlib
 
 ### pyplot 画图
 
 #### 新开一个页面 figure
 
 ```python
-    import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
-    plt.figure()
-    ...
-    plt.figure()
-    ...
-    plt.show()
+plt.figure()
+...
+plt.figure()
+...
+plt.show()
 ```
 
 #### 一页多图 subplot
 
 ```python
-    import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
-    plt.figure()
-    plt.subplot(3, 2, 1) # 3行2列，从左向右，从上向下，第一个
-    ...
-    plt.subplot(3, 2, 3) # 3行2列，从左向右，从上向下，第三个
-    ...
-    plt.subplot(3, 2, 5) # 3行2列，从左向右，从上向下，第五个
-    ...
-    plt.subplot(1, 2, 2) # 1行2列，从左向右，从上向下，第二个
-    ...
-    plt.show()
+plt.figure()
+plt.subplot(3, 2, 1) # 3行2列，从左向右，从上向下，第一个
+...
+plt.subplot(3, 2, 3) # 3行2列，从左向右，从上向下，第三个
+...
+plt.subplot(3, 2, 5) # 3行2列，从左向右，从上向下，第五个
+...
+plt.subplot(1, 2, 2) # 1行2列，从左向右，从上向下，第二个
+...
+plt.show()
 ```
 
 效果图
@@ -400,60 +400,60 @@ numpy有一个可以直接将numpy数组矩阵按照原来的格式储存和读�
 #### 页面属性更改
 
 ```python
-    import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
-    plt.figure("abc") # 整个图表名字
-    ...
-    plt.xlabel("x") # 横坐标名称
-    plt.ylabel("y") # 纵坐标名称
-    plt.title("y = f(x)") # 当前图的名字
-    plt.show()
+plt.figure("abc") # 整个图表名字
+...
+plt.xlabel("x") # 横坐标名称
+plt.ylabel("y") # 纵坐标名称
+plt.title("y = f(x)") # 当前图的名字
+plt.show()
 ```
 
 #### stem 散点图
 
 ```python
-    #coding=utf-8
-    import matplotlib.pyplot as plt
-    import numpy as np
+# coding=utf-8
+import matplotlib.pyplot as plt
+import numpy as np
 
-    y = np.linspace(0, 100, 32)
-    x = list(range(0, 32))
+y = np.linspace(0, 100, 32)
+x = list(range(0, 32))
 
-    plt.figure()
-    plt.stem(x, y)
-    plt.show()
+plt.figure()
+plt.stem(x, y)
+plt.show()
 ```
 
 效果图
 
 <img src = "2018_11_29_02.png">
 
-## 2.4. seaborn
+## 4. seaborn
 
 ### 画图统计向量中值的出现次数 countplot
 
 ```python
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-    ...
-    sns.countplot(Y_train)
-    plt.show()
+import matplotlib.pyplot as plt
+import seaborn as sns
+...
+sns.countplot(Y_train)
+plt.show()
 ```
 
 效果图
 
 <img src = "2018_11_29_03.png">
 
-## 2.5.  scipy
+## 5.  scipy
 
 ### fftpack
 
 #### fft 快速傅里叶变换
 
 ```python
-    from scipy.fftpack import fft
+from scipy.fftpack import fft
 
-    x = np.linspace(0, 100, 32)
-    y = fft(x) # 得到x的32点fft
+x = np.linspace(0, 100, 32)
+y = fft(x) # 得到x的32点fft
 ```

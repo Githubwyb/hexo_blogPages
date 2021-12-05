@@ -3,7 +3,6 @@ title: stm32cubemx配置介绍
 date: 2018-03-30 11:17:54
 tags: [单片机]
 categories: [Software Usage, Stm32cubemx]
-top: true
 ---
 
 本博客仅为自己在使用时的总结，希望有所帮助

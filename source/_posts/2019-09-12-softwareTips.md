@@ -25,6 +25,21 @@ categories: [Software Usage]
 
 # 三、vscode
 
-## 下载加速
+## 1. 下载加速
 
 - 将下载链接的地址替换为国内镜像地址`vscode.cdn.azure.cn`即可
+
+## 2. 好用的插件
+
+### 2.1. 跨平台快捷键不一致
+
+- 在windows上使用习惯的快捷键在linux不适用
+- 安装一个`windows default keybinding`就好了
+
+
+# 四、firefox
+
+## 1. 修改user-agent
+
+1. 访问`about:config`
+2. 创建或修改`general.useragent.override`，值为想要的user-agent值

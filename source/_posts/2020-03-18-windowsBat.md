@@ -70,10 +70,22 @@ PS> New-item xxx.txt -type file
 
 # 小技巧
 
-## powershell使用utf-8编码
+## 1. powershell使用utf-8编码
 
 - 启动powershell时输入
 
 ```bat
 chcp 65001
+```
+
+## 2. windows 10启用sshd服务
+
+- 需要在功能中安装`OpenSSH Server`
+- 在命令行中执行，登陆帐号密码和微软一致
+
+```bat
+:: 开启
+net start sshd
+:: 关闭
+net stop sshd
 ```
