@@ -954,12 +954,14 @@ help [cmd]                  # GDB帮助命令，提供对GDB名种命令的解�
 - 工具特定命令前缀为`Ctrl + b`
 
 **session操作**
+
 - `tmux ls`: 查看session列表
 - `prefix, d`: 离开当前session，但是session继续跑
 - `tmux a -t <session-name>`: 重新回到一个session
 - `tmux kill-session -t <session-name>`: 杀死一个session
 
 **窗口操作**
+
 - `prefix, c`: 创建新窗口
 - `prefix, n`: 下一个窗口
 - `prefix, p`: 上一个窗口
@@ -969,6 +971,7 @@ help [cmd]                  # GDB帮助命令，提供对GDB名种命令的解�
 - `prefix, Shift + &`: 删除当前窗口
 
 **窗格操作**
+
 - `prefix, <方向键>`: 切换到相应窗格
 - `prefix, Shift + "`: 纵向分屏
 - `prefix, Shift + %`: 横向分屏
@@ -980,6 +983,8 @@ help [cmd]                  # GDB帮助命令，提供对GDB名种命令的解�
 - `prefix, o`: 切换到下一个窗格
 - `prefix, [`: 进入copy mode
 - `prefix, Ctrl + o`: 顺时针切换各个窗格
+- `prefix, m`: 标记窗格，配合下面命令交换窗格
+- `prefix, :swapp`: 切换窗格
 
 **copy mode**
 

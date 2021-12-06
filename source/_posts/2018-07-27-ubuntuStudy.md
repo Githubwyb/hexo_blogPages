@@ -17,14 +17,20 @@ gnome-session-properties
 
 ## 2. 安装fcitx5
 
+- ubuntu 20.04没有`fcitx5-configtool`，没有办法配置，只能使用纯文本配置
+
+### 安装步骤
+
 1. 先安装
 
 ```shell
 sudo apt install fcitx5 fcitx5-frontend-gtk3 fcitx5-frontend-gtk2 fcitx5-frontend-gtk3 fcitx5-frontend-gtk2
 ```
 
-2. 在网上找个配置替换`~/.config/fcitx5/*`
-
+2. 找个主题装上去
+3. 在网上找个配置替换`~/.config/fcitx5/*`
+4. 添加开机启动程序，参照上面
+5. 重启
 
 # 解决依赖关系
 
