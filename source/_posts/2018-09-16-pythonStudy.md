@@ -87,26 +87,26 @@ python -m ensurepip
 使用pip安装没有找到怎么命令行调用，使用apt可以直接命令行调用
 
 ```shell
-    sudo apt install jupyter-notebook
+sudo apt install jupyter-notebook
 ```
 
 ### 配置远程访问
 
 ```shell
-    ~|⇒ jupyter notebook --generate-config      # 生成jupyter配置文件
-    Writing default config to: /home/you/.jupyter/jupyter_notebook_config.py
-    ~|⇒ jupyter notebook password               # 设置远程访问密码
-    Enter password:
-    Verify password:
-    [NotebookPasswordApp] Wrote hashed password to /home/wangyubo/.jupyter/jupyter_notebook_config.json
+~|⇒ jupyter notebook --generate-config      # 生成jupyter配置文件
+Writing default config to: /home/you/.jupyter/jupyter_notebook_config.py
+~|⇒ jupyter notebook password               # 设置远程访问密码
+Enter password:
+Verify password:
+[NotebookPasswordApp] Wrote hashed password to /home/wangyubo/.jupyter/jupyter_notebook_config.json
 ```
 
 编辑`jupyter_notebook_config.py`，找到以下配置，改成这样
 
 ```python
-    c.NotebookApp.ip = '*'              # 允许所有ip访问
-    c.NotebookApp.open_browser = False  # 不自动打开浏览器
-    c.NotebookApp.port = 8888           #可自行指定一个端口, 访问时使用该端口
+c.NotebookApp.ip = '*'              # 允许所有ip访问
+c.NotebookApp.open_browser = False  # 不自动打开浏览器
+c.NotebookApp.port = 8888           #可自行指定一个端口, 访问时使用该端口
 ```
 
 # 二、语法相关
@@ -281,7 +281,7 @@ class Base(object):
 
 ```
 
-## 遍历
+## 5. 遍历
 
 ### for遍历list
 
@@ -305,7 +305,7 @@ for index, value in enumerate(listValues):
 
 - 普通的`for value in listValues:`无法修改list的值，list值修改只能用index的方式
 
-## 函数
+## 6. 函数
 
 ### lambda 匿名函数
 
@@ -318,7 +318,7 @@ lambda arg1, arg2, ...argN : expression using arguments
 - lambda 函数不能包含命令，包含的表达式不能超过一个。不要试图向 lambda 函数中塞入太多的东西；如果你需要更复杂的东西，应该定义一个普通函数，然后想让它多长就多长。
 - 就lambda而言，它并没有给程序带来性能上的提升，它带来的是代码的简洁。
 
-## try 异常处理
+## 7. try 异常处理
 
 ### try-except-else
 
@@ -390,7 +390,7 @@ except Networkerror,e:
     print(e.args)
 ```
 
-## with 上下文
+## 8. with 上下文
 
 ### with是什么
 
@@ -442,6 +442,29 @@ with get_sample() as sample:
 In __enter__()
 sample: Foo
 In __exit__()
+```
+
+## 9. print 打印操作
+
+### 9.1. 一些基本操作
+
+- `\r`: 将光标定位到行首
+- `\b`: 光标前移一个字符
+- `end=""`: 参数end控制结束符
+
+## 10. import 导入模块
+
+### 10.1. 使用字符串导入
+
+```python
+mod_name = "json"
+# __import__方法
+__import__(mod_name)
+# exec的方法
+exec('import ' + mod_name)
+# import_module 官方推荐
+import importlib
+string = importlib.import_module(mod_name)
 ```
 
 # 三、系统内置module介绍
@@ -524,6 +547,14 @@ import json
 dict_data = json.loads('{"a": 1}')
 # dict到字符串，是否排列key
 json_str = json.dumps(dict_data, sort_keys=True)
+
+```
+
+## 4. 加载C/C++的so库 ctypes
+
+### 4.1. 基本操作
+
+```python
 
 ```
 
@@ -692,6 +723,35 @@ finally:
     driver.quit()
 ```
 
+## 10. pdf编辑 PyPDF2
+
+### 10.1. 删除一页pdf
+
+```python
+from PyPDF2 import PdfFileWriter, PdfFileReader
+
+output = PdfFileWriter()
+input1 = PdfFileReader(open("test.pdf", "rb"))
+
+
+def delete_pdf(index: list):
+    pages = input1.getNumPages()
+
+    for i in range(pages):
+        if i+1 in index:
+            continue
+        output.addPage(input1.getPage(i))
+
+    outputStream = open("test1.pdf", "wb")
+    output.write(outputStream)
+
+
+delete_pdf([1])
+```
+
+### 10.2.
+
+
 # 五、小技巧和踩坑记
 
 ## 1. 判断文件是否为二进制
@@ -714,7 +774,7 @@ def is_binary_file(file_path):
 
     with open(file_path, 'rb') as file:
         initial_bytes = file.read(8192)
-        file.close()
+
     return not any(initial_bytes.startswith(bom) for bom in _TEXT_BOMS) and b'\0' in initial_bytes
 ```
 

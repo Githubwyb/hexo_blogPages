@@ -725,6 +725,53 @@ git diff xxxx --numstat | awk '{add+=$1;del+=$2} END {print "Add =",add,"Delete 
 echo -n "xxx" | md5sum
 ```
 
+## 24. udevadm 系统usb管理
+
+### 24.1 几种基本用法
+
+```shell
+# 监听usb事件，查看详细信息可以添加选项
+udevadm monitor --environment --udev
+# 设置日志级别
+udevadm control --log-priority=debug
+```
+
+## 25. lsblk 树型查看硬盘分区信息
+
+## 26. blkid 查看已挂载的硬盘的uuid信息
+
+## 27. tune2fs 修改硬盘uuid
+
+## 28. route 更新路由信息
+
+### 28.1. 一些基本用法
+
+```shell
+########## 查看路由 ##########
+route -n
+
+########## 添加路由 ##########
+route add -net 1.1.1.1/24 gw 1.1.1.254
+route add -net 1.1.1.1/24 dev eth0
+
+########## 删除路由 ##########
+route del -net 1.1.1.1/24 gw 1.1.1.254
+route del -net 1.1.1.1/24 dev eth0
+```
+
+## 29. ps 查看系统进程
+
+### 29.1. 选项含义
+
+**参数**
+
+- `a`: 列出所有用户的程序
+- `u`: 显示所属用户
+- `x`: 显示所有程序，不加只显示终端控制的程序
+- `c`: 只显示指令名称
+- `f`: 使用ascii字符展示关系
+- `e`: 显示环境变量
+
 # 三、工具命令
 
 ## 1. 文件夹目录大小 du
@@ -1368,15 +1415,6 @@ EndSection
 
 - 重启设备就好了
 
-**x11vnc服务启动无法连接**
-
-- gdm3的桌面管理器没有使用xserver，所以无法使用x11vnc，见 [XServer基本概念 + x11vnc配置远程桌面](https://blog.csdn.net/lovewangtaotao/article/details/102907540)
-- 切换为lightdm就好了
-
-```shell
-sudo dpkg-reconfigure lightdm
-```
-
 **sddm管理桌面x11vnc起不来**
 
 - 可能需要单独写一个脚本处理，上面service的exec就指定这个脚本的目录即可
@@ -1390,7 +1428,25 @@ while [ -z "$(ls -t /run/sddm)" ]; do
 done
 authFile="$(ls -t /run/sddm | head -n 1)"
 
-/usr/bin/x11vnc -auth "/run/sddm/$authFile" -forever -loop -noxdamage -repeat -rfbauth "/home/wangyubo/.vnc/passwd" -rfbport 5900 -shared -capslock
+/usr/bin/x11vnc -auth "/run/sddm/$authFile" -forever -loop -noxdamage -repeat -rfbauth "/home/xxx/.vnc/passwd" -rfbport 5900 -shared -capslock
+```
+
+**gdm3管理桌面x11vnc起不来**
+
+- 同上，不过脚本变成下面这样
+- 尝试的出现一个问题，当使用gdm3启动kde时，在桌面登陆前，没有`/run/user/1000/gdm/Xauthority`，需要先登录再启动
+- 但是存在一个`/run/user/129/gdm/Xauthority`，这个可以打开登陆界面，登陆完这个就只有黑屏，需要使用上面的配置，并且`-dislay`需要设置成`:1`
+
+```shell
+#!/bin/bash
+
+auth_file="/run/user/1000/gdm/Xauthority"
+
+while [ ! -f "$auth_file" ]; do
+    sleep 1
+done
+
+/usr/bin/x11vnc -auth "$auth_file" -forever -loop -noxdamage -repeat -rfbauth "/home/xxx/.vnc/passwd" -rfbport 5900 -shared -capslock
 ```
 
 ## 9. 查看电量

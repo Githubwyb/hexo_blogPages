@@ -24,13 +24,34 @@ gnome-session-properties
 1. 先安装
 
 ```shell
-sudo apt install fcitx5 fcitx5-frontend-gtk3 fcitx5-frontend-gtk2 fcitx5-frontend-gtk3 fcitx5-frontend-gtk2
+sudo apt install fcitx5 fcitx5-frontend-gtk3 fcitx5-frontend-gtk2
 ```
 
 2. 找个主题装上去
 3. 在网上找个配置替换`~/.config/fcitx5/*`
-4. 添加开机启动程序，参照上面
-5. 重启
+4. 执行`im-config`，选择fcitx5
+5. 添加环境变量
+
+```shell
+# /etc/environment
+GTK_IM_MODULE=fcitx
+QT_IM_MODULE=fcitx
+XMODIFIERS=@im=fcitx
+```
+
+5. 添加开机启动程序，参照上面
+6. 重启
+
+# 二、kde桌面操作
+
+## 1. 安装
+
+- 需要安装`kubuntu-desktop`包，即为kde的ubuntu包
+- 不知道为什么在`ubuntu 20.04`上面，`sddm`起不起来，所以需要安装`gdm3`来启动
+
+## 2. 安装fcitx5
+
+- 步骤同上，就是把`fcitx5-frontend-gtk3 fcitx5-frontend-gtk2`换成`fcitx5-frontend-gtk3 fcitx5-frontend-qt5`
 
 # 解决依赖关系
 
@@ -90,56 +111,6 @@ sudo add-apt-repository xxx
 # 删除ppa源
 sudo add-apt-repository -r xxx
 ```
-
-# 安装中文输入法
-
-## 1. 安装fcitx
-
-执行以下命令相关依赖包都会安装上去
-
-```shell
-    sudo apt-get install fcitx-bin
-```
-
-安装输入法
-
-```shell
-    sudo apt-get install fcitx-table
-```
-
-## 2. 配置fcitx
-
-选择设置中的`Region & Language`一栏中的`Manage Installed Language`
-
-<img src = "2018_11_30_01.png">
-
-选择`Keyboard input method system:`为`fcitx`
-
-<img src = "2018_11_30_02.png">
-
-**重启ubuntu**
-
-## 3. 配置输入法
-
-重启后看到右上角有个小键盘，点击进入`Configure`
-
-<img src = "2018_11_30_03.png">
-
-点击`+`添加输入法
-
-<img src = "2018_11_30_04.png">
-
-添加其中的`pinyin`，即可使用中文输入
-
-<img src = "2018_11_30_05.png">
-
-**`Ctrl + Space`切换输入法**
-
-## 4. 安装搜狗输入法
-
-到[官网][1]下载搜狗输入法，安装后重启，在配置界面调整位置即可，第一次启动或许会有一些问题，重启即可
-
-[1]: https://pinyin.sogou.com/linux/?r=pinyin
 
 
 # 踩坑记

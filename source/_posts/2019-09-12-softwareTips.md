@@ -43,3 +43,9 @@ categories: [Software Usage]
 
 1. 访问`about:config`
 2. 创建或修改`general.useragent.override`，值为想要的user-agent值
+
+# 五、网页小技巧
+
+## 1. github查看代码技巧
+
+将`https://github.com/android/ndk-samples`替换成`https://github1s.com/android/ndk-samples`可以打开网页版vscode进行代码查看

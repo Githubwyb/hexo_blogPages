@@ -457,3 +457,9 @@ from scipy.fftpack import fft
 x = np.linspace(0, 100, 32)
 y = fft(x) # 得到x的32点fft
 ```
+
+## 6. pytorch
+
+### 6.1. 安装
+
+- 需要访问[官网](https://pytorch.org/get-started/locally/)生成下载链接再下载安装
