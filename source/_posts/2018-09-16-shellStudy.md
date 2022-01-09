@@ -508,9 +508,15 @@ watch -n 1 free -h
 ### 13.1. 实例
 
 ```shell
+########## 插入规则 ##########
 # -I插入到前面，-A插入到后面
-sudo iptables -I INPUT -i eth0 -s 200.200.87.48 -p tcp --dport 22 -j ACCEPT
-sudo iptables -A INPUT -p tcp --dport 22 -j DROP
+iptables -I INPUT -i eth0 -s 200.200.87.48 -p tcp --dport 22 -j ACCEPT
+iptables -A INPUT -p tcp --dport 22 -j DROP
+########## 查询规则 ##########
+iptables -L INPUT --line-numbers
+########## 删除规则 ##########
+# line_number是上面查出来的
+iptables -D INPUT [line_number]
 ```
 
 ## 14. ls 列举目录
@@ -1202,6 +1208,21 @@ convert pdf_name.pdf image_name.jpg
 
 ```shell
 convert -resize 1800x -density 150 -quality 100 pdf_name.pdf image_name.jpg
+```
+
+## 22. 模拟网络延迟 tc
+
+- 局限就是只能对某一个网卡设置，不能设定规则来指针对ip和端口
+
+### 22.1. 基本操作
+
+```shell
+########## 增加延迟 ##########
+tc qdisc add dev  eth0 root netem delay 100ms 10ms
+########## 删除规则 ##########
+tc qdisc del dev eth0 root
+########## 查询规则 ##########
+tc -s qdisc ls dev eth0
 ```
 
 # 四、小技巧

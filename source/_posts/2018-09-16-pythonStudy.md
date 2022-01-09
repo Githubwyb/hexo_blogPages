@@ -558,6 +558,75 @@ json_str = json.dumps(dict_data, sort_keys=True)
 
 ```
 
+## 5. 时间库 time
+
+### 5.1. 当前时间操作
+
+```python
+>>> import time
+>>> print(time.time())
+1641548351.8147426
+>>> time.strftime("%Y-%m-%d %X")
+'2022-01-07 17:39:38'
+```
+
+### 5.2. struct_time操作
+
+```python
+import time
+########## struct_time创建 ##########
+# 时间字符串转struct_time
+time_s = time.strptime("2020-01-02 19:00:00", "%Y-%m-%d %H:%M:%S")
+# 时间戳转struct_time
+time_s = time.localtime(1577962800.0)
+
+########## struct_time转其他 ##########
+# 转时间戳，ms
+timestamp_float = time.mktime(time_s)
+timestamp_s = int(timestamp_float)
+# 转时间字符串
+time_str = time.strftime("%Y-%m-%d %H:%M:%S", time_s)
+```
+
+## 6. 内置函数
+
+### 6.1. 进制转换
+
+**10进制转其他进制**
+
+```python
+>>> hex(446)
+'0x1be'
+>>> bin(446)
+'0b110111110'
+>>> oct(446)
+'0o676'
+```
+
+**其他进制转10进制**
+
+```python
+>>> int('0x1be', 16)
+446
+>>> int('0o676', 8)
+446
+>>> int('0b110111110', 2)
+446
+```
+或者
+```python
+>>> a=0x1be
+>>> print(a)
+446
+>>> a=0o676
+>>> print(a)
+446
+>>> a=0b110111110
+>>> print(a)
+446
+```
+
+
 # 四、好用的module推荐
 
 ## 1. 数据处理

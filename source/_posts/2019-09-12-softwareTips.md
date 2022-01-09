@@ -36,6 +36,10 @@ categories: [Software Usage]
 - 在windows上使用习惯的快捷键在linux不适用
 - 安装一个`windows default keybinding`就好了
 
+### 2.2. 16进制查看文件
+
+- `hexdump for vscode`
+
 
 # 四、firefox
 
