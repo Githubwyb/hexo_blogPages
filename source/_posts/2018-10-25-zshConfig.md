@@ -5,9 +5,9 @@ tags: [Linux]
 categories: [Program, Shell]
 ---
 
-# 安装zsh
+# 一、安装zsh
 
-## apt包管理系列
+## 1. apt包管理系列
 
 直接执行命令
 
@@ -15,9 +15,9 @@ categories: [Program, Shell]
 sudo apt install zsh
 ```
 
-# 配置zsh
+# 二、配置zsh
 
-## 默认使用zsh作为shell
+## 1. 默认使用zsh作为shell
 
 ```shell
 chsh -s /bin/zsh
@@ -25,9 +25,9 @@ chsh -s /bin/zsh
 
 重启终端即可
 
-## 使用oh-my-zsh美化zsh
+## 2. 使用oh-my-zsh美化zsh
 
-### 安装oh-my-zsh
+### 2.1. 安装oh-my-zsh
 
 ```shell
 sh -c "$(wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)"
@@ -35,7 +35,7 @@ sh -c "$(wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/to
 
 自动安装，会直接使用默认主题`robbyrussell`
 
-### 修改主题
+### 2.2. 修改主题
 
 执行以下命令
 
@@ -51,9 +51,9 @@ ZSH_THEME="robbyrussell"
 
 改为自己想要的主题即可，推荐一个主题`ys`
 
-### 插件
+### 2.3. 插件
 
-#### 代码高亮 `zsh-syntax-highlighting`
+#### (1) 代码高亮 `zsh-syntax-highlighting`
 
 使用以下命令安装插件
 
@@ -65,8 +65,23 @@ git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:
 
 ```shell
 plugins=(
-    git
     zsh-syntax-highlighting
+)
+```
+
+#### (2) 上一次执行代码提示 `zsh-autosuggestions`
+
+使用以下命令安装插件
+
+```shell
+git clone https://github.com/zsh-users/zsh-autosuggestions.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+```
+
+在`.zshrc`下修改`plugins`添加插件即可
+
+```shell
+plugins=(
+    zsh-autosuggestions
 )
 ```
 

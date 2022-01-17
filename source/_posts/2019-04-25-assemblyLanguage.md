@@ -200,3 +200,13 @@ _write_mem8:
 - AH = 0x00
 - DL = 0x00
 - INT 0x13
+
+# 四、gcc汇编
+
+## 1. 生成汇编代码
+
+```shell
+# -S 生成.s结尾的汇编代码文件
+# -fverbose-asm 将变量名称作为注释
+gcc -S -fverbose-asm xxx.c
+```

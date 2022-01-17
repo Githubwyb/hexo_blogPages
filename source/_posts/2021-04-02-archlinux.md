@@ -143,6 +143,7 @@ sudo journalctl --vacuum-time=5d
 | ----------------------- | -------------------- |
 | lsusb                   | usbutils             |
 | arch-chroot<br>genfstab | arch-install-scripts |
+| telnet                  | inetutils            |
 
 # 三、好用的工具
 

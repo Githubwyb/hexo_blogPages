@@ -97,3 +97,14 @@ net start sshd
 :: 关闭
 net stop sshd
 ```
+
+## 3. windows 10 linux小系统升级wsl2
+
+- 启动powershell
+
+```bat
+:: 查看运行的系统名称
+PS> wsl -l -v
+:: 设置ubuntu-20.04到wsl2
+PS> wsl --set-version Ubuntu-20.04 2
+```

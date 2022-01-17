@@ -103,9 +103,10 @@ theme: next
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
-  type: git
+- type: git
   repository: git@github.com:Githubwyb/Githubwyb.github.io.git
   branch: master
+- type: baidu_url_submitter
 
 avatar: /images/12.jpg
 
@@ -156,3 +157,10 @@ image_minifier:
   optimizationLevel: 2
   pngquant: false
   progressive: false
+
+#设置百度主动推送
+baidu_url_submit:
+  count: 500  					# 比如200，代表提交最新的200个链接
+  host: githubwyb.github.io 	# 在百度站长平台中注册的域名，这个改为你自己的域名
+  token: y1cfESbTt9nd3LsA 		# 请注意这是您的秘钥， 所以请不要把博客源代码发布在公众仓库里!
+  path: baidu_urls.txt 			# 文本文档的地址， 新链接会保存在此文本文档里，这个默认

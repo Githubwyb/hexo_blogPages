@@ -5,45 +5,45 @@ tags:
 categories: [Program, Document]
 ---
 
-# 安装
+# 一、安装
 
-## ubuntu
+## 1. ubuntu
 
-### 安装nodejs和npm
-
-```shell
-    curl -sL https://deb.nodesource.com/setup_8.x -o nodesource_setup.sh
-    sudo bash nodesource_setup.sh
-    sudo apt-get install nodejs
-```
-
-### 安装hexo和hexo-cli
+### 1.1. 安装nodejs和npm
 
 ```shell
-    sudo npm install hexo -g
-    sudo npm install hexo-cli -g
+curl -sL https://deb.nodesource.com/setup_8.x -o nodesource_setup.sh
+sudo bash nodesource_setup.sh
+sudo apt-get install nodejs
 ```
 
-### 迁移博客代码到另一台电脑
+### 1.2. 安装hexo和hexo-cli
+
+```shell
+sudo npm install hexo -g
+sudo npm install hexo-cli -g
+```
+
+### 1.3. 迁移博客代码到另一台电脑
 
 - 先安装`hexo`和`hexo-cli`的环境
 - 然后执行
 
 ```shell
-    # 安装所有组件忽略脚本
-    sudo npm install --ignore-scripts
-    sudo npm audit fix
+# 安装所有组件忽略脚本
+sudo npm install --ignore-scripts
+sudo npm audit fix
 ```
 
-# 插件和操作
+# 二、插件和操作
 
-## 博客置顶
+## 1. 博客置顶
 
 ### 单纯置顶
 
 ```shell
-    npm uninstall hexo-generator-index --save
-    npm install hexo-generator-index-pin-top --save
+npm uninstall hexo-generator-index --save
+npm install hexo-generator-index-pin-top --save
 ```
 
 - 然后在需要置顶的文章的Front-matter中加上top属性即可，根据top属性的大小排序，越大越靠前。比如下面这篇文章：
@@ -57,7 +57,7 @@ categories: [Program, Document]
     ---
 ```
 
-## pdf插件
+## 2. pdf插件
 
 ### 安装
 
@@ -83,7 +83,7 @@ categories: [Program, Document]
     {% pdf  test.pdf %}
 ```
 
-## 字数统计和阅读时长(网站底部/文章内)
+## 3. 字数统计和阅读时长(网站底部/文章内)
 
 ### 安装插件
 
@@ -120,7 +120,7 @@ categories: [Program, Document]
      wpm: 275
 ```
 
-## latex公式支持
+## 4. latex公式支持
 
 ### Next主题中自带latex插件
 
@@ -133,10 +133,10 @@ categories: [Program, Document]
 示例
 
 ```latex
-    | 描述       | 代码              |
-    | ---------- | ----------------- |
-    | 使用`\|`   | a            \| b |
-    | 使用`\mid` | a $ \mid $ b      |
+| 描述       | 代码              |
+| ---------- | ----------------- |
+| 使用`\|`   | a            \| b |
+| 使用`\mid` | a $ \mid $ b      |
 ```
 
 效果
@@ -149,6 +149,43 @@ categories: [Program, Document]
 ##### 2. latex公式在hexo中不能写注释，并且换行使用`\\`无效，需要使用`\\\\`，大括号需要使用`\\{`才可使用
 
 ##### 3. latex公式在hexo中，出现没有解析成公式的情况，仔细对照代码和显示的代码，找到少的那个特殊字符（如`_`），给它加上`\`
+
+## 5. sitemap生成工具
+
+### 5.1. google
+
+```shell
+npm i hexo-generator-sitemap --save
+```
+
+### 5.2. baidu
+
+```shell
+npm i hexo-generator-baidu-sitemap --save
+```
+
+## 6. baidu站点自动提交
+
+```shell
+npm install hexo-baidu-url-submit --save
+```
+
+修改`_config.yml`
+
+```yml
+deploy:
+- type: git
+  repository: git@github.com:Githubwyb/Githubwyb.github.io.git
+  branch: master
+- type: baidu_url_submitter
+
+#设置百度主动推送
+baidu_url_submit:
+  count: 500                   # 比如200，代表提交最新的200个链接
+  host: githubwyb.github.io    # 在百度站长平台中注册的域名，这个改为你自己的域名
+  token: xxxxxx                # 请注意这是您的秘钥， 所以请不要把博客源代码发布在公众仓库里!
+  path: baidu_urls.txt         # 文本文档的地址， 新链接会保存在此文本文档里，这个默认
+```
 
 # 踩坑记
 

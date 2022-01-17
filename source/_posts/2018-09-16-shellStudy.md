@@ -467,9 +467,10 @@ main
 - gcc编译需要添加`-g`参数
 - 不加`-g`放到生产环境，加`-g`的用于找代码位置
 
-## 10. date 时间转换工具
+## 10. date 时间工具
 
 ```shell
+########## 时间计算 ##########
 # 时间戳转正常时间格式
 => date -d @1587536520
 2020年 04月 22日 星期三 14:22:00 CST
@@ -478,9 +479,13 @@ main
 => date -d "20200422" +%s
 1587536520
 
+########## 查看当前时间 ##########
 # 时间格式化
 => date +'%Y-%m-%d %A %H:%M:%S'
 2020-05-08 Friday 19:12:22
+
+########## 设置当前时间 ##########
+=> date -s @1587536520
 ```
 
 ## 11. dd 批量拷贝命令
@@ -710,6 +715,23 @@ lsof -i | grep [pid]
 - `m`: 切换内存显示样式
 - `c`: 显示进程详细命令
 
+### 21.2. 进程状态解析
+
+- R——Runnable（运行）: 正在运行或在运行队列中等待
+- S——sleeping（中断）: 休眠中，受阻，在等待某个条件的形成或接收到信号
+- D——uninterruptible sleep(不可中断): 收到信号不唤醒和不可运行，进程必须等待直到有中断发生
+- Z——zombie（僵死）: 进程已终止，但进程描述还在，直到父进程调用wait4()系统调用后释放
+- T——traced or stoppd(停止): 进程收到SiGSTOP,SIGSTP,SIGTOU信号后停止运行
+
+**后缀表示**
+
+- <: 优先级高的进程
+- N: 优先级低的进程
+- L: 有些页被锁进内存
+- s: 进程的领导者（在它之下有子进程）
+- l: ismulti-threaded (using CLONE_THREAD, like NPTL pthreads do)
+- +: 位于后台的进程组
+
 ## 22. awk 逐行处理显示
 
 ### 22.1. 几种基本用法
@@ -777,6 +799,16 @@ route del -net 1.1.1.1/24 dev eth0
 - `c`: 只显示指令名称
 - `f`: 使用ascii字符展示关系
 - `e`: 显示环境变量
+
+## 30. ip 查看系统网络配置
+
+### 30.1. 查看访问ip的出口网关和源ip
+
+```shell
+=> ip r get 199.200.2.170
+199.200.2.170 via 10.240.255.254 dev ens18 src 10.240.17.101 uid 1000
+    cache
+```
 
 # 三、工具命令
 
@@ -1124,30 +1156,76 @@ alias phptags='ctags --langmap=php:.engine.inc.module.theme.php  --php-kinds=cdf
 
 - `--permanent`: 永久生效，加了这个选项，需要执行reload才能生效；不加，会立即生效，但是reload后会消失
 
-### 18.2. 几个应用实例
+### 18.2. 基本操作
 
 ```shell
-########## 查看规则 ##########
-# 只显示/etc/firewalld/zones/public.xml中防火墙策略
-firewall-cmd --list-all
-# 查看所有的防火墙策略
-firewall-cmd --list-all-zone
-
-########## 添加规则 ##########
-# 禁止ip 123.44.55.66 访问
-firewall-cmd --permanent --add-rich-rule='rule family=ipv4 source address="123.44.55.66" drop'
-# 开启22端口访问
-firewall-cmd --permanent --add-port=22/tcp
-
-########## 删除规则 ##########
-# 禁止ip 123.44.55.66 访问
-firewall-cmd --permanent --remove-rich-rule='rule family=ipv4 source address="123.44.55.66" drop'
-# 开启22端口访问
-firewall-cmd --permanent --remove-port=22/tcp
-
-########## 其他命令 ##########
-#重新加载配置文件，遇到防火墙规则不生效的，需要调用此命令
+# 重载防火墙规则
 firewall-cmd --reload
+# 重启防火墙服务
+firewall-cmd --complete-reload
+```
+
+### 18.3. 区域操作
+
+```shell
+########## 查看区域 ##########
+# 查看当前使用的区域，返回每个网卡对应的区域
+firewall-cmd --get-active-zones
+# 查看所有支持的区域
+firewall-cmd --get-zones
+# 查看网卡对应的区域
+firewall-cmd --get-zone-of-interface=eth0
+# 查看默认区域
+firewall-cmd --get-default-zone
+# 查看区域所有配置，不加zone返回默认区域
+firewall-cmd --zone=public --list-all
+
+########## 编辑区域 ##########
+# 将一个接口加到public区域内，永久生效加上--permanent然后reload
+firewall-cmd --zone=public --add-interface=eth0
+# 设置默认区域，永久生效加上--permanent然后reload
+firewall-cmd --get-default-zone
+```
+
+### 18.4. 服务操作
+
+```shell
+########## 查看服务 ##########
+# 列举服务，不加zone列举默认区域
+firewall-cmd --zone=work --list-services
+
+########## 新增服务 ##########
+# 允许smtp服务，永久生效加上--permanent然后reload
+firewall-cmd --zone=work --add-service=smtp
+
+########## 删除服务 ##########
+# 删除smtp服务，永久生效加上--permanent然后reload
+firewall-cmd --zone=work --remove-service=smtp
+```
+
+### 18.5. 端口操作
+
+```shell
+########## 查看服务 ##########
+# 列举服务，不加zone列举默认区域
+firewall-cmd --zone=work --list-ports
+
+########## 新增服务 ##########
+# 允许22端口，永久生效加上--permanent然后reload
+firewall-cmd --zone=work --add-port=22/tcp
+
+########## 删除服务 ##########
+# 删除22端口，永久生效加上--permanent然后reload
+firewall-cmd --zone=work --remove-port=22/tcp
+```
+
+### 18.6. 直接操作
+
+- 这个操作和firewalld原生的不在一起，如果firewalld放开了，这里禁止了，无法访问
+- 如果firewalld禁止了，这里放开了，同样无法访问
+
+```shell
+firewall-cmd --direct -add-rule ipv4 filter INPUT 0 -p tcp --dport 9000 -j accept
 ```
 
 ## 19. jq linux的json解析工具
