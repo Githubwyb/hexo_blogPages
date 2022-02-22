@@ -17,29 +17,30 @@ categories: [Software Usage]
 
 # 二、chrome
 
-## 下载离线包
+## 1. 下载离线包
 
 针对在内网环境下需要更新chrome需要下载离线包，官网下载为在线安装包，下载离线包的网址为，也就是在原本的网址上添加`?standalone=1`
 
 [https://www.google.cn/intl/zh-CN/chrome/?standalone=1](https://www.google.cn/intl/zh-CN/chrome/?standalone=1)
 
+## 2. windows抓https并解密
+
+参考[这个帖子](https://www.cnblogs.com/aucy/p/9082429.html)
+
+- 给系统环境变量加一个`SSLKEYLOGFILE`变量，路径随便设置，这个会把chrome解析到的私钥存放到这个位置
+- 在wireshark里面配置中找到`protocol -> TLS/SSL`，将`(Pre)-Master-Secret log filename`设置到同样的文件
+- 重启chrome就可以解密了
+- 每次解密都要重启chrome才行
+
+## 3. 好用的插件
+
+### (1) github加速
+
+- 加速github下载的插件
+
 # 三、vscode
 
-## 1. 下载加速
-
-- 将下载链接的地址替换为国内镜像地址`vscode.cdn.azure.cn`即可
-
-## 2. 好用的插件
-
-### 2.1. 跨平台快捷键不一致
-
-- 在windows上使用习惯的快捷键在linux不适用
-- 安装一个`windows default keybinding`就好了
-
-### 2.2. 16进制查看文件
-
-- `hexdump for vscode`
-
+[vscode使用技巧记录](/blogs/2022-02-15-vscode)
 
 # 四、firefox
 
@@ -53,3 +54,39 @@ categories: [Software Usage]
 ## 1. github查看代码技巧
 
 将`https://github.com/android/ndk-samples`替换成`https://github1s.com/android/ndk-samples`可以打开网页版vscode进行代码查看
+
+# 六、putty
+
+## 1. 修改配色方案
+
+- 保存后执行就好，将arch-work改成自己的配置文件名字
+- 下面是我的一个配色方案，感觉还不错
+
+```bat
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour0 /t REG_SZ /d 58,244,213  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour1 /t REG_SZ /d 255,255,255  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour2 /t REG_SZ /d 0,0,0  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour3 /t REG_SZ /d 85,85,85  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour4 /t REG_SZ /d 0,0,0  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour5 /t REG_SZ /d 0,255,0  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour6 /t REG_SZ /d 68,68,68  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour7 /t REG_SZ /d 119,119,119  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour8 /t REG_SZ /d 255,0,84  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour9 /t REG_SZ /d 214,94,117  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour10 /t REG_SZ /d 177,214,48  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour11 /t REG_SZ /d 85,255,85  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour12 /t REG_SZ /d 240,230,140  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour13 /t REG_SZ /d 255,255,85  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour14 /t REG_SZ /d 182,224,229  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour15 /t REG_SZ /d 159,211,229  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour16 /t REG_SZ /d 255,222,173  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour17 /t REG_SZ /d 255,85,255  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour18 /t REG_SZ /d 103,190,227  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour19 /t REG_SZ /d 255,215,0  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour20 /t REG_SZ /d 237,237,237  /f
+reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour21 /t REG_SZ /d 255,255,255  /f
+```
+
+## 2. 使用id_rsa私钥登陆
+
+- 需要使用自带的puttygen将id_rsa导入进去另存为putty识别的密钥，再次使用就可以了

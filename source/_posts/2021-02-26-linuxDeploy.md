@@ -115,6 +115,15 @@ makepkg -si
 
 参考这篇博客[解决chroot/proot/wsl容器安装archlinux不能使用fakeroot的问题](https://zsxwz.com/2021/02/08/%e8%a7%a3%e5%86%b3chroot-proot-wsl%e5%ae%b9%e5%99%a8%e5%ae%89%e8%a3%85archlinux%e4%b8%8d%e8%83%bd%e4%bd%bf%e7%94%a8fakeroot%e7%9a%84%e9%97%ae%e9%a2%98/)
 
+# 四、软件使用
+
+## 1. nginx
+
+- 由于底层使用的是chroot实现，无法使用system命令
+- 启动nginx不需要使用system命令
+
+
+
 # 踩坑记
 
 ## 1. adb调试本机

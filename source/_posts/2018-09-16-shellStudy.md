@@ -308,6 +308,13 @@ for item in "${test[@]}"; do
 done
 ```
 
+## 8. bash和source、`.`的区别
+
+- source和`.`是一样的
+- 三者都可以不需要文件有可执行权限
+- bash类似于fork了一个子进程，内部变量和父进程没关系，但是父进程会等待子进程结果
+- source和`.`更像直接把文件内容拷贝到位置上执行，主要用于导入变量和函数
+
 # 二、系统命令详解
 
 ## 1. find 文件查找
@@ -483,6 +490,9 @@ main
 # 时间格式化
 => date +'%Y-%m-%d %A %H:%M:%S'
 2020-05-08 Friday 19:12:22
+# 当前时间戳
+=> date +'%s'
+1644981572
 
 ########## 设置当前时间 ##########
 => date -s @1587536520
@@ -715,7 +725,7 @@ lsof -i | grep [pid]
 - `m`: 切换内存显示样式
 - `c`: 显示进程详细命令
 
-### 21.2. 进程状态解析
+### 21.2. <span id="process_status">进程状态解析</span>
 
 - R——Runnable（运行）: 正在运行或在运行队列中等待
 - S——sleeping（中断）: 休眠中，受阻，在等待某个条件的形成或接收到信号
@@ -810,6 +820,16 @@ route del -net 1.1.1.1/24 dev eth0
     cache
 ```
 
+## 31. read 读取输入
+
+### 31.1. 读取用户输入
+
+```shell
+read -s 5 -p "do you wan't to continue [y/n]" input
+case "$input" in
+case [Yy]*)
+```
+
 # 三、工具命令
 
 ## 1. 文件夹目录大小 du
@@ -856,6 +876,59 @@ ssh-keygen -t rsa -C "xxx@xxx.com"
 ```shell
 # socks5代理
 ssh -o "ProxyCommand=nc -x 127.0.0.1:1080 %h %p" wangyubo@172.22.2.108
+```
+
+### 4.3. 端口转发
+
+- 手册解释如下
+
+```
+     -L [bind_address:]port:host:hostport
+     -L [bind_address:]port:remote_socket
+     -L local_socket:host:hostport
+     -L local_socket:remote_socket
+             Specifies that connections to the given TCP port or Unix socket on the local (client) host are to be forwarded to the given host and port, or Unix socket, on the remote
+             side.  This works by allocating a socket to listen to either a TCP port on the local side, optionally bound to the specified bind_address, or to a Unix socket.  Whenever a
+             connection is made to the local port or socket, the connection is forwarded over the secure channel, and a connection is made to either host port hostport, or the Unix
+             socket remote_socket, from the remote machine.
+
+             Port forwardings can also be specified in the configuration file.  Only the superuser can forward privileged ports.  IPv6 addresses can be specified by enclosing the address
+             in square brackets.
+
+             By default, the local port is bound in accordance with the GatewayPorts setting.  However, an explicit bind_address may be used to bind the connection to a specific address.
+             The bind_address of “localhost” indicates that the listening port be bound for local use only, while an empty address or ‘*’ indicates that the port should be available from
+             all interfaces.
+    ...
+     -R [bind_address:]port:host:hostport
+     -R [bind_address:]port:local_socket
+     -R remote_socket:host:hostport
+     -R remote_socket:local_socket
+     -R [bind_address:]port
+             Specifies that connections to the given TCP port or Unix socket on the remote (server) host are to be forwarded to the local side.
+
+             This works by allocating a socket to listen to either a TCP port or to a Unix socket on the remote side.  Whenever a connection is made to this port or Unix socket, the con‐
+             nection is forwarded over the secure channel, and a connection is made from the local machine to either an explicit destination specified by host port hostport, or
+             local_socket, or, if no explicit destination was specified, ssh will act as a SOCKS 4/5 proxy and forward connections to the destinations requested by the remote SOCKS
+             client.
+
+             Port forwardings can also be specified in the configuration file.  Privileged ports can be forwarded only when logging in as root on the remote machine.  IPv6 addresses can
+             be specified by enclosing the address in square brackets.
+
+             By default, TCP listening sockets on the server will be bound to the loopback interface only.  This may be overridden by specifying a bind_address.  An empty bind_address,
+             or the address ‘*’, indicates that the remote socket should listen on all interfaces.  Specifying a remote bind_address will only succeed if the server's GatewayPorts option
+             is enabled (see sshd_config(5)).
+
+             If the port argument is ‘0’, the listen port will be dynamically allocated on the server and reported to the client at run time.  When used together with -O forward the al‐
+             located port will be printed to the standard output.
+```
+
+- 用法
+
+```shell
+# 监听本地端口9229，转发给远程的9229端口
+ssh -L 9229:127.0.0.1:9229 admin@199.200.2.170
+# 监听远程端口1234，转发给本地的5678端口
+ssh -R 1234:127.0.0.1:5678 admin@199.200.2.170
 ```
 
 ## 5. 压缩和解压缩命令
@@ -968,6 +1041,7 @@ objdump -DS xxxx > xxx.dump
 - `-f`: 打印进程号，可针对多进程程序
 - `-v`: 参数打全，不省略
 - `-o file`: 结果输出到文件
+- `-p [PID]`: 挂载到一个进程
 
 ### 9.1. 查看单进程的系统调用，不重启进程
 
@@ -1149,6 +1223,7 @@ alias phptags='ctags --langmap=php:.engine.inc.module.theme.php  --php-kinds=cdf
 - `-s`: strip掉所有符号
 - `-fsanitize=address`: 监听内存泄漏，需要同时加上`-lasan`并且保证已经安装libasan
 - `-fno-omit-frame-pointer`
+- `-Werror`: 所有warning当作error处理
 
 ## 18. firewalld 防火墙
 
@@ -1301,6 +1376,54 @@ tc qdisc add dev  eth0 root netem delay 100ms 10ms
 tc qdisc del dev eth0 root
 ########## 查询规则 ##########
 tc -s qdisc ls dev eth0
+```
+
+## 23. ltrace 跟踪库函数调用
+
+### 23.1 选项
+
+- `-r`: 显示运行时间，`0.000123`
+- `-t`: 和`-r`不能同时用，显示当前时间，`23:12:11`
+- `-tt`: 和`-r`不能同时用，显示当前时间，`23:12:11.345678`
+- `-ttt`: 和`-r`不能同时用，显示当前时间戳，`1645024757.123456`
+- `-T`: 显示调用花费的时间，在函数调用返回值后面用`<>`包裹
+- `-i`: 显示函数的地址
+- `-c`: 显示统计数据，表格形式
+- `-S`: 将系统调用显示出来，使用`SYS_`作为前缀
+- `-p [PID]`: 挂载到一个进程
+
+### 23.2 实例
+
+```shell
+# 监听一段时间的5623的函数调用次数，需要ctrl c停止监听后才显示结果
+=> ltrace -p 5623 -c
+^C% time     seconds  usecs/call     calls      function
+------ ----------- ----------- --------- --------------------
+ 36.20    0.151489        2913        52 __errno_location
+ 29.99    0.125516        5229        24 epoll_wait
+ 24.01    0.100467        2954        34 clock_gettime
+  5.33    0.022294        2786         8 pthread_mutex_lock
+  4.47    0.018724        2340         8 pthread_mutex_unlock
+------ ----------- ----------- --------- --------------------
+100.00    0.418490                   126 total
+
+# 显示系统调用并显示各个函数的调用耗时
+＝> ltrace -t -S -T ./run
+# 省略若干行
+...
+23:36:12 _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev(0x5714c8aed8, 0, 0, 0x5714c79010) = 0x5714c8aee8 <0.001116>
+23:36:12 _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev(0x5714c8aeb8, 0x5714c8aee8, 0, 0x5714c79010) = 0x7abb140060 <0.001756>
+23:36:12 _ZdlPvm(0x5714c8aeb0, 224, 0, 0x5714c79010)                 = 0x7abb140060 <0.001005>
+23:36:12 _ZdlPvm(0x5714c8b110, 720, 1, 0x7fe51ecda0)                 = 0x7abb140060 <0.000966>
+23:36:12 _ZdlPvm(0x5714c8b740, 16, 1, 0x5714c8b740)                  = 0x7abb140060 <0.000864>
+23:36:12 _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev(0x5714c8b668, 0, 0, 0x5714c79010) = 0x5714c8b678 <0.001675>
+23:36:12 _ZdlPvm(0x5714c8b650, 232, 1, 0x7fe51ecfc0)                 = 0x7abb140060 <0.000936>
+23:36:12 _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev(0x5714c8b768, 0, 0, 0x5714c79010) = 0x5714c8b778 <0.000870>
+23:36:12 _ZdlPvm(0x5714c8b760, 64, 1, 0x5714c79010)                  = 0x7abb140060 <0.000934>
+23:36:12 memset(0x5714c8b7b0, '\0', 104)                             = 0x5714c8b7b0 <0.001023>
+23:36:12 _ZdlPvm(0x5714c8b7b0, 104, 13, 0x5714c8b7e0)                = 0x7abb140060 <0.000877>
+23:36:12 SYS_exit_group(0 <no return ...>
+23:36:12 +++ exited (status 0) +++
 ```
 
 # 四、小技巧
