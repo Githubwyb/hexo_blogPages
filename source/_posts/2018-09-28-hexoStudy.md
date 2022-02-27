@@ -187,6 +187,34 @@ baidu_url_submit:
   path: baidu_urls.txt         # 文本文档的地址， 新链接会保存在此文本文档里，这个默认
 ```
 
+## 7. plantuml支持
+
+```shell
+npm install --save hexo-filter-kroki
+```
+
+**效果**
+
+在markdown中写入
+
+````markdown
+` ``plantuml
+@startuml
+a->b
+b->c
+c->a
+@enduml
+```
+````
+
+```plantuml
+@startuml
+a->b
+b->c
+c->a
+@enduml
+```
+
 # 踩坑记
 
 ## [latex注意事项](#latex)
@@ -196,23 +224,23 @@ baidu_url_submit:
 表格使用markdown无法合并单元格，如果使用html标签来写，需要写到一行中，否则会出现大段空行
 
 ```markdown
-    # 没有空行
-    <table><tr><th>姓名</th><td>Bill Gates</td></tr><tr><th rowspan="2">电话</th><td>555 77 854</td></tr><tr><td>555 77 855</td></tr></table>
+# 没有空行
+<table><tr><th>姓名</th><td>Bill Gates</td></tr><tr><th rowspan="2">电话</th><td>555 77 854</td></tr><tr><td>555 77 855</td></tr></table>
 
-    # 大段空行
-    <table>
-        <tr>
-            <th>姓名</th>
-            <td>Bill Gates</td>
-        </tr>
-        <tr>
-            <th rowspan="2">电话</th>
-            <td>555 77 854</td>
-        </tr>
-        <tr>
-            <td>555 77 855</td>
-        </tr>
-    </table>
+# 大段空行
+<table>
+    <tr>
+        <th>姓名</th>
+        <td>Bill Gates</td>
+    </tr>
+    <tr>
+        <th rowspan="2">电话</th>
+        <td>555 77 854</td>
+    </tr>
+    <tr>
+        <td>555 77 855</td>
+    </tr>
+</table>
 ```
 
 效果

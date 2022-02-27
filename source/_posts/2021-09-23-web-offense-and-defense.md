@@ -143,6 +143,29 @@ XSS攻击通常指的是通过利用网页开发时留下的漏洞，通过巧�
 <div onmouseover="alert('hey')"></div>
 ```
 
+## 4. perl
+
+### 4.1. 攻
+
+- perl语言搭建的网站比较典型的是请求以`xxx.pl`结尾
+
+- 用open函数也可像命令行一样,打开和使用管道.
+- 语法为:
+
+```perl
+open(MYVAR, "mode");
+```
+
+- mode有如下两种模式:
+    - `|command`: 表示对MYVAR的输出相当于对command的输入.
+    - `command|`: 表示command的输出作为对MYVAR的输入.
+
+pl可以在服务器上执行命令，比如请求下面语句，就在服务器上执行了ls命令并输出
+
+```
+https://www.hackthissite.org/missions/realistic/11/page.pl?page=|ls|
+```
+
 # 二、特定软件的攻防
 
 ## 1. apache
@@ -157,8 +180,15 @@ XSS攻击通常指的是通过利用网页开发时留下的漏洞，通过巧�
 
 关闭htaccess功能，需要修改httpd.conf，设置`AllowOverride none`，将会忽略所有的`.htaccess`配置
 
-# 三、通用知识
+# 三、特定系统的功防
+
+# 四、通用知识
 
 ## 1. 防止谷歌抓取页面
 
 - 一般会在网站根目录放上一个`robots.txt`，里面定义了哪些目录不允许抓取
+
+## 2. 内嵌网页的模式可以通过`file:///path/to/file`来访问磁盘
+
+- windows可以写成`file:///C:/`
+- linux可以写成`file:///home/xxx`

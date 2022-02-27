@@ -1,36 +1,36 @@
 ---
 title: markdown学习笔记
 date: 2018-10-08 14:37:39
-tags: 
+tags:
 categories: [Program, Document]
 ---
 
-# 写文档
+# 一、写文档
 
-## 空格
+## 1. 空格
 
 ```markdown
-    &nbsp;
+&nbsp;
 ```
 
-## 删除线
+## 2. 删除线
 
 ```markdown
-    ~~删除线~~
+~~删除线~~
 ```
 
 效果
 
 ~~删除线~~
 
-## 超链接
+## 3. 超链接
 
 ### 链接写在文中
 
 代码
 
 ```markdown
-    [我的博客](https://githubwyb.github.io/)
+[我的博客](https://githubwyb.github.io/)
 ```
 
 效果
@@ -42,9 +42,9 @@ categories: [Program, Document]
 代码
 
 ```markdown
-    [我的博客][1]
+[我的博客][1]
 
-    [1]: https://githubwyb.github.io/
+[1]: https://githubwyb.github.io/
 ```
 
 效果
@@ -53,14 +53,14 @@ categories: [Program, Document]
 
 [1]: https://githubwyb.github.io/
 
-## 文内跳转
+## 4. 文内跳转
 
 代码
 
 ```markdown
-    <span id = "test">跳转到这里</span>
+<span id = "test">跳转到这里</span>
 
-    [跳转](#test)
+[跳转](#test)
 ```
 
 效果
@@ -68,3 +68,29 @@ categories: [Program, Document]
 <span id = "test">跳转到这里</span>
 
 [跳转](#test)
+
+## 5. 代码块中有反引号
+
+- 比要加的多就好了
+
+`````markdown
+- 行内 ``a`b``
+- 代码块
+
+````markdown
+```shell
+echo
+```
+````
+`````
+
+**效果**
+
+- 行内 ``a`b``
+- 代码块
+
+````markdown
+```shell
+echo
+```
+````

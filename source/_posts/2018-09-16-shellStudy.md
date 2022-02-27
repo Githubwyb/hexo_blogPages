@@ -387,6 +387,45 @@ watch -n 1 "df -i;df"       //监测磁盘inode和block数目变化情况
 tail -f (fileName)
 ```
 
+### 5.1. tail显示高亮
+
+```shell
+tail -f sys.log | perl -pe 's/(关键词1)|(关键词2)|(关键词3)/\e[1;颜色1$1\e[0m\e[1;颜色2$2\e[0m\e[1;颜色3$3\e[0m/g'
+```
+**两个示例**
+
+- 黄字，高亮加粗显示 `[1;33m`
+- 红底黄字，高亮加粗显示 `[1;41;33m`
+
+**效果配置列举**
+
+```
+前景色
+30m：黑
+31m：红
+32m：绿
+33m：黄
+34m：蓝
+35m：紫
+36m：青
+37m：白
+
+背景色
+40：黑
+41：红
+42：绿
+43：黄
+44：蓝
+45：紫
+46：青
+47：白
+
+动效设置
+[1; 设置高亮加粗
+[4; 下划线
+[5; 闪烁
+```
+
 ## 6. sort 排序
 
 ### 6.1. 一些基本操作
@@ -589,6 +628,12 @@ usage: netstat [-vWeenNcCF] [<Af>] -r         netstat {-V|--version|-h|--help}
 - `-p`: 显示进程名
 - `-n`: 不把端口自动推测成服务，显示原始端口
 
+### 实例
+
+```shell
+netstat -tnlp | grep 1234
+```
+
 ## 16. sed 文件查找替换打印
 
 - sed命令有点复杂，一直不会用，但是很强大
@@ -701,9 +746,7 @@ fallocate创建的文件仅仅是占用磁盘，没有内容，所以只有很�
 fallocate -l 10G test.img
 ```
 
-### 19.2. 注意
-
-- 不知道为什么，fallocate不能重复对一个文件执行，想要重新分配需要手动删除前一个文件
+**<font color="red">不知道为什么，fallocate不能重复对一个文件执行，想要重新分配需要手动删除前一个文件</font>**
 
 ## 20. lsof 查看系统文件占用（包括端口）
 
@@ -712,6 +755,15 @@ fallocate -l 10G test.img
 ```shell
 # 根据进程号查看端口占用
 lsof -i | grep [pid]
+
+# 根据文件名查看文件占用
+lsof /path/to/file
+
+# 根据路径查看目录下（不包含子目录）文件占用
+lsof +d /path/to/dir/
+
+# 根据路径查看目录下（包含子目录）文件占用
+lsof +D /path/to/dir/
 ```
 
 ## 21. top 查看系统占用
@@ -828,6 +880,48 @@ route del -net 1.1.1.1/24 dev eth0
 read -s 5 -p "do you wan't to continue [y/n]" input
 case "$input" in
 case [Yy]*)
+```
+
+## 32. conntrack 连接跟踪
+
+### 32.1. 选项解释
+
+```shell
+# 查看连接跟踪表
+conntrack -L <options>
+```
+
+- `-p [protocol]`
+- `-s [src_ip]`
+- `-d [dst_ip]`
+- `--sport [src_port]`
+- `--dport [dst_port]`
+- `--state [NONE | SYN_SENT | SYN_RECV | ESTABLISHED | FIN_WAIT | CLOSE_WAIT | LAST_ACK | TIME_WAIT | CLOSE | LISTEN]`: 过滤状态
+
+## 33. ss 查看socket占用情况
+
+### 33.1. 选项解释
+
+- `-t`: tcp
+- `-u`: udp
+- `-x`: unix
+- `-l`: listening
+- `-p`: 展示进程信息
+- `-m`: 展示socket内存占用情况
+- `-n`: 不把端口自动推测成服务，显示原始端口
+
+### 33.2. 使用实例
+
+```shell
+# 查看22端口占用
+=> ss -tnlp | grep ':22'
+LISTEN  0        128                    0.0.0.0:22               0.0.0.0:*       users:(("sshd",pid=25985,fd=3))
+LISTEN  0        128                       [::]:22                  [::]:*       users:(("sshd",pid=25985,fd=4))
+
+# 查看25985进程占用情况
+=> ss -tnlp | grep 'pid=25985'
+LISTEN  0        128                    0.0.0.0:22               0.0.0.0:*       users:(("sshd",pid=25985,fd=3))
+LISTEN  0        128                       [::]:22                  [::]:*       users:(("sshd",pid=25985,fd=4))
 ```
 
 # 三、工具命令
