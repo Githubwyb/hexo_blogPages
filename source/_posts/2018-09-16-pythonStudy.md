@@ -133,7 +133,7 @@ c.NotebookApp.port = 8888           #可自行指定一个端口, 访问时使�
 
 ## 2. 变量
 
-### None
+### 2.1. None
 
 - None是一个特殊的常量。
 - None和False不同。
@@ -145,7 +145,7 @@ c.NotebookApp.port = 8888           #可自行指定一个端口, 访问时使�
 
 python中矩阵索引使用None表示此维度不切片，同样意味着此维度大小未知
 
-### del 删除一个变量释放空间
+### 2.2. del 删除一个变量释放空间
 
 ```python
 del var
@@ -153,7 +153,7 @@ del var
 
 ## 3. 字符串操作
 
-### 替换字符串
+### 3.1. 替换字符串
 
 ```python
 str = 'abc'
@@ -161,13 +161,13 @@ str = 'abc'
 str = str.replace('b', '')
 ```
 
-### 删除首位空格（包括换行符）
+### 3.2. 删除首位空格（包括换行符）
 
 ```python
 str = str.dropip()
 ```
 
-### 和ASCII码之间的转换
+### 3.3. 和ASCII码之间的转换
 
 ```python
 # 转ASCII码，仅单个字符
@@ -238,6 +238,93 @@ print("网站名：{0[0]}, 地址 {0[1]}".format(my_list))  # "0" 是必须的
 | 13         | `{:<10d}`            | `13--------` | 左对齐 (宽度为 10)            |
 | 13         | `{:^10d}`            | `----13----` | 中间对齐 (宽度为 10)          |
 
+### 3.4. 二进制和字符串转换
+
+- 使用`str.encode()`将字符串转成二进制
+- 使用`str.decode()`将二进制转成字符串
+
+```python
+>>> str = b'fW0v6MG1C3\n/UrT6bdQ==\n'
+>>> str = str.decode(encoding='utf8')
+>>> print(str)
+fW0v6MG1C3
+/UrT6bdQ==
+
+>>> str = str.encode(encoding='utf8')
+>>> print(str)
+b'fW0v6MG1C3\n/UrT6bdQ==\n'
+```
+
+### 3.5. 原始字符串
+
+- 三个双引号可以输出原始字符串，换行符空格都会保留
+
+```python
+str = """CREATE TABLE `emm_data` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `path` varchar(512) COLLATE utf8mb4_bin NOT NULL,
+  `size` int unsigned NOT NULL,
+  `modify` date DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `emm_data_path` (`path`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin"""
+```
+
+## 4. list操作
+
+### 4.1. 排序
+
+```python
+# 正向
+>>> arr = [3, 2, 1]
+>>> arr.sort()
+>>> print(arr)
+[1, 2, 3]
+# 反向
+>>> arr.sort(reverse=True)
+>>> print(arr)
+[3, 2, 1]
+
+# 处理dict类型
+>>> arr = [{"name": "c"}, {"name": "b"}, {"name": "a"}]
+>>> arr.sort(key=lambda item: item["name"])
+>>> print(arr)
+[{'name': 'a'}, {'name': 'b'}, {'name': 'c'}]
+```
+
+### 4.2. 去重
+
+- 使用set的特性去重
+
+```python
+>>> a = [1, 1, 2, 2, 3, 3]
+>>> a = list(set(a))
+>>> print(a)
+[1, 2, 3]
+```
+
+### 4.3. 遍历
+
+```python
+listValues = list(xxx)
+
+for value in listValues:
+    print(value)
+    value = 'a'     # list本身不会修改
+
+for index in range(len(listValues)):
+    print(listValues[index])
+    listValues[index] = 'a'         # list本身会修改
+
+for index, value in enumerate(listValues):
+    print(value)
+    value = 'a'                 # list不会修改
+    listValues[index] = 'a'     # list会修改
+
+```
+
+- 普通的`for value in listValues:`无法修改list的值，list值修改只能用index的方式
+
 ## 4. 类
 
 ### 4.1. 类的几个特殊函数
@@ -281,29 +368,30 @@ class Base(object):
 
 ```
 
-## 5. 遍历
+## 5. set 集合
 
-### for遍历list
+### 5.1. 基本操作
 
 ```python
-listValues = list(xxx)
+########## 初始化 ##########
+# 通过list初始化
+>>> a_list = [1, 1, 2, 2, 3]
+>>> a_set = set(a_list)
+>>> print(a_set)
+{1, 2, 3}
+# 直接初始化
+>>> a_set = set()
 
-for value in listValues:
-    print(value)
-    value = 'a'     # list本身不会修改
-
-for index in range(len(listValues)):
-    print(listValues[index])
-    listValues[index] = 'a'         # list本身会修改
-
-for index, value in enumerate(listValues):
-    print(value)
-    value = 'a'                 # list不会修改
-    listValues[index] = 'a'     # list会修改
-
+########## 添加元素 ##########
+>>> a_set = set()
+>>> a_set.add(4)
+>>> a_set.add(4)
+>>> a_set.add(3)
+>>> a_set.add(2)
+>>> a_set.add(3)
+>>> print(a_set)
+{2, 3, 4}
 ```
-
-- 普通的`for value in listValues:`无法修改list的值，list值修改只能用index的方式
 
 ## 6. 函数
 
@@ -359,7 +447,7 @@ raise [Exception [, args [, traceback]]]
 # 定义函数
 def mye(level):
     if level < 1:
-        raise Exception, "Invalid level!"
+        raise Exception("Invalid level!")
         # 触发异常后，后面的代码就不会再执行
 try:
     mye(0)            # 触发异常
@@ -467,6 +555,57 @@ import importlib
 string = importlib.import_module(mod_name)
 ```
 
+## 11. 文件操作
+
+### 11.1. 文件读取
+
+- 读取成字符串，使用`r`
+- 读取成二进制，使用`rb`
+
+#### (1) read()方法
+
+- 返回string到变量中，会读取所有内容
+- 比较占用内存
+
+```python
+with open('aa', 'r') as f:
+    content = f.read()
+```
+
+#### (2) readline()方法
+
+- 每次只读一行
+- 比较慢
+
+```python
+with open('aa', 'r') as f:
+    line = f.readline()
+    while line:
+        print line
+        line = f.readline()
+```
+
+#### (3) readlines()方法
+
+- 一次全部读取，按照换行返回list
+
+```python
+with open('aa', 'r') as f:
+    for line in f.readlines():
+        print(line)         # line带"\n"
+```
+
+#### (4) 直接对f进行遍历
+
+```python
+with open('aa', 'r') as f:
+    try:
+        for line in f:
+            do_somthing_with(line)      # line带"\n"
+    finally:
+        f.close()
+```
+
 # 三、系统内置module介绍
 
 ## 1. 操作系统组件 os
@@ -547,6 +686,8 @@ import json
 dict_data = json.loads('{"a": 1}')
 # dict到字符串，是否排列key
 json_str = json.dumps(dict_data, sort_keys=True)
+# dict到字符串，是否排列key，按照格式化输出，缩进为2
+json_str = json.dumps(dict_data, sort_keys=True, indent=2)
 
 ```
 
@@ -588,9 +729,28 @@ timestamp_s = int(timestamp_float)
 time_str = time.strftime("%Y-%m-%d %H:%M:%S", time_s)
 ```
 
-## 6. 内置函数
+## 6. math 数学库
 
-### 6.1. 进制转换
+### 6.1. 取整
+
+```python
+>>> import math
+# 向下
+>>> math.floor(2.9)
+2
+# 向上
+>>> math.ceil(2.1)
+3
+# 四舍五入，2.5可能认为是2.49999999
+>>> round(2.5)
+2
+>>> round(2.6)
+3
+```
+
+## 内置函数
+
+### (1) 进制转换
 
 **10进制转其他进制**
 
@@ -626,8 +786,23 @@ time_str = time.strftime("%Y-%m-%d %H:%M:%S", time_s)
 446
 ```
 
+### (2) locals() 获取本地变量dict
+
+**判断变量是否定义**
+
+```python
+if 'aaa' in locals().keys():
+    print('aaa is defined')
+```
 
 # 四、好用的module推荐
+
+## module对应pack
+
+| module | pack          |
+| ------ | ------------- |
+| cv2    | opencv-python |
+| PIL    | pillow        |
 
 ## 1. 数据处理
 
@@ -746,51 +921,7 @@ robot -i xxx -L TRACE:INFO caseDir/
 
 ## 9. 浏览器自动化操作 selenium
 
-### 9.1. 操作chrome
-
-#### (1) 环境准备
-
-- 安装chromedriver，需要和当前电脑的chrome版本匹配
-
-#### (2) 基本操作
-
-```python
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
-options = webdriver.ChromeOptions()
-
-# 不打开图形化界面，也就是不启动chrome窗口
-# options.add_argument('--headless')
-
-# options.add_argument('--disable-gpu')
-options.add_argument('--no-sandbox')
-# options.add_argument('window-size=800x600')
-
-try:
-    # 打开chrome
-    driver = webdriver.Chrome(options=options)
-    # 设置windows窗口的大小
-    driver.set_window_size(760, 730)
-    # 打印当前窗口大小
-    print(driver.get_window_size())
-    # 打开页面
-    driver.get("https://www.baidu.com")
-    time.sleep(5)
-    # 将鼠标向x移动400，y移动300
-    ActionChains(driver).move_by_offset(400, 300).perform()
-    for i in range(200):
-        # 将当前页面截图
-        driver.get_screenshot_as_file('./tmp/bagao-{:0>4d}.png'.format(i+1))
-        # 当前鼠标位置点击
-        ActionChains(driver).click().perform()
-        time.sleep(2)
-except WebDriverException as e:
-    print(e)
-finally:
-    # 需要调用退出，不然会在后台留下一个进程
-    driver.quit()
-```
+见[python selenium使用记录](/blogs/2022-02-27-selenium)
 
 ## 10. pdf编辑 PyPDF2
 
@@ -818,7 +949,31 @@ def delete_pdf(index: list):
 delete_pdf([1])
 ```
 
-### 10.2.
+## 11. pymysql mysql操作库
+
+```python
+import pymysql
+
+# 连接数据库
+mysql_conn = pymysql.connect(host='1.0.2.3', port=3306, user='root', password='123456', db='web_analyze')
+
+# 执行sql语句
+sql = """CREATE TABLE `emm_data` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `path` varchar(512) COLLATE utf8mb4_bin NOT NULL,
+  `size` int unsigned NOT NULL,
+  `modify` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `emm_data_path` (`path`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin"""
+try:
+    with mysql_conn.cursor() as cursor:
+        cursor.execute(sql)
+    mysql_conn.commit()
+except Exception as e:
+    print(e)
+    mysql_conn.rollback()
+```
 
 
 # 五、小技巧和踩坑记

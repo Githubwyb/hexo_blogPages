@@ -84,6 +84,9 @@ $1～n   # 添加到Shell的各参数值。$1是第1参数、$2是第2参数…
 ```shell
 if [ -e file ]      # 如果文件或者目录存在，不管有没有权限
 if [ -f file ]      # 如果文件是普通文件，不是目录或者设备文件
+if [ -b file ]      # 如果文件是块设备文件
+if [ -c file ]      # 如果文件是字符设备文件
+if [ -L file ]      # 如果文件是符号文件
 if [ -d ...  ]      # 如果目录存在
 if [ -s file ]      # 如果文件存在且非空
 if [ -r file ]      # 如果文件存在且可读
@@ -115,7 +118,7 @@ if  [ $sting ]                      # 如果string 非空，返回0 (和-n类似
 
 ### 3.5. for 循环
 
-#### 文件遍历
+#### (1) 文件遍历
 
 ```shell
 # 此行代表以换行符为分割，默认为空格、\t和\n
@@ -124,6 +127,14 @@ IFS=$'\n'
 for value in $(cat test.txt)
 do
     echo "$value"
+done
+```
+
+#### (2) index递增形式
+
+```shell
+for ((i=0;i<2;i++)); do
+    echo "$i"
 done
 ```
 
@@ -192,8 +203,6 @@ echo "${string: -1}"
 ```shell
 echo ${string/23/bb}   # 替换一次
 echo ${string//23/bb}  # 双斜杠替换所有匹配
-echo ${string/#abc/bb} # #以什么开头来匹配，根php中的^有点像
-echo ${string/%41/bb}  # %以什么结尾来匹配，根php中的$有点像
 ```
 
 ### 5.2. 字符串截取
@@ -314,6 +323,44 @@ done
 - 三者都可以不需要文件有可执行权限
 - bash类似于fork了一个子进程，内部变量和父进程没关系，但是父进程会等待子进程结果
 - source和`.`更像直接把文件内容拷贝到位置上执行，主要用于导入变量和函数
+
+## 9. 算术表达式
+
+### 9.1. i++表示
+
+#### (1) 使用let表示
+
+```shell
+i=0
+
+let i+=1
+let 'i+=1'
+```
+
+#### (2) 用`(())`，这种用法常见于for循环中
+
+```shell
+((i++))
+```
+
+#### (3) 用expr
+
+- 中间要有空格，否则就成字符串拼接了
+
+```shell
+i=0
+i=`expr $i + 1`
+echo "$i"       # 1
+i=`expr $i+1`
+echo "$i"       # 1+1
+```
+
+#### (4) 用如下模式
+
+```shell
+i=$[$i+1];      # 分号不能少
+i=$(($i+1))     # 中间可以加空格
+```
 
 # 二、系统命令详解
 
@@ -583,6 +630,14 @@ iptables -D INPUT [line_number]
 - `-S`: 按照大小排序
 - `-r`: 反向排序
 
+### 13.2. 时间显示格式修改
+
+```shell
+=> export TIME_STYLE='+%Y-%m-%d %H:%M:%S'
+=> ls -l test.js
+-rw-r--r-- 1 xxx xxx 87 2022-03-07 16:02:09 test.js
+```
+
 ## 15. netstat 网络状态查看
 
 ```
@@ -674,6 +729,12 @@ sed -i "s/aaa/bbb/" "${file_name}"
 
 ```shell
 sed -i 's/<[^>]*>//g' "${file_name}"
+```
+
+**4. 截取文件中间部分**
+
+```shell
+sed -n '15,20p' test.txt
 ```
 
 ### 16.3. 正则
@@ -924,6 +985,26 @@ LISTEN  0        128                    0.0.0.0:22               0.0.0.0:*      
 LISTEN  0        128                       [::]:22                  [::]:*       users:(("sshd",pid=25985,fd=4))
 ```
 
+## 34. pwd
+
+### 34.1. 选项解释
+
+- `-L`: 逻辑路径，软连接路径
+- `-P`: 物理路径，软连接映射的真实路径
+
+## 35. mknod
+
+- 用于挂载设备节点
+
+### 35.1. 示例
+
+```shell
+# 挂载字符型设备，主设备号1，次设备号8
+# c     character special file
+# 1 8   Device type: 1,8
+mknod /dev/random c 1 8
+```
+
 # 三、工具命令
 
 ## 1. 文件夹目录大小 du
@@ -1025,6 +1106,22 @@ ssh -L 9229:127.0.0.1:9229 admin@199.200.2.170
 ssh -R 1234:127.0.0.1:5678 admin@199.200.2.170
 ```
 
+### 踩坑记
+
+#### (1) 低版本ssh连接失败，提示key不支持
+
+```
+no matching host key type found. Their offer: ssh-rsa,ssh-dss
+```
+
+- 修改`/etc/ssh/ssh_config`，添加下面字段即可
+
+```conf
+Host *
+    HostkeyAlgorithms +ssh-rsa
+    PubkeyAcceptedAlgorithms +ssh-rsa
+```
+
 ## 5. 压缩和解压缩命令
 
 ### 5.1. tar命令
@@ -1113,10 +1210,22 @@ e2label /dev/(partition) "(name)"
 
 ## 7. readelf 查看二进制符号表
 
-一般针对编译生成的二进制文件，可以用此方式导出二进制符号表，查看有哪些二进制符号和对应的函数地址
+### 7.1. 查看符号表
+
+- 查看有哪些二进制符号和对应的函数地址
 
 ```shell
-readelf -s xxxx > xxx.elf
+# -s 符号表
+# -W 符号名字显示全
+readelf -Ws xxxx
+```
+
+### 7.2. 查看二进制依赖
+
+- 会显示依赖的动态库路径
+
+```shell
+readelf -d xxx
 ```
 
 ## 8. objdump 导出汇编指令表

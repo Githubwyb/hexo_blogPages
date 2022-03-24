@@ -123,6 +123,8 @@ sudo pacman -Rusnc xxx
 # t 列出不被其他包需要的包
 # q 只展示包名，不展示版本号
 sudo pacman -Qdtq
+# 查看哪些包可以更新
+sudo pacman -Qu
 ```
 
 ### 1.2. journalctl
@@ -144,6 +146,17 @@ sudo journalctl --vacuum-time=5d
 | lsusb                   | usbutils             |
 | arch-chroot<br>genfstab | arch-install-scripts |
 | telnet                  | inetutils            |
+
+## 3. aur软件包
+
+- aurhelper很多，我一般使用yay进行aur包安装
+- yay可以使用所有pacman能用的命令选项
+- 下面列举一些pacman没有的命令
+
+```shell
+# 打印当前yay的配置选项
+yay -Pg
+```
 
 # 三、好用的工具
 
@@ -204,6 +217,51 @@ XMODIFIERS=@im=fcitx
 # 改成
 [ 【
 ] 】
+```
+
+## 2. 命令行工具
+
+### 2.1. mysql
+
+#### (1) 安装
+
+- archlinux中安装mysql需要安装mariadb包
+
+```shell
+sudo pacman -Sy mariadb
+```
+
+#### (2) 配置
+
+1. 要先执行下面命令配置mysql
+
+```shell
+sudo mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+```
+
+2. 新建用户，首次需要使用管理员权限登陆root帐号，密码为空
+
+```shell
+sudo mysql -u root -p
+```
+
+```sql
+MariaDB [(none)]> CREATE USER 'xxx'@'localhost' IDENTIFIED BY 'xxxx';
+Query OK, 0 rows affected (0.034 sec)
+
+MariaDB [(none)]> GRANT ALL PRIVILEGES ON mydb.* TO 'xxx'@'localhost';
+Query OK, 0 rows affected (0.023 sec)
+
+MariaDB [(none)]> FLUSH PRIVILEGES;
+Query OK, 0 rows affected (0.001 sec)
+
+MariaDB [(none)]> exit;
+```
+
+3. 使用新用户登陆，开始你的表演
+
+```shell
+mysql -u xxx -p
 ```
 
 # 踩坑记和小技巧
