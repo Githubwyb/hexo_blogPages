@@ -7,7 +7,20 @@ categories: [Program, Shell]
 
 # 一、bat 脚本
 
-## 1. 一些基本语法（cmd 使用）
+## 1. 一些基本语法
+
+### 1.1. 变量
+
+```bat
+:: 声明变量
+set test_var=""
+:: 变量赋值
+set /p test_var="aaa"
+:: 文件内容赋值给变量
+set /p test_var=<D:\path\to\file.txt
+```
+
+### 其他
 
 ```bat
 REM 这是注释
@@ -29,9 +42,9 @@ del xxx.txt
 
 ## 2. 创建链接 mklink
 
--   `/j`: 创建目录链接
--   `/d`: 创建目录符号链接。默认为文件符号链接
--   `/h`: 创建硬链接而非符号链接
+- `/j`: 创建目录链接
+- `/d`: 创建目录符号链接。默认为文件符号链接
+- `/h`: 创建硬链接而非符号链接
 
 ```bat
 mklink /j [link_name] [src_dir]
@@ -49,12 +62,61 @@ mklink /j [link_name] [src_dir]
 | 局限       | 仅同一个分区               | -         | -                  | -            |
 | 路径       | -                          | 相对路径  | 自动转化为绝对路径 | -            |
 
-## 3. 合并文件 COPY
+## 3. 拷贝文件 COPY/XCOPY
+
+### 3.1. COPY
+
+- 只能复制文件，不能复制文件夹
+
+#### 选项
+
+- `/B`: 合并文件
+- `/Y`: 取消覆盖的确认
+
+#### (1) 合并文件
 
 -   合并两个二进制文件
 
 ```bat
-COPY /B [bin_file1] [bin_file2]
+COPY /B /Y [bin_file1] [bin_file2]
+```
+
+#### (2) 复制单个文件
+
+```bat
+:: 拷贝到目录下
+COPY /Y C:\aaa.txt D:\
+:: 拷贝到目录下换个名字
+COPY /Y C:\aaa.txt D:\test.bat
+```
+
+#### (3) 批量复制文件
+
+```bat
+:: 目录下所有文件复制到另一个目录
+COPY /Y C:\test\ D:\aaa\
+:: 正则匹配
+COPY /Y C:\test\*.txt D:\aaa\
+```
+
+### 3.2. XCOPY
+
+#### (1) 选项
+
+- `/S`: 复制目录和子目录，不包括空目录，不带此选项不复制子目录，需要和`/E`一起复制空目录
+- `/T`: 只复制目录结构，不复制文件，不包括空目录，需要和`/E`一起复制空目录
+- `/E`: 复制空目录
+- `/Y`: 取消覆盖确认提示
+- `/I`: 取消目录不存在是否创建的提示
+- `/K`: 保留只读属性
+- `/V`: 验证文件完全相同
+
+#### (2) 示例
+
+- 拷贝文件到目录不能跟文件名，只需要父级目录就好，跟文件名会弹出确认是文件还是目录
+
+```bat
+xcopy /y /k /v C:\path\to\file.txt D:\path\to\
 ```
 
 ## 4. 注册表
@@ -67,15 +129,366 @@ REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVers
 
 ### 4.2. 修改注册表的值
 
--   路径
--   `/v`: key
--   `/t`: type
--   `/d`: value
--   `/f`: 不显示确认输入
+- 路径
+- `/v`: key
+- `/t`: type
+- `/d`: value
+- `/f`: 不显示确认输入
 
 ```bat
 reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colour0  /t REG_SZ /d 255,255,255   /f
 ```
+
+## 5. for循环
+
+### 5.1. 基本形态
+
+- 在cmd中使用一个`%`: `for %i in (command1) do command2`
+- 在batch脚本中使用两个`%%`: `for %%i in (command1) do command2`
+- `%`后只能跟一个字母作为变量，不能跟多个字母
+
+#### 几个示例
+
+**(1) 数组遍历**
+
+```bat
+@echo off
+for %%i in (A,B,C) do (
+    echo s %%i e
+)
+pause
+```
+
+输出
+
+```
+s A e
+s B e
+s C e
+```
+
+### 5.2. for /r 递归遍历目录下所有文件，不包含目录
+
+#### (1) 原型
+
+```bat
+FOR /R [[drive:]path] %%parameter IN (set) DO command
+```
+
+#### (2) 示例
+
+**输出目录下包含子目录的所有文件**
+
+```bat
+@echo off
+for /r D:\path\to\dir %%i in (*) do (
+    echo s %%i e
+)
+pause
+```
+
+**输出目录下包含子目录的所有json文件**
+
+```bat
+@echo off
+for /r D:\path\to\dir %%i in (*.json) do (
+    echo s %%i e
+)
+pause
+```
+
+## 6. cd命令
+
+### 6.1. 基本用法
+
+```bat
+:: 返回上一级
+cd ..
+:: 切换盘
+cd D:
+:: 切换到当前盘的相对目录
+cd a\b\c
+:: 切换到不同盘的绝对目录
+cd /d C:\path\to\dir
+```
+
+## 7. 快捷键
+
+### 7.1. 基本快捷键
+
+- `F7`: 当次窗口执行过的历史记录，可以选择之前执行过的命令
+
+## 8. dir 列举当前目录
+
+### 8.1. 选项
+
+- `/B`: 仅显示名字，不显示其他信息，默认显示时间类型
+- `/-C`: 大小不显示千位数分割符，默认`/C`显示
+- `/Q`: 显示所有者，默认不显示
+- `/S`: 显示子目录
+- `/W`: 横向排列，目录两旁带`[]`
+- `/D`: 纵向排列，目录两旁带`[]`
+- `/A:[属性]`:
+  - `d`: 目录
+  - `r`: 只读文件
+  - `s`: 系统文件
+  - `h`: 隐藏文件
+
+### 8.2. 示例
+
+```bat
+D:\path\to\dir>dir /d
+ 驱动器 D 中的卷是 新加卷
+ 卷的序列号是 641B-9BCA
+
+ D:\path\to\dir 的目录
+
+[.]                .cpplint-ignore    .gitmodules        [cmake]            [doc]              [prebuilt]         [script]           [tests]
+[..]               .gitignore         [.vscode]          CMakeLists.txt     Doxyfile           README.md          [mobile]           [third-party]
+.clang-format      [.gitlab]          [build]            cppcheck.xml       [LICENSE]          requirements.txt   [pc]               [tools]
+.cppcheck-ignore   .gitlab-ci.yml     build.sh           CPPLINT.cfg        [package]          [res]              [src]              version
+              14 个文件        341,406 字节
+              18 个目录 42,100,445,184 可用字节
+
+D:\path\to\dir>dir /w
+ 驱动器 D 中的卷是 新加卷
+ 卷的序列号是 641B-9BCA
+
+ D:\path\to\dir 的目录
+
+[.]                [..]               .clang-format      .cppcheck-ignore   .cpplint-ignore    .gitignore         [.gitlab]          .gitlab-ci.yml     .gitmodules        [.vscode]
+[build]            build.sh           [cmake]            CMakeLists.txt     cppcheck.xml       CPPLINT.cfg        [doc]              Doxyfile           [LICENSE]          [package]
+[prebuilt]         README.md          requirements.txt   [res]              [script]           [mobile]           [pc]               [src]              [tests]            [third-party]
+[tools]            version
+              14 个文件        341,406 字节
+              18 个目录 42,100,436,992 可用字节
+
+
+```
+
+## 9. 字符串操作
+
+### 9.1. 字符串替换
+
+```bat
+set str=aaaa bb cc
+:: 所有b替换成t
+echo %str:b=t%
+:: 替换第一个b和之前的字符串
+echo %str:*b=tt%
+```
+
+输出
+
+```
+aaaa tt cc
+ttb cc
+```
+
+### 9.2. 字符串截取
+
+**<font color="red">`,`后大于0为长度，小于0为索引</font>**
+
+```bat
+set abc=abcdefghijklmnopqrstuvwxyz
+
+echo 原字符串为:%abc%
+echo 截取前5个字符:%abc:~0,5%
+echo 截取最后5个字符:%abc:~-5%
+echo 截取第一个到倒数第6个字符:%abc:~1,-5%
+echo 从第4个字符开始截取5个字符:%abc:~3,5%
+echo 从倒数第14个字符开始截取5个字符:%abc:~-14,5%
+```
+
+输出
+
+```
+原字符串为:abcdefghijklmnopqrstuvwxyz
+截取前5个字符:abcde
+截取最后5个字符:vwxyz
+截取第一个到倒数第6个字符:bcdefghijklmnopqrstu
+从第4个字符开始截取5个字符:defgh
+从倒数第14个字符开始截取5个字符:mnopq
+```
+
+## 10. 引号的作用
+
+- 引号作为字符串插入，不作为字符串的标识
+
+```bat
+set str=aaa
+set str1="aaa"
+
+echo %str% 123
+echo %str1% 123
+```
+
+输出
+
+```
+aaa 123
+"aaa" 123
+```
+
+## 11. if判断
+
+### 11.1. 基本形态
+
+```bat
+:: 基本状态是一行
+if %a% == 123 (echo a==123) else if %a% == 1234 (echo a==123) else (echo %a% not valid)
+:: 也可以分行写，但是处理时认为是一行
+if %a% == 123 (
+    echo a==123
+) else if %a% == 1234 (
+    echo a==123
+) else (
+    echo %a% not valid
+)
+```
+
+## 12. move 移动文件
+
+```bat
+move [src] [dst]
+```
+
+## 13. tracert 跟踪路由节点
+
+- 类似linux的traceroute
+
+```bat
+C:\Users\User>tracert 199.200.2.170
+
+通过最多 30 个跃点跟踪到 199.200.2.170 的路由
+
+  1    <1 毫秒   <1 毫秒   <1 毫秒 172.22.73.254
+  2    <1 毫秒   <1 毫秒   <1 毫秒 10.10.110.132
+  3     1 ms    <1 毫秒    3 ms  10.10.110.37
+  4    <1 毫秒   <1 毫秒   <1 毫秒 199.200.2.170
+
+跟踪完成。
+```
+
+## 14. netsh 网络相关命令工具
+
+### 14.1. ipv6
+
+- ipv6使用需要使用`netsh interface ipv6`命令
+
+#### 1) 路由相关
+
+```bat
+:::::::::: 查看路由 ::::::::::
+C:\Users\User>netsh interface ipv6 show route
+
+发布    类型     跃点数 前缀                     索引 网关/接口名称
+------- -------- ---    ------------------------ --- ------------------------
+否        系统        256  ::1/128                     1  Loopback Pseudo-Interface 1
+否        系统        256  fe80::/64                  21  以太网 2
+否        系统        256  fe80::/64                  27  vEthernet (Default Switch)
+否        系统        256  fe80::5dee:8e08:f0bd:1fad/128   21  以太网 2
+否        系统        256  fe80::6811:502a:c8dd:b09e/128   27  vEthernet (Default Switch)
+否        系统        256  ff00::/8                    1  Loopback Pseudo-Interface 1
+否        系统        256  ff00::/8                   21  以太网 2
+否        系统        256  ff00::/8                   27  vEthernet (Default Switch)
+
+:::::::::: 添加路由 ::::::::::
+C:\Users\User>netsh interface ipv6 add route
+一个或多个重要的参数没有输入。
+请验证需要的参数，然后再次输入。
+此命令提供的语法不正确。请查看帮助以获取正确的语法信息。
+
+用法: add route [prefix=]<IPv6 address>/<integer> [interface=]<string>
+             [[nexthop=]<IPv6 address>] [[siteprefixlength=]<integer>]
+             [[metric=]<integer>] [[publish=]no|age|yes]
+             [[validlifetime=]<integer>|infinite]
+             [[preferredlifetime=]<integer>|infinite]
+             [[store=]active|persistent]
+
+参数:
+
+       标记                值
+       prefix            - 要为其添加路由的前缀。
+       interface         - 接口名称或索引。
+       nexthop           - 网关地址(如果前缀不在链路上)。
+       siteprefixlength  - 整个站点的前缀长度(如果在链路上)。
+       metric            - 路由跃点数。
+       publish           - 下列其中一个值:
+                           no: 未在路由播发中播发。
+                               此为默认值。
+                           age: 用有限生存时间在路由播发中播发。
+                           yes: 用无限生存时间在路由播发中播发。
+       validlifetime     - 路由有效的生存时间。
+                           默认值是无限。
+       preferredlifetime - 首选路由生存时间。
+                           默认值为无限生存时间。
+       store             - 下列其中一个值:
+                           active: 更改仅持续到下一次启动。
+                           persistent: 更改持久有效。此为默认值。
+
+说明: 为给定前缀添加路由。
+
+示例:
+
+       add route 3ffe::/16 "Internet" fe80::1
+
+:::::::::: 删除路由就是将add给成del ::::::::::
+C:\Users\User>netsh interface ipv6 del route 3ffe::/16 "Internet" fe80::1
+```
+
+## 小技巧和踩坑记
+
+### 1. 逻辑判断中多行设置变量不符合预期
+
+**示例**
+
+```bat
+set a=123
+if %a% == 123 (
+    set a=%a%4
+    set a=%a%5
+)
+echo a=%a%
+```
+
+- 认为输出的是`a=12345`
+- 实际输出的是`a=1235`
+
+**原因**
+
+- 虽然括号内写成了多行，实际认为是一行
+- batch解析时，**<font color="red">每一行命令会先将变量替换成值，再进行处理</font>**
+- 所以上述翻译过来就是
+
+```bat
+set a=123
+:: 下面将 %a% 替换成123得到
+if 123 == 123 (
+    set a=1234
+    set a=1235
+)
+:: 上面一行 a=1235，所以这里将%a%替换成1235
+echo a=1235
+```
+
+**解决**
+
+- 使用`setlocal enabledelayedexpansion`，启用延迟解析
+- 即不提前将值替换进去
+- 然后变量两边的`%`换成`!`即可
+
+```bat
+set a=123
+setlocal enabledelayedexpansion
+if %a% == 123 (
+    set a=!a!4
+    set a=!a!5
+)
+echo a=%a%
+```
+
+- 输出`a=12345`
 
 # 二、powershell
 
@@ -96,6 +509,34 @@ PS> del env:windir
 PS> New-item xxx.txt -type file
 ```
 
+## 2. 网络相关
+
+### 2.1. 网卡信息
+
+#### 1) 获取网卡信息
+
+```bat
+PS> Get-NetIPInterface
+
+ifIndex InterfaceAlias                  AddressFamily NlMtu(Bytes) InterfaceMetric Dhcp     ConnectionState PolicyStore
+------- --------------                  ------------- ------------ --------------- ----     --------------- -----------
+27      vEthernet (Default Switch)      IPv6                  1500            5000 Enabled  Connected       ActiveStore
+21      以太网 2                        IPv6                  1500              15 Enabled  Connected       ActiveStore
+1       Loopback Pseudo-Interface 1     IPv6            4294967295              75 Disabled Connected       ActiveStore
+27      vEthernet (Default Switch)      IPv4                  1500            5000 Disabled Connected       ActiveStore
+21      以太网 2                        IPv4                  1500              15 Disabled Connected       ActiveStore
+1       Loopback Pseudo-Interface 1     IPv4            4294967295              75 Disabled Connected       ActiveStore
+
+```
+
+#### 2) 设置网卡优先级
+
+```bat
+:: InterfaceIndex是Get-NetIPInterface获取到的ifIndex
+:: InterfaceMetric越大优先级越低
+PS> Set-NetIPInterface -InterfaceIndex 59 -InterfaceMetric 50
+```
+
 # 小技巧
 
 ## 1. powershell 使用 utf-8 编码
@@ -108,8 +549,8 @@ chcp 65001
 
 ## 2. windows 10 启用 sshd 服务
 
--   需要在功能中安装`OpenSSH Server`
--   在命令行中执行，登陆帐号密码和微软一致
+- 需要在功能中安装`OpenSSH Server`
+- 在命令行中执行，登陆帐号密码和微软一致
 
 ```bat
 :: 开启

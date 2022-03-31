@@ -158,6 +158,19 @@ sudo journalctl --vacuum-time=5d
 yay -Pg
 ```
 
+## 4. 信任CA证书
+
+- 执行完需要重启浏览器
+
+```shell
+# 查看已经授信的ca机构
+trust list
+# 添加授信的ca机构
+trust anchor /path/to/cacert.pem
+# 移除授信的ca机构，值由list给出
+trust anchor --remove 'pkcs11:id=%2E%57%67%B4%D5%D0%13%93%52%B5%4F%7C%87%1C%FC%45%43%FF%E7%02;type=cert'
+```
+
 # 三、好用的工具
 
 ## 1. kde 桌面下

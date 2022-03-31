@@ -51,7 +51,7 @@ categories: [Program, go]
 
 ### 1.2. go的上层实现
 
-```golang
+```go
 package main
 
 import (

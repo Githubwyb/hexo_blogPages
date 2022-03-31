@@ -3,6 +3,7 @@ title: shell学习笔记
 date: 2018-09-16 13:23:55
 tags: [Linux]
 categories: [Program, Shell]
+top: 99
 ---
 
 # 一、语法相关
@@ -923,14 +924,69 @@ route del -net 1.1.1.1/24 dev eth0
 - `f`: 使用ascii字符展示关系
 - `e`: 显示环境变量
 
-## 30. ip 查看系统网络配置
+## 30. ip 系统网络配置
 
-### 30.1. 查看访问ip的出口网关和源ip
+- 默认配置ipv4，配置ipv6需要加上`-6`
+
+### 30.1. 路由相关
 
 ```shell
+########### 查看路由 ##########
+=> ip route show
+default via 199.200.2.254 dev ens18 proto static metric 100
+199.200.0.0/16 dev ens18 proto kernel scope link src 199.200.2.199 metric 100
+255.253.254.0/24 dev ens19 proto kernel scope link src 255.253.254.33
+# 根据访问ip查看路由
 => ip r get 199.200.2.170
 199.200.2.170 via 10.240.255.254 dev ens18 src 10.240.17.101 uid 1000
     cache
+
+########## 配置路由 ##########
+# 默认路由
+ip route add default via 192.168.0.150/24
+# 静态路由
+ip route add 172.16.32.32 via 192.168.0.150/24 dev enp0s3
+```
+
+### 30.2. 查看网卡ip
+
+```shell
+=> ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: ens18: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether fe:fc:fe:07:fe:6a brd ff:ff:ff:ff:ff:ff
+    inet 199.200.2.199/16 brd 199.200.255.255 scope global noprefixroute ens18
+       valid_lft forever preferred_lft forever
+    inet6 fe80::34c9:aa6d:8630:e99a/64 scope link noprefixroute
+       valid_lft forever preferred_lft forever
+3: ens19: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether fe:fc:fe:79:83:d5 brd ff:ff:ff:ff:ff:ff
+    inet6 2001::199/112 scope global noprefixroute
+       valid_lft forever preferred_lft forever
+    inet6 fe80::d501:6609:cfd1:9970/64 scope link noprefixroute
+       valid_lft forever preferred_lft forever
+```
+
+### 30.3. 配置网卡
+
+```shell
+# 启用/禁用网卡
+ip link set eth0 up
+ip link set eth0 down
+
+# 分配ip
+# brd + 根据掩码和ip配置广播地址
+ip addr add 199.200.1.1/24 brd + dev eth0
+# 单独配置广播地址
+ip addr add broadcast 192.168.0.255 dev eth0
+
+# 删除分配的ip
+ip addr del 192.168.0.10/24 dev eth0
 ```
 
 ## 31. read 读取输入
@@ -1019,13 +1075,31 @@ du ./ -h --max-depth=1
 
 ### 2.1. 选项
 
-- `-c`: 抓取的包的数量
+- `-c [num]`: 抓取的包的数量
 - `-i`: 要监听的网口，不给默认为第一个网口
 - `-n`: 对地址以数字方式显式，否则显示为主机名，也就是说-n选项不做主机名解析
 - `-nn`: 除了-n的作用外，还把端口显示为数值，否则显示端口服务名
-- `-w`: 保存的文件，cap结尾，用于wirshark分析
+- `-w xxx.pcap`: 保存到文件，pcap结尾，用于wirshark分析
+- `-v`: 显示更多信息，如ip包的存活时间、标识号、总长度和选项，并且检查ip包或icmp包的头部checksum
+- `-vv`: 除`-v`作用外，NFS回包和SMB包会被解码
+- `-X`: 打印每一个包，以hex和ascii的形式打印
 
-### 2.2. 示例
+### 2.2. 过滤器
+
+- `host [ip_addr]`: 源ip和目的ip为`ip_addr`
+- `[src|dst] [ip_addr]`: 源ip/目的ip为`ip_addr`
+- `[protocol]`: 协议
+  - `tcp`
+  - `udp`
+  - `icmp`
+  - `icmp6`: ping ipv6
+- `port [port_num]`: 端口
+- `[src|dst] port [port_num]`: 源/目的端口
+- `[tcp|udp] port [port_num]`: tcp/udp端口
+- `[tcp|udp] [src|dst] port [port_num]`: tcp/udp的源/目的端口
+- `ip6`: ipv6
+
+### 2.3. 示例
 
 ```shell
 # 抓5个192.168.100.62到本机eth0的icmp（ping）包
@@ -1120,6 +1194,15 @@ no matching host key type found. Their offer: ssh-rsa,ssh-dss
 Host *
     HostkeyAlgorithms +ssh-rsa
     PubkeyAcceptedAlgorithms +ssh-rsa
+```
+
+#### (2) ssh首次登录总要等一会才提示密码框
+
+- 原因是ssh去找主机名的DNS
+- 快速解决是修改服务端的`/etc/ssh/sshd_config`，然后重启服务
+
+```conf
+UseDNS no
 ```
 
 ## 5. 压缩和解压缩命令

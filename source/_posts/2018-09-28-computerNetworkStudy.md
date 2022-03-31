@@ -3,6 +3,7 @@ title: 计算机网络学习
 date: 2018-09-28 11:30:07
 tags: [网络]
 categories: [Knowledge, Study]
+top: 94
 ---
 
 # 一、网络OSI七层模型
@@ -111,7 +112,7 @@ IP地址根据网络号和主机号来分，分为A、B、C三类及特殊地址
 
 <img src="2022-03-15-03.png" />
 
-**linux协议头文件定义**
+**协议头文件定义**
 
 ```cpp
 // netinet/ip.h
@@ -185,6 +186,47 @@ struct ip
 - check: ip头校验和
 - saddr: 源地址
 - daddr: 目标地址
+
+### 2.2. ipv6包
+
+**结构图**
+
+<img src="2022-03-29-04.png" />
+
+**wireshark抓包**
+
+<img src="2022-03-29-05.png" />
+
+**协议头文件定义**
+
+```cpp
+// netinet/ip6.h
+
+struct ip6_hdr
+  {
+    union
+      {
+    struct ip6_hdrctl
+      {
+        uint32_t ip6_un1_flow;   /* 4 bits version, 8 bits TC,
+                    20 bits flow-ID */
+        uint16_t ip6_un1_plen;   /* payload length */
+        uint8_t  ip6_un1_nxt;    /* next header */
+        uint8_t  ip6_un1_hlim;   /* hop limit */
+      } ip6_un1;
+    uint8_t ip6_un2_vfc;       /* 4 bits version, top 4 bits tclass */
+      } ip6_ctlun;
+    struct in6_addr ip6_src;      /* source address */
+    struct in6_addr ip6_dst;      /* destination address */
+  };
+```
+
+**详细介绍**
+
+- `version`: 前4bit，ipv6就只有6
+- `Traffic Class`: 紧跟的8bit
+- `ip6_src`: 64bit源地址
+- `ip6_dst`: 64bit目的地址
 
 # 问题
 

@@ -3,7 +3,7 @@ title: python学习笔记
 date: 2018-09-16 13:17:51
 tags:
 categories: [Program, Python]
-top: 17
+top: 96
 ---
 
 # 环境
@@ -109,6 +109,8 @@ c.NotebookApp.open_browser = False  # 不自动打开浏览器
 c.NotebookApp.port = 8888           #可自行指定一个端口, 访问时使用该端口
 ```
 
+## 3. pylint 代码风格检查配置
+
 # 二、语法相关
 
 参考文档: [W3Cschool][1]、[Runoob][2]
@@ -116,8 +118,9 @@ c.NotebookApp.port = 8888           #可自行指定一个端口, 访问时使�
 [1]: https://www.w3cschool.cn/uqmpir/
 [2]: http://www.runoob.com/python/python-tutorial.html
 
+## 1. 风格和编码
 
-## 1. 指定编码格式
+### 1.1. 指定编码格式
 
 源文件第一行或第二行直接定义
 
@@ -130,6 +133,11 @@ c.NotebookApp.port = 8888           #可自行指定一个端口, 访问时使�
 ```python
 # -*- coding:utf-8 -*-
 ```
+
+### 1.2. 代码风格
+
+- 函数和变量使用下划线命名
+- 全局常量使用大写字母
 
 ## 2. 变量
 
@@ -451,7 +459,7 @@ def mye(level):
         # 触发异常后，后面的代码就不会再执行
 try:
     mye(0)            # 触发异常
-except Exception, err:
+except Exception as err:
     print(1, err)
 else:
     print(2)
@@ -542,6 +550,8 @@ In __exit__()
 
 ## 10. import 导入模块
 
+- 导入会先找脚本所在同级目录，再去找系统path下
+
 ### 10.1. 使用字符串导入
 
 ```python
@@ -606,13 +616,71 @@ with open('aa', 'r') as f:
         f.close()
 ```
 
+## 12. 内置函数
+
+### (1) 进制转换
+
+**10进制转其他进制**
+
+```python
+>>> hex(446)
+'0x1be'
+>>> bin(446)
+'0b110111110'
+>>> oct(446)
+'0o676'
+```
+
+**其他进制转10进制**
+
+```python
+>>> int('0x1be', 16)
+446
+>>> int('0o676', 8)
+446
+>>> int('0b110111110', 2)
+446
+```
+或者
+```python
+>>> a=0x1be
+>>> print(a)
+446
+>>> a=0o676
+>>> print(a)
+446
+>>> a=0b110111110
+>>> print(a)
+446
+```
+
+### (2) locals() 获取本地变量dict
+
+**判断变量是否定义**
+
+```python
+if 'aaa' in locals().keys():
+    print('aaa is defined')
+```
+
+### (3) isinstance() 类型比较函数
+
+- pylint不建议使用`type(xxx) == type("")`的格式判断特定的类型
+
+```python
+if isinstance("aaa", str):
+    pass
+if isinstance(123, int):
+    pass
+```
+
 # 三、系统内置module介绍
 
 ## 1. 操作系统组件 os
 
-### 路径相关操作
+### 1.1. 路径相关操作
 
-#### 获取当前路径
+#### (1) 获取当前路径
 
 ```python
 import os
@@ -624,7 +692,7 @@ print(os.path.abspath('..'))        #获取当前工作的父目录 ！注意是
 print(os.path.abspath(os.curdir))   #获取当前工作目录路径
 ```
 
-#### 改变当前路径
+#### (2) 改变当前路径
 
 ```python
 import os
@@ -632,7 +700,7 @@ import os
 os.chdir(path)
 ```
 
-#### 遍历目录
+#### (3) 遍历目录
 
 此命令会遍历目录下的所有文件包括子文件
 
@@ -644,9 +712,9 @@ for dirPath, dirNames, fileNames in os.walk('./'):
     print('fileNames', fileNames)   # 该目录下所有的文件名字组成的列表
 ```
 
-### 调用可执行文件
+### 1.2. 调用可执行文件
 
-#### 获取输出结果
+#### (1) 获取输出结果
 
 ```python
 import os
@@ -656,7 +724,7 @@ data = f.readlines()
 f.close()
 ```
 
-#### 获取返回值
+#### (2) 获取返回值
 
 ```python
 import os
@@ -677,18 +745,74 @@ print(sys.executable)       # 当前python命令所在路径，/usr/bin/python
 
 ## 3. json
 
-### 3.1. 基本操作
+### 3.1. json.loads() 字符串转dict
 
 ```python
 import json
 
 # 字符串到dict
 dict_data = json.loads('{"a": 1}')
+```
+
+### 3.2. json.dumps() dict转json
+
+**原型**
+
+```python
+def dumps(obj, *, skipkeys=False, ensure_ascii=True, check_circular=True,
+        allow_nan=True, cls=None, indent=None, separators=None,
+        default=None, sort_keys=False, **kw):
+    """Serialize ``obj`` to a JSON formatted ``str``.
+
+    If ``skipkeys`` is true then ``dict`` keys that are not basic types
+    (``str``, ``int``, ``float``, ``bool``, ``None``) will be skipped
+    instead of raising a ``TypeError``.
+
+    If ``ensure_ascii`` is false, then the return value can contain non-ASCII
+    characters if they appear in strings contained in ``obj``. Otherwise, all
+    such characters are escaped in JSON strings.
+
+    If ``check_circular`` is false, then the circular reference check
+    for container types will be skipped and a circular reference will
+    result in an ``OverflowError`` (or worse).
+
+    If ``allow_nan`` is false, then it will be a ``ValueError`` to
+    serialize out of range ``float`` values (``nan``, ``inf``, ``-inf``) in
+    strict compliance of the JSON specification, instead of using the
+    JavaScript equivalents (``NaN``, ``Infinity``, ``-Infinity``).
+
+    If ``indent`` is a non-negative integer, then JSON array elements and
+    object members will be pretty-printed with that indent level. An indent
+    level of 0 will only insert newlines. ``None`` is the most compact
+    representation.
+
+    If specified, ``separators`` should be an ``(item_separator, key_separator)``
+    tuple.  The default is ``(', ', ': ')`` if *indent* is ``None`` and
+    ``(',', ': ')`` otherwise.  To get the most compact JSON representation,
+    you should specify ``(',', ':')`` to eliminate whitespace.
+
+    ``default(obj)`` is a function that should return a serializable version
+    of obj or raise TypeError. The default simply raises TypeError.
+
+    If *sort_keys* is true (default: ``False``), then the output of
+    dictionaries will be sorted by key.
+
+    To use a custom ``JSONEncoder`` subclass (e.g. one that overrides the
+    ``.default()`` method to serialize additional types), specify it with
+    the ``cls`` kwarg; otherwise ``JSONEncoder`` is used.
+
+    """
+```
+
+**实例**
+
+```python
+import json
+
 # dict到字符串，是否排列key
 json_str = json.dumps(dict_data, sort_keys=True)
-# dict到字符串，是否排列key，按照格式化输出，缩进为2
-json_str = json.dumps(dict_data, sort_keys=True, indent=2)
-
+# dict到字符串，是否排列key，按照格式化输出，缩进为2，字符串原样输出，不转ascii
+json_str = json.dumps(dict_data, sort_keys=True, indent=2, ensure_ascii=False)
 ```
 
 ## 4. 加载C/C++的so库 ctypes
@@ -748,51 +872,21 @@ time_str = time.strftime("%Y-%m-%d %H:%M:%S", time_s)
 3
 ```
 
-## 内置函数
+## 7. hashlib hash算法库
 
-### (1) 进制转换
+### 7.1. sha256
 
-**10进制转其他进制**
-
-```python
->>> hex(446)
-'0x1be'
->>> bin(446)
-'0b110111110'
->>> oct(446)
-'0o676'
-```
-
-**其他进制转10进制**
+#### (1) 计算文件的sha256值
 
 ```python
->>> int('0x1be', 16)
-446
->>> int('0o676', 8)
-446
->>> int('0b110111110', 2)
-446
-```
-或者
-```python
->>> a=0x1be
->>> print(a)
-446
->>> a=0o676
->>> print(a)
-446
->>> a=0b110111110
->>> print(a)
-446
-```
+import hashlib
 
-### (2) locals() 获取本地变量dict
+sha256_handle = hashlib.sha256()
+with open(file_path, 'rb') as f:
+    sha256_handle.update(f.read())
+    hash_value = sha256_handle.hexdigest()
 
-**判断变量是否定义**
-
-```python
-if 'aaa' in locals().keys():
-    print('aaa is defined')
+print(hash_value)
 ```
 
 # 四、好用的module推荐
@@ -976,7 +1070,7 @@ except Exception as e:
 ```
 
 
-# 五、小技巧和踩坑记
+# 小技巧和踩坑记
 
 ## 1. 判断文件是否为二进制
 
@@ -1008,3 +1102,7 @@ def is_binary_file(file_path):
 import sys
 sys.path.append('/xxx/xxx')
 ```
+
+## 3. 跨平台文件操作需要确定编码
+
+- windows的默认编码是gbk，如果是写文件，确定是utf8的一定要在open的时候确定是utf8编码

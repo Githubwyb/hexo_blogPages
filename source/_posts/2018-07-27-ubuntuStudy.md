@@ -112,7 +112,6 @@ sudo add-apt-repository xxx
 sudo add-apt-repository -r xxx
 ```
 
-
 # 踩坑记
 
 ## 1. ubuntu安装deepin-terminal，设置默认
