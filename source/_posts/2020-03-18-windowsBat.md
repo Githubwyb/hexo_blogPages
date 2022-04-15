@@ -107,7 +107,7 @@ COPY /Y C:\test\*.txt D:\aaa\
 - `/T`: 只复制目录结构，不复制文件，不包括空目录，需要和`/E`一起复制空目录
 - `/E`: 复制空目录
 - `/Y`: 取消覆盖确认提示
-- `/I`: 取消目录不存在是否创建的提示
+- `/I`: 路径不存在的情况，原始路径是目录就自动创建目录，文件则还是会提示选择是否为文件
 - `/K`: 保留只读属性
 - `/V`: 验证文件完全相同
 
@@ -435,6 +435,29 @@ C:\Users\User>netsh interface ipv6 add route
 
 :::::::::: 删除路由就是将add给成del ::::::::::
 C:\Users\User>netsh interface ipv6 del route 3ffe::/16 "Internet" fe80::1
+```
+
+## 15. taskkill
+
+- `/im [xxx.exe]`: 删除某exe的进程
+- `/f`: 强制删除
+
+```bat
+C:\Users\User>taskkill /f /im appidcertstorecheck.exe
+成功: 已终止进程 "appidcertstorecheck.exe"，其 PID 为 11804。
+成功: 已终止进程 "appidcertstorecheck.exe"，其 PID 为 15924。
+成功: 已终止进程 "appidcertstorecheck.exe"，其 PID 为 17120。
+成功: 已终止进程 "appidcertstorecheck.exe"，其 PID 为 16996。
+成功: 已终止进程 "appidcertstorecheck.exe"，其 PID 为 17436。
+成功: 已终止进程 "appidcertstorecheck.exe"，其 PID 为 9724。
+```
+
+## 16. cmd 调用其他bat脚本
+
+- `/c`: 执行后面的命令后结束
+
+```bat
+cmd /c D:\path\to\test.bat
 ```
 
 ## 小技巧和踩坑记

@@ -228,6 +228,12 @@ struct ip6_hdr
 - `ip6_src`: 64bit源地址
 - `ip6_dst`: 64bit目的地址
 
+# 四、应用层
+
+## 1. tls握手流程
+
+参考自 [图解 HTTPS：RSA 握手过程](https://zhuanlan.zhihu.com/p/344086342)
+
 # 问题
 
 ## 1. 局域网和外网？

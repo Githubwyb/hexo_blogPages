@@ -26,6 +26,7 @@ categories: [Program, Document]
 - 偏导算子`$\partial$`: $\partial$
 - `$\eta$`: $\eta$
 - `$\delta$`: $\delta$
+- `$\varphi`: $\varphi$
 - 属于`$\in$`: $\in$
 - 无穷`$\infty$`: $\infty$
 - 任意`$\forall$`: $\forall$
@@ -230,5 +231,5 @@ $$
 \left(\begin{array}{ccc}
     a11 & a12 & a13 \\\\
     a21 & a22 & a23
-\end{array}\right) 
+\end{array}\right)
 $$
