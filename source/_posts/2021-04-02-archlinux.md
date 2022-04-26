@@ -17,13 +17,17 @@ iso 下载启动我就不多说了，自己搞定
 
 新硬盘需要先分区再安装系统，第一次手动命令行分区，可以激动一下
 
-1. 想要 efi 启动，需要在头部创建一个 128M 的 efi 分区
+1. 想要 efi 启动，需要在头部创建一个 1G 的 efi 分区，格式化为fat32，标识要求是`EFI System`，挂载到`/boot/efi`
 2. 需要交换分区，创建 swap 分区，大小自己定，一般内存两倍
 3. 根分区，后面两个想分，根分区给 30G 足以
 4. /opt 看着办，如果想重装不影响自己下的软件，可以分
 5. /home 看着办，如果想重装不影响自己平常使用的文件数据，可以分
 
-### 1.1. MBR 分区
+### 1.1. GPT 分区
+
+GPT 分区表最多支持200个主分区
+
+### 1.2. MBR 分区
 
 MBR 分区表最大支持 2T，最多 4 个主分区，属于旧式分区表
 
@@ -51,7 +55,7 @@ U 盘中这样搞启动时没检测到硬盘，GG 了
 ### 2.1. 安装
 
 ```shell
-pacstrap /mnt linux base base-dev linux-firmware
+pacstrap /mnt linux base linux-firmware networkmanager tmux vim grub net-tools efibootmgr archlinux-keyring
 ```
 
 ### 2.2. 配置
@@ -91,13 +95,33 @@ grub-install --target=i386-pc /dev/sda
 grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
+## 4. 桌面环境
+
+### 4.1. kde
+
+- 安装下面的包
+
+```shell
+sudo pacman -S plasma kde-applications xorg-server xorg-drivers sddm
+```
+
+#### 踩坑记
+
+##### (1) 屏幕显示抖动，设置页面点击没有变化等异常问题
+
+- 尝试将`xorg.conf`的`driver`改成
+
+```conf
+Driver      "modesetting"
+```
+
 # 二、日常操作
 
 ## 1. 常用命令
 
 ### 1.1. pacman 安装软件
 
-#### 1.1.1. 一些基本用法
+#### 1) 一些基本用法
 
 ```shell
 ########## S --sync 同步（安装搜索） ##########
@@ -127,6 +151,10 @@ sudo pacman -Qdtq
 sudo pacman -Qu
 ```
 
+#### **<font color="red">踩坑记</font>**
+
+1. 遇到安装提示`PGP Signature`错误的，安装一下`archlinux-keyring`，原因是签名过期了
+
 ### 1.2. journalctl
 
 #### 1.2.1. 一些基本用法
@@ -146,6 +174,7 @@ sudo journalctl --vacuum-time=5d
 | lsusb                   | usbutils             |
 | arch-chroot<br>genfstab | arch-install-scripts |
 | telnet                  | inetutils            |
+| ntpdate                 | ntp                  |
 
 ## 3. aur软件包
 
@@ -200,7 +229,7 @@ trust anchor --remove 'pkcs11:id=%2E%57%67%B4%D5%D0%13%93%52%B5%4F%7C%87%1C%FC%4
 
 #### (1) 安装
 
--   需要安装`fcitx5`基础包和`fcitx5-chinese-addons`中文输入包
+-   需要安装`fcitx5-im`基础包和`fcitx5-chinese-addons`中文输入包
 -   在桌面系统中配置开机启动，程序路径通过`which fcitx5`
 -   安装完成后，需要在环境变量配置一下，不然命令行会用不了
 
@@ -275,6 +304,17 @@ MariaDB [(none)]> exit;
 
 ```shell
 mysql -u xxx -p
+```
+
+## 3. vmware
+
+### 3.1. 网络和usb
+
+- vmware启动前需要启动两个服务，不然无法联网和usb映射
+
+```shell
+sudo systemctl start vmware-networks.service
+sudo systemctl start vmware-usbarbitrator.service
 ```
 
 # 踩坑记和小技巧

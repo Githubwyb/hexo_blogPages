@@ -217,6 +217,7 @@ cd /d C:\path\to\dir
 ### 7.1. 基本快捷键
 
 - `F7`: 当次窗口执行过的历史记录，可以选择之前执行过的命令
+- `Esc`: 清楚当前行
 
 ## 8. dir 列举当前目录
 
@@ -458,6 +459,94 @@ C:\Users\User>taskkill /f /im appidcertstorecheck.exe
 
 ```bat
 cmd /c D:\path\to\test.bat
+```
+
+## 17. tasklist显示进程列表
+
+- `/fi`: 过滤器，具体语法查看`/?`
+- `/v`: 显示详细信息
+
+```bat
+C:\Users\sangfor>tasklist /FI "imagename eq abcdefAgent.exe"
+
+映像名称                       PID 会话名              会话#       内存使用
+========================= ======== ================ =========== ============
+abcdefAgent.exe               6172 Services                   0     20,600 K
+abcdefAgent.exe               7532 RDP-Tcp#1                  1     59,368 K
+abcdefAgent.exe               1424 RDP-Tcp#1                  1     37,668 K
+```
+
+## 18. net 启动停止服务
+
+### 18.1. 启动停止服务
+
+```bat
+C:\Windows\system32>net start sshd
+OpenSSH SSH Server 服务正在启动 .
+OpenSSH SSH Server 服务已经启动成功。
+
+
+C:\Windows\system32>net stop sshd
+
+OpenSSH SSH Server 服务已成功停止。
+
+
+```
+
+## 19. wmic
+
+### 19.1. process 查看进程信息
+
+- `commandline`: 命令行参数
+- `ProcessId`: 进程号
+- `Name`: 名称，一般是`xxx.exe`
+- `caption`: 好像和name一样
+
+```bat
+C:\Windows\system32>wmic process where caption="cmd.exe" get caption,commandline /value
+
+
+Caption=cmd.exe
+CommandLine="C:\Windows\system32\cmd.exe"
+
+
+```
+
+## 20. find/findstr
+
+- `/i`: 不区分大小写
+- `/v`: 不包含
+
+```bat
+C:\Windows\system32>wmic process where processid=4384 get commandline /value | find /i "atrustcore"
+CommandLine=aTrustAgent --plugin plugins/aTrustCore --enable-http --enable-event-center
+
+```
+
+## 21. %ERRORLEVEL% 上一条命令的返回值
+
+```bat
+C:\Windows\system32>wmic process where processid=4384 get commandline /value | find /i "atrustcore"
+CommandLine=aTrustAgent --plugin plugins/aTrustCore --enable-http --enable-event-center
+
+C:\Windows\system32>echo %ERRORLEVEL%
+0
+
+C:\Windows\system32>wmic process where processid=4384 get commandline /value | find /i "atrustcore1
+FIND: 参数格式不正确
+
+C:\Windows\system32>echo %ERRORLEVEL%
+2
+
+```
+
+## 22. route 添加路由
+
+- `-p`: 永久生效，默认在重启后会失效
+- `-6`: ipv6路由，默认ipv4
+
+```bat
+route add 1.1.1.1 mask 255.255.0.0 
 ```
 
 ## 小技巧和踩坑记

@@ -845,7 +845,7 @@ lsof +D /path/to/dir/
 - S——sleeping（中断）: 休眠中，受阻，在等待某个条件的形成或接收到信号
 - D——uninterruptible sleep(不可中断): 收到信号不唤醒和不可运行，进程必须等待直到有中断发生
 - Z——zombie（僵死）: 进程已终止，但进程描述还在，直到父进程调用wait4()系统调用后释放
-- T——traced or stoppd(停止): 进程收到SiGSTOP,SIGSTP,SIGTOU信号后停止运行
+- T——traced or stoppd(停止): 进程收到SIGSTOP,SIGSTP,SIGTOU信号后停止运行
 
 **后缀表示**
 
@@ -889,6 +889,29 @@ udevadm control --log-priority=debug
 ```
 
 ## 25. lsblk 树型查看硬盘分区信息
+
+- `-d`: 只显示硬盘，不显示分区
+- `-o xxx,xxx`: 指定显示列
+  - `name`: 名字
+  - `rota`: 是否是转动磁盘，也就是机械硬盘。1为机械硬盘；0为固态硬盘
+
+```shell
+=> lsblk
+NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
+sda      8:0    0 298.1G  0 disk
+├─sda1   8:1    0 954.9M  0 part
+├─sda2   8:2    0     1K  0 part
+├─sda5   8:5    0 198.1G  0 part /home
+├─sda6   8:6    0  11.2G  0 part [SWAP]
+├─sda7   8:7    0  46.6G  0 part /
+└─sda8   8:8    0  41.3G  0 part /opt
+=> lsblk -d
+NAME MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
+sda    8:0    0 298.1G  0 disk
+=> lsblk -d -o name,rota
+NAME ROTA
+sda     1
+```
 
 ## 26. blkid 查看已挂载的硬盘的uuid信息
 
@@ -1556,6 +1579,8 @@ firewall-cmd --get-default-zone
 ########## 查看服务 ##########
 # 列举服务，不加zone列举默认区域
 firewall-cmd --zone=work --list-services
+# 查看支持的服务
+firewall-cmd --get-services
 
 ########## 新增服务 ##########
 # 允许smtp服务，永久生效加上--permanent然后reload

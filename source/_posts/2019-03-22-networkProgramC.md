@@ -265,6 +265,41 @@ void handle(char *buf, int size) {
 }
 ```
 
+## 4. tcp头处理
+
+```cpp
+#include <netinet/tcp.h>
+
+#include "log.hpp"
+
+unsigned char tcpheader[] = {0x60, 0xe0, 0xef, 0x41, 0x01, 0xc5, 0x13, 0x41, 0x55, 0xce,
+                             0x63, 0xb5, 0x50, 0x10, 0x25, 0x17, 0xb1, 0x0e, 0x00, 0x00};
+
+int main(int argC, char *argV[]) {
+    tcphdr *th = (tcphdr *)tcpheader;
+
+    LOG_HEX(tcpheader, sizeof(tcphdr));
+    LOG_DEBUG("th->source %u", htons(th->source));
+    LOG_DEBUG("th->dest %u", htons(th->dest));
+    LOG_DEBUG("th->seq %u", htonl(th->seq));
+    LOG_DEBUG("th->ack_seq %u", htonl(th->ack_seq));
+    LOG_DEBUG("th->doff %u", th->doff);
+    LOG_DEBUG("th->res1 %04u", th->res1);
+    LOG_DEBUG("th->res2 %02u", th->res2);
+    LOG_DEBUG("th->urg %u", th->urg);
+    LOG_DEBUG("th->ack %u", th->ack);
+    LOG_DEBUG("th->psh %u", th->psh);
+    LOG_DEBUG("th->rst %u", th->rst);
+    LOG_DEBUG("th->syn %u", th->syn);
+    LOG_DEBUG("th->fin %u", th->fin);
+
+    LOG_DEBUG("th->th_flags %#x", th->th_flags);
+    LOG_DEBUG("is ack", (th->th_flags & TH_ACK) == TH_ACK);
+    return 0;
+}
+
+```
+
 # 踩坑记
 
 ## 1. TCP连接后，一方断电，另一方是无法检测到对方断电的

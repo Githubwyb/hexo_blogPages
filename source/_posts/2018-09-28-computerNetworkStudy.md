@@ -54,9 +54,11 @@ top: 94
 
 # 二、传输层
 
-## TCP握手
+- tcp和udp都是ip包的数据段，分片包协议属于ip网络层协议，非传输层
 
-### 建立TCP连接: 三次握手协议
+## 1. TCP
+
+### 1.1. 建立TCP连接: 三次握手协议
 
 - 客户端: 我要对你讲话，你能听到吗；
 - 服务端: 我能听到；而且我也要对你讲话，你能听到吗；
@@ -66,7 +68,7 @@ top: 94
 ...
 
 
-### 关闭TCP连接: 四次握手协议
+### 1.2. 关闭TCP连接: 四次握手协议
 
 - 客户端: 我说完了，我要闭嘴了；
 - 服务端: 我收到请求，我要闭耳朵了；
@@ -78,7 +80,7 @@ top: 94
 - 客户端: 我收到请求，我要闭耳朵了；（事实上，客户端为了保证这个确认包成功送达，等待了两个最大报文生命周期后，才闭上耳朵。）
 （服务端收到这个确认，于是安心地闭嘴了。）
 
-#### 问题
+#### 1) 问题
 
 1. 客户端收到请求包后，为什么要等待两个最大报文生命周期后，才闭上耳朵呢？
     - 为了以防万一，因为最后一个发往服务端B的确认包有可能丢失。若丢失，服务端这里过了响应超时时间timeOut，会再次往客户端A发送关闭连接请求，这时候客户端得保证自己还没闭上耳朵，还能接收请求才行。
@@ -89,6 +91,132 @@ top: 94
     - 网上这块儿都讲得很模糊，一般就是说到A需要等待( TimeOut + 最大报文生命周期 ) < 2 * 最大报文生命周期，所以等待2 * 最大报文生命周期可以确保万无一失。
     - 事实上，这里关键需要搞清楚服务端的是如何判断超时的，我不是很清楚。但是假如是以自己发送请求的时刻开始计时，那么TimeOut应该是一个往返的最大时间吧，你们确定一个“请求-应答”往返的最大时间小于最大报文生命周期。
     - 当然，所有地方都是说要等待 2 * 最大生命周期，虽然没具体搞明白，但是我也同样相信。只是，网上的各种解释，都解析的模模糊糊，而且好多地方从逻辑上都不能完全说通诶，对那些解释，我没法完全相信。
+
+### 1.3. tcp头部分析
+
+**结构图**
+
+<img src="2022-04-19-06.png" />
+
+**wireshark抓包**
+
+<img src="2022-04-19-07.png" />
+
+**协议头文件定义**
+
+```cpp
+// <netinet/tcp.h>
+
+/*
+ * TCP header.
+ * Per RFC 793, September, 1981.
+ */
+struct tcphdr
+  {
+    __extension__ union
+    {
+      struct
+      {
+	uint16_t th_sport;	/* source port */
+	uint16_t th_dport;	/* destination port */
+	tcp_seq th_seq;		/* sequence number */
+	tcp_seq th_ack;		/* acknowledgement number */
+# if __BYTE_ORDER == __LITTLE_ENDIAN
+	uint8_t th_x2:4;	/* (unused) */
+	uint8_t th_off:4;	/* data offset */
+# endif
+# if __BYTE_ORDER == __BIG_ENDIAN
+	uint8_t th_off:4;	/* data offset */
+	uint8_t th_x2:4;	/* (unused) */
+# endif
+	uint8_t th_flags;
+# define TH_FIN	0x01
+# define TH_SYN	0x02
+# define TH_RST	0x04
+# define TH_PUSH	0x08
+# define TH_ACK	0x10
+# define TH_URG	0x20
+	uint16_t th_win;	/* window */
+	uint16_t th_sum;	/* checksum */
+	uint16_t th_urp;	/* urgent pointer */
+      };
+      struct
+      {
+	uint16_t source;
+	uint16_t dest;
+	uint32_t seq;
+	uint32_t ack_seq;
+# if __BYTE_ORDER == __LITTLE_ENDIAN
+	uint16_t res1:4;    // uint16低8bit在前（0x50），对应低8bit的低4bit（0000）
+	uint16_t doff:4;    // uint16低8bit在前（0x50），对应低8bit的高4bit（0101）
+	uint16_t fin:1;     // uint16高8bit在后（0x10），对应高8bit的倒数第1位（0）
+	uint16_t syn:1;     // uint16高8bit在后（0x10），对应高8bit的倒数第2位（0）
+	uint16_t rst:1;     // uint16高8bit在后（0x10），对应高8bit的倒数第3位（0）
+	uint16_t psh:1;     // uint16高8bit在后（0x10），对应高8bit的倒数第4位（0）
+	uint16_t ack:1;     // uint16高8bit在后（0x10），对应高8bit的倒数第5位（1）
+	uint16_t urg:1;     // uint16高8bit在后（0x10），对应高8bit的倒数第6位（0）
+	uint16_t res2:2;    // uint16高8bit在后（0x10），对应高8bit的倒数第7,8位（0）
+# elif __BYTE_ORDER == __BIG_ENDIAN
+	uint16_t doff:4;
+	uint16_t res1:4;
+	uint16_t res2:2;
+	uint16_t urg:1;
+	uint16_t ack:1;
+	uint16_t psh:1;
+	uint16_t rst:1;
+	uint16_t syn:1;
+	uint16_t fin:1;
+# else
+#  error "Adjust your <bits/endian.h> defines"
+# endif
+	uint16_t window;
+	uint16_t check;
+	uint16_t urg_ptr;
+      };
+    };
+};
+```
+
+## 2. UDP
+
+### 2.1. UDP头部分析
+
+**结构图**
+
+<img src="2022-04-20-08.png" />
+
+**wireshark抓包**
+
+<img src="2022-04-20-09.png" />
+
+**协议头文件定义**
+
+```cpp
+// netinet/udp.h
+
+/* UDP header as specified by RFC 768, August 1980. */
+
+struct udphdr
+{
+  __extension__ union
+  {
+    struct
+    {
+      uint16_t uh_sport;	/* source port */
+      uint16_t uh_dport;	/* destination port */
+      uint16_t uh_ulen;		/* udp length */
+      uint16_t uh_sum;		/* udp checksum */
+    };
+    struct
+    {
+      uint16_t source;
+      uint16_t dest;
+      uint16_t len;
+      uint16_t check;
+    };
+  };
+};
+```
 
 # 三、网络层
 
