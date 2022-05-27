@@ -1049,7 +1049,7 @@ conntrack -L <options>
 - `-p`: 展示进程信息
 - `-m`: 展示socket内存占用情况
 - `-n`: 不把端口自动推测成服务，显示原始端口
-
+v9k
 ### 33.2. 使用实例
 
 ```shell
@@ -1082,6 +1082,49 @@ LISTEN  0        128                       [::]:22                  [::]:*      
 # c     character special file
 # 1 8   Device type: 1,8
 mknod /dev/random c 1 8
+```
+
+## 36. sudo
+
+### 36.1. 选项
+
+- `-E`: 继承当前环境变量
+
+## 37. sysctl 修改内核参数
+
+### 36.1. 选项
+
+- `-a`: 列举所有内核参数
+- `-p`: 从`/etc/sysctl.conf`加载配置
+- `-w`: 修改内核参数
+
+### 36.2. 示例
+
+```shell
+# 查找当前配置
+=> sudo sysctl -a | grep compa
+net.ipv4.nexthop_compat_mode = 1
+vm.compact_unevictable_allowed = 1
+vm.compaction_proactiveness = 20
+vm.mmap_rnd_compat_bits = 8
+# 临时修改kernel配置
+=> sudo sysctl -w vm.compaction_proactiveness=0
+vm.compaction_proactiveness = 0
+=> sudo sysctl -a | grep compa
+net.ipv4.nexthop_compat_mode = 1
+vm.compact_unevictable_allowed = 1
+vm.compaction_proactiveness = 0
+vm.mmap_rnd_compat_bits = 8
+# 永久修改kernel配置
+=> sudo bash -c "echo \"vm.compaction_proactiveness=0\" > /etc/sysctl.conf"
+# 从配置文件读取配置
+=> sudo sysctl -p
+vm.compaction_proactiveness = 0
+=> sudo sysctl -a | grep compa
+net.ipv4.nexthop_compat_mode = 1
+vm.compact_unevictable_allowed = 1
+vm.compaction_proactiveness = 0
+vm.mmap_rnd_compat_bits = 8
 ```
 
 # 三、工具命令
@@ -1377,13 +1420,12 @@ CMakeLists.txt编写参见[CMakeLists.txt](/blogs/2019-06-03-makefile/#CMakeList
 
 ```shell
 # 指定build目录生成工程
-cmake -B build/
+cmake -DCMAKE_BUILD_TYPE:STRING=Debug -B build/
 # vscode常用的编译命令
-cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -H . -B build/ -G "Visual Studio 14 2015" -A win32
+cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Debug -H . -B build/ -G "Visual Studio 14 2015" -A win32
 # 编译指定目标文件，会自动编译依赖，4线程编译
 # 不指定target编译所有
-# --config Release 编译release版
-cmake --build build/ --config Release --target xxx -j 4
+cmake --build build/ --target xxx -j 4
 # 清理工程，相当于make clean
 cmake --build build/ --target clean -j 4
 ```
@@ -1737,6 +1779,26 @@ tc -s qdisc ls dev eth0
 23:36:12 _ZdlPvm(0x5714c8b7b0, 104, 13, 0x5714c8b7e0)                = 0x7abb140060 <0.000877>
 23:36:12 SYS_exit_group(0 <no return ...>
 23:36:12 +++ exited (status 0) +++
+```
+
+## 24. dmidecode 获取硬件信息
+
+### 24.1. 获取内存信息
+
+- 可以获取到有几个插槽，每个插槽内存信息（包括频率、大小、电压、类型等）
+
+```shell
+=> sudo dmidecode -t memory
+```
+
+## 25. nc 网络链接工具
+
+## 26. curl 网络请求工具
+
+### 26.1. 下载文件
+
+```shell
+curl http://1.1.1.1/download/aaa.txt -o aaa.txt
 ```
 
 # 四、小技巧

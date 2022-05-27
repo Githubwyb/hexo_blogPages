@@ -327,3 +327,11 @@ sudo systemctl start vmware-usbarbitrator.service
 ```shell
 balooctl disable
 ```
+
+## 2. 安装vscode之后，登陆github提示`writing login information to keychain failed`
+
+- 由于arch安装的vscode使用的是ubuntu的包，所以keyring需要使用`gnome-keyring`
+
+```shell
+sudo pacman -S gnome-keyring
+```

@@ -493,7 +493,7 @@ OpenSSH SSH Server 服务已成功停止。
 
 ```
 
-## 19. wmic
+## 19. wmic windows管理工具
 
 ### 19.1. process 查看进程信息
 
@@ -546,7 +546,53 @@ C:\Windows\system32>echo %ERRORLEVEL%
 - `-6`: ipv6路由，默认ipv4
 
 ```bat
-route add 1.1.1.1 mask 255.255.0.0 
+route add 1.1.1.1 mask 255.255.0.0 10.242.255.254 -p
+```
+
+## 23. shutdown 关机命令
+
+```bat
+:: 进入休眠状态
+shutdown -h
+:: 关机
+shutdown -s -t 0
+```
+
+## 24. powercfg 电源配置
+
+```bat
+:: 查看系统电源配置
+C:\WINDOWS\system32>powercfg -a
+此系统上没有以下睡眠状态:
+    待机 (S1)
+        虚拟机监控程序不支持此待机状态。
+
+    待机 (S2)
+        系统固件不支持此待机状态。
+        虚拟机监控程序不支持此待机状态。
+
+    待机 (S3)
+        系统固件不支持此待机状态。
+        虚拟机监控程序不支持此待机状态。
+
+    休眠
+        系统固件不支持休眠。
+        该虚拟机监控程序不支持休眠。
+
+    待机(S0 低电量待机)
+        系统固件不支持此待机状态。
+
+    混合睡眠
+        待机(S3)不可用。
+        休眠不可用。
+        虚拟机监控程序不支持此待机状态。
+
+    快速启动
+        休眠不可用。
+
+:: 开启/禁止系统休眠，只是配置开启，不是立马进入
+C:\Windows\system32>powercfg -h on
+C:\Windows\system32>powercfg -h off
 ```
 
 ## 小技巧和踩坑记

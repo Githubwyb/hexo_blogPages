@@ -897,6 +897,7 @@ print(hash_value)
 | ------ | ------------- |
 | cv2    | opencv-python |
 | PIL    | pillow        |
+| dns    | dnspython     |
 
 ## 1. 数据处理
 

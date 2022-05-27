@@ -361,6 +361,17 @@ Uncaught SyntaxError: Cannot use import statement outside a module
 <span style="white-space: pre;"></span>
 ```
 
+## 8. 注释
+
+```html
+<!--我是行注释-->
+<h1>我是代码</h1>
+<!--我是段注释
+aaaasdf
+-->
+<h1>我还是代码<h1>
+```
+
 # 二、工程相关
 
 ## 1. html模板
