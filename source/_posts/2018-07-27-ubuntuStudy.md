@@ -112,7 +112,7 @@ sudo add-apt-repository xxx
 sudo add-apt-repository -r xxx
 ```
 
-# 踩坑记
+# 小技巧和踩坑记
 
 ## 1. ubuntu安装deepin-terminal，设置默认
 
@@ -125,3 +125,12 @@ sudo update-alternatives --install /usr/bin/x-terminal-emulator x-terminal-emula
 # 设置默认终端
 sudo update-alternatives --config x-terminal-emulator
 ```
+
+## 2. 信任CA证书
+
+```shell
+sudo cp xxx.crt /usr/local/share/ca-certificates
+sudo update-ca-certificates
+```
+
+- 删除和新增同理，都只需要文件删除和添加执行命令即可

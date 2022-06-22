@@ -164,3 +164,30 @@ baidu_url_submit:
   host: githubwyb.github.io 	# 在百度站长平台中注册的域名，这个改为你自己的域名
   token: y1cfESbTt9nd3LsA 		# 请注意这是您的秘钥， 所以请不要把博客源代码发布在公众仓库里!
   path: baidu_urls.txt 			# 文本文档的地址， 新链接会保存在此文本文档里，这个默认
+
+kroki:
+  # the kroki free service server, you may switch to your self-hosted sever.
+  server: "https://kroki.io/"
+  # Available values
+  # "inline": <svg>xxx<svg/>
+  # "inlineUrlEncode": <img src='data:image/svg+xml;>
+  # "inlineBase64": <img src='data:image/svg+xml;base64>
+  # "localLink": <img src="/assert/puml/xxxx.svg">
+  # "externalLink": <img src="http://www.plantuml.com/plantuml/svg/xxx">
+  link: "inline"
+
+  # common options: svg/png
+  outputFormat: "svg"
+  # the generated img will have a default class name.
+  className: 'kroki'
+
+  # append some fragment per diagram, used for the theme or else config
+  # inserts:
+  #   - diagram: plantuml
+  #     after: 1
+  #     # see https://plantuml.com/en/theme
+  #     fragment: '!theme sketchy-outline'
+  #   - diagram: mermaid
+  #     after: 0
+  #     # see https://mermaid-js.github.io/mermaid/#/theming
+  #     fragment: "%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#ff0000'}}}%%"

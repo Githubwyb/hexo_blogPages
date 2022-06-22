@@ -5,14 +5,14 @@ tags:
 categories: [Program, Document]
 ---
 
-# markdown中的latex
+# 一、markdown中的latex
 
 - 行内公式 `$\{[z-(1+\frac23x)y]\div 4\}$`: $\{[z-(1+\frac23x)y]\div4\}$
 - 块级公式 `$$\sum_{i = 1}^n a_i=0$$`: $$\sum_{i = 1}^n a_i=0$$
 
-# 公式格式记录
+# 二、公式格式记录
 
-## 符号
+## 1. 符号
 
 参考文档: [常用数学符号的 LaTeX 表示方法][1]
 
@@ -36,7 +36,22 @@ categories: [Program, Document]
 - 字母右上角一撇`$a^{\prime}$`: $a^{\prime}$
 - 箭头`$\leftarrow$`: $\leftarrow$
 
-## 空格
+### 几个特殊符号的转义
+
+| 符号         | latex表示    |
+| ------------ | ------------ |
+| $\#$         | `\#`         |
+| $\$$         | `\$`         |
+| $\%$         | `\%`         |
+| $\{$         | `\{`         |
+| $\}$         | `\}`         |
+| $\~{}$       | `\~{}`       |
+| $\_{}$       | `\_{}`       |
+| $\^{}$       | `\^{}`       |
+| $\backslash$ | `\backslash` |
+| $\&$         | `\&`         |
+
+## 2. 空格
 
 | 描述         | 代码        | 效果          | 宽度         |
 | ------------ | ----------- | ------------- | ------------ |
@@ -48,7 +63,7 @@ categories: [Program, Document]
 | 没有空格     | ab          | $ab$          |              |
 | 紧贴         | a\\!b       | $a\\!b$       | 缩进1/6m宽度 |
 
-## 乘方
+## 3. 乘方
 
 ```latex
 $$ a^b $$
@@ -62,7 +77,7 @@ $$ a^b $$
 $$ a^bc $$
 $$ a^{bc} $$
 
-## 分数
+## 4. 分数
 
 ```latex
 $$ \frac{A}{B} $$
@@ -74,7 +89,7 @@ $$ \frac abc $$
 $$ \frac{A}{B} $$
 $$ \frac abc $$
 
-## 阶段函数表示
+## 5. 阶段函数表示
 
 array后面的`ll`表示每一列的对齐方式，l：左对齐，c：居中，r：右对齐
 
@@ -94,7 +109,7 @@ $$ f(z) = \left\\{\begin{array}{ll}
     0 & otherwise
 \end{array}\right. $$
 
-## 公式推导换行等号对齐
+## 6. 公式推导换行等号对齐
 
 ```latex
 $$
@@ -112,7 +127,7 @@ $$
 \end{aligned}
 $$
 
-## 公式编号
+## 7. 公式编号
 
 ```latex
 % 手动编号，一个块级公式只能用一个tag
@@ -134,7 +149,7 @@ $$\begin{equation}
     x^n+y^n=z^n
 \end{equation}$$
 
-## log函数
+## 8. log函数
 
 ```latex
 $$ log_A{B} $$
@@ -144,7 +159,7 @@ $$ log_A{B} $$
 
 $$ log_A{B} $$
 
-## 累加符号
+## 9. 累加符号
 
 ```latex
 - 行间公式 $ \sum_{N}^{n}a $
@@ -166,7 +181,7 @@ $$ log_A{B} $$
 - 不加大括号 $ \sum\limits_Nb^na $
 - 加大括号 $ \sum\limits_{Nb}^{na} $
 
-## 最小值下方加参数
+## 10. 最小值下方加参数
 
 ```latex
 $$ \min\limits_{w \in W} $$
@@ -176,7 +191,7 @@ $$ \min\limits_{w \in W} $$
 
 $$ \min\limits_{w \in W} $$
 
-## 矩阵
+## 11. 矩阵
 
 ### 直接使用矩阵符号
 

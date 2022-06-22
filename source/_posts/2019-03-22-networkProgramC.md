@@ -166,15 +166,38 @@ int accept (int __fd, __SOCKADDR_ARG __addr, socklen_t *__restrict __addr_len);
 
 ## 2. UDP连接
 
-# 三、select
+# 三、select/poll/epoll
+
+## 1. select
+
+- windows和linux都存在select
+- select可以同时监听多个文件描述符，但是对描述符的处理是轮询的方式，对本地fd池一个一个扫描看是否有数据
+- 最大支持`FD_SETSIZE`个文件描述符，一般为`1024/2048`
+
+## 2. poll
+
+- 在select基础上去除了文件描述符的限制
+- 轮询机制还是保留了
 
 # 四、epoll
 
-- epoll是高级一点的select，本质上是select和内核结合
+- epoll是linux特有的系统调用，windows没有此实现，使用mingw是模拟的一种实现
+- epoll和select区别是，对于fd池的处理，epoll不会一个一个扫描，而是在内核注册了通知机制，当某个fd出现时间，内核会直接通知epoll
+- epoll返回的就直接是fd的事件信息，这样防止了扫描带来的开销
 
-## 1. epoll下socket是否要设置为非阻塞
+## 1. epoll的调用
+
+```cpp
+
+```
+
+## 2. epoll下socket是否要设置为非阻塞
 
 [使用epoll时需要将socket设为非阻塞吗？](https://blog.csdn.net/boiled_water123/article/details/104161471)
+
+1. 监听的服务端fd，最好使用水平触发模式，边沿触发可能导致部分客户端连接不上
+2. 客户端fd，使用水平触发时，阻塞非阻塞都可以，建议设置非阻塞
+3. 客户端fd，使用边沿触发时，必须使用非阻塞io，否则会卡在读取调用上。但是要求必须一次读完所有数据，否则可能存在数据没有处理。
 
 # 五、网络编程
 

@@ -553,9 +553,11 @@ route add 1.1.1.1 mask 255.255.0.0 10.242.255.254 -p
 
 ```bat
 :: 进入休眠状态
-shutdown -h
+shutdown /h
 :: 关机
-shutdown -s -t 0
+shutdown /s /t 0
+:: 重启
+shutdown /r
 ```
 
 ## 24. powercfg 电源配置
@@ -593,6 +595,21 @@ C:\WINDOWS\system32>powercfg -a
 :: 开启/禁止系统休眠，只是配置开启，不是立马进入
 C:\Windows\system32>powercfg -h on
 C:\Windows\system32>powercfg -h off
+```
+
+## 25. ipconfig 网络配置
+
+### 25.1. 刷新本地dns缓存
+
+- 所有dns请求重新解析
+
+```bat
+C:\Windows\system32>ipconfig /flushdns
+
+Windows IP 配置
+
+已成功刷新 DNS 解析缓存。
+
 ```
 
 ## 小技巧和踩坑记

@@ -149,6 +149,10 @@ sudo pacman -Rusnc xxx
 sudo pacman -Qdtq
 # 查看哪些包可以更新
 sudo pacman -Qu
+# 查看二进制是哪个包安装进来的
+sudo pacman -Qo /usr/sbin/tcpdump
+# 查看包安装了哪些文件
+sudo pacman -Ql tcpdump
 ```
 
 #### **<font color="red">踩坑记</font>**
@@ -175,6 +179,7 @@ sudo journalctl --vacuum-time=5d
 | arch-chroot<br>genfstab | arch-install-scripts |
 | telnet                  | inetutils            |
 | ntpdate                 | ntp                  |
+| nslookup                | bind                 |
 
 ## 3. aur软件包
 
@@ -335,3 +340,8 @@ balooctl disable
 ```shell
 sudo pacman -S gnome-keyring
 ```
+
+## 3. `/etc/sysctl.conf`重启后没有自动加载
+
+- arch将`sysctl.conf`分到了`/etc/sysctl.d/*.conf`下，需要移动进去
+- 具体说明见`man sysctl.d`

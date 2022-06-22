@@ -607,18 +607,39 @@ watch -n 1 free -h
 
 ## 13. iptables 防火墙
 
-### 13.1. 实例
+### 13.1. 知识填充
+
+#### 1) 表 table
+
+nat
+
+#### 2) 链 chain
+
+- `INPUT`: 进来的数据包
+- `OUTPUT`: 外出的数据包
+- `FORWARD`: 转发数据包时
+- `PREROUTING`: 对数据包作路由选择前
+- `POSTROUTING`: 对数据包作路由选择后
+
+### 13.2. 选项
+
+- `-t [table]`: 查看具体表，表有`nat`等
+
+### 13.3. 实例
 
 ```shell
 ########## 插入规则 ##########
 # -I插入到前面，-A插入到后面
 iptables -I INPUT -i eth0 -s 200.200.87.48 -p tcp --dport 22 -j ACCEPT
 iptables -A INPUT -p tcp --dport 22 -j DROP
+
 ########## 查询规则 ##########
 iptables -L INPUT --line-numbers
+
 ########## 删除规则 ##########
 # line_number是上面查出来的
 iptables -D INPUT [line_number]
+
 ```
 
 ## 14. ls 列举目录
@@ -1092,13 +1113,13 @@ mknod /dev/random c 1 8
 
 ## 37. sysctl 修改内核参数
 
-### 36.1. 选项
+### 37.1. 选项
 
 - `-a`: 列举所有内核参数
 - `-p`: 从`/etc/sysctl.conf`加载配置
 - `-w`: 修改内核参数
 
-### 36.2. 示例
+#### 示例
 
 ```shell
 # 查找当前配置
@@ -1125,6 +1146,113 @@ net.ipv4.nexthop_compat_mode = 1
 vm.compact_unevictable_allowed = 1
 vm.compaction_proactiveness = 0
 vm.mmap_rnd_compat_bits = 8
+```
+
+## 38. pmap查看进程内存情况
+
+### 选项
+
+- `-x`: 显示扩展格式
+- `-d`: 显示设备格式
+- `-q`: 不显示头尾行
+- `-V`: 显示指定版本
+
+### 示例
+
+```shell
+=> pmap -x 76381
+76381:   build/output/run
+Address           Kbytes     RSS   Dirty Mode  Mapping
+0000560aff840000      44      44       0 r---- run
+0000560aff84b000     484     484       0 r-x-- run
+0000560aff8c4000     288      64       0 r---- run
+0000560aff90c000      12      12      12 r---- run
+0000560aff90f000       4       4       4 rw--- run
+0000560aff910000       4       4       4 rw---   [ anon ]
+0000560affa43000     132      16      16 rw---   [ anon ]
+00007f31dae00000     160     160       0 r---- libc.so.6
+00007f31dae28000    1512    1044       0 r-x-- libc.so.6
+00007f31dafa2000     352     180       0 r---- libc.so.6
+00007f31daffa000      16      16      16 r---- libc.so.6
+00007f31daffe000       8       8       8 rw--- libc.so.6
+00007f31db000000      52      20      20 rw---   [ anon ]
+00007f31db200000     612     612       0 r---- libstdc++.so.6.0.30
+00007f31db299000    1112     764       0 r-x-- libstdc++.so.6.0.30
+00007f31db3af000     476     116       0 r---- libstdc++.so.6.0.30
+00007f31db426000      52      52      52 r---- libstdc++.so.6.0.30
+00007f31db433000       4       4       4 rw--- libstdc++.so.6.0.30
+00007f31db434000      12      12      12 rw---   [ anon ]
+00007f31db474000      20      16      16 rw---   [ anon ]
+00007f31db479000      12      12       0 r---- libgcc_s.so.1
+00007f31db47c000      92      64       0 r-x-- libgcc_s.so.1
+00007f31db493000      16      16       0 r---- libgcc_s.so.1
+00007f31db497000       4       4       4 r---- libgcc_s.so.1
+00007f31db498000       4       4       4 rw--- libgcc_s.so.1
+00007f31db499000      56      56       0 r---- libm.so.6
+00007f31db4a7000     484     224       0 r-x-- libm.so.6
+00007f31db520000     376       0       0 r---- libm.so.6
+00007f31db57e000       4       4       4 r---- libm.so.6
+00007f31db57f000       4       4       4 rw--- libm.so.6
+00007f31db5af000       8       8       8 rw---   [ anon ]
+00007f31db5b1000       8       8       0 r---- ld-linux-x86-64.so.2
+00007f31db5b3000     156     156       0 r-x-- ld-linux-x86-64.so.2
+00007f31db5da000      44      40       0 r---- ld-linux-x86-64.so.2
+00007f31db5e6000       8       8       8 r---- ld-linux-x86-64.so.2
+00007f31db5e8000       8       8       8 rw--- ld-linux-x86-64.so.2
+00007ffe6b20a000     136      24      24 rw---   [ stack ]
+00007ffe6b2c7000      16       0       0 r----   [ anon ]
+00007ffe6b2cb000       8       4       0 r-x--   [ anon ]
+ffffffffff600000       4       0       0 --x--   [ anon ]
+---------------- ------- ------- -------
+total kB            6804    4276     228
+```
+
+## 39. setcap 提权命令
+
+参考 [Linux的capability深入分析](https://www.cnblogs.com/sky-heaven/p/12096758.html)
+
+- 从2.1版开始,Linux内核有了能力(capability)的概念,即它打破了UNIX/LINUX操作系统中超级用户/普通用户的概念,由普通用户也可以做只有超级用户可以完成的工作
+- 比如给kill命令杀死其他进程的能力，但是不能重启系统，也不能修改文件。仅拥有杀死其他进程的能力
+
+### 39.1. 能力列举
+
+- `CAP_CHOWN`: 修改文件属主的权限
+- `CAP_DAC_OVERRIDE`: 忽略文件的DAC访问限制
+- `CAP_DAC_READ_SEARCH`: 忽略文件读及目录搜索的DAC访问限制
+- `CAP_FOWNER`: 忽略文件属主ID必须和进程用户ID相匹配的限制
+- `CAP_FSETID`: 允许设置文件的setuid位
+- `CAP_KILL`: 允许对不属于自己的进程发送信号
+- `CAP_SETGID`: 允许改变进程的组ID
+- `CAP_SETUID`: 允许改变进程的用户ID
+- `CAP_SETPCAP`: 允许向其他进程转移能力以及删除其他进程的能力
+- `CAP_LINUX_IMMUTABLE`: 允许修改文件的IMMUTABLE和APPEND属性标志
+- `CAP_NET_BIND_SERVICE`: 允许绑定到小于1024的端口
+- `CAP_NET_BROADCAST`: 允许网络广播和多播访问
+- `CAP_NET_ADMIN`: 允许执行网络管理任务
+- `CAP_NET_RAW`: 允许使用原始套接字
+- `CAP_IPC_LOCK`: 允许锁定共享内存片段
+- `CAP_IPC_OWNER`: 忽略IPC所有权检查
+- `CAP_SYS_MODULE`: 允许插入和删除内核模块
+- `CAP_SYS_RAWIO`: 允许直接访问/devport,/dev/mem,/dev/kmem及原始块设备
+- `CAP_SYS_CHROOT`: 允许使用chroot()系统调用
+- `CAP_SYS_PTRACE`: 允许跟踪任何进程
+- `CAP_SYS_PACCT`: 允许执行进程的BSD式审计
+- `CAP_SYS_ADMIN`: 允许执行系统管理任务，如加载或卸载文件系统、设置磁盘配额等
+- `CAP_SYS_BOOT`: 允许重新启动系统
+- `CAP_SYS_NICE`: 允许提升优先级及设置其他进程的优先级
+- `CAP_SYS_RESOURCE`: 忽略资源限制
+- `CAP_SYS_TIME`: 允许改变系统时钟
+- `CAP_SYS_TTY_CONFIG`: 允许配置TTY设备
+- `CAP_MKNOD`: 允许使用mknod()系统调用
+- `CAP_LEASE`: 允许修改文件锁的FL_LEASE标志
+
+### 39.2. 示例
+
+```shell
+# 给tcpdump设置允许使用原始套接字，使得普通用户可以tcpdump
+=> sudo setcap 'CAP_NET_RAW+eip' /usr/sbin/tcpdump
+# 删除tcpdump的权限
+=> sudo setcap -r /usr/sbin/tcpdump
 ```
 
 # 三、工具命令

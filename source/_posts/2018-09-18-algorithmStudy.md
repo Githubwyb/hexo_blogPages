@@ -707,6 +707,19 @@ int main() {
 - 最基本的应用，查找[数组最小（大）k个值](/blogs/2019-10-21-programQuestion/#minKNumber)
 - [C++标准库有接口可以直接应用](/blogs/2018-07-06-CppStudy/#bigHeap)
 
+### 1.4. 红黑树
+
+参考 [红黑树(R-B tree)原理图文详解](https://zhuanlan.zhihu.com/p/78152265)
+
+#### 1) 红黑树的特性和应用
+
+- 红黑树的查找和插入时间复杂度都是 $O(\log n)$，相比hash表更加稳定
+
+**应用**
+
+- std::map和std::set使用的是红黑树
+- epoll的底层实现是用红黑树组织fd
+
 ## 2. hashTable 哈希表
 
 ### 2.1. 为什么哈希表的除数要用素数

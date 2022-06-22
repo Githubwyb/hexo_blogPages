@@ -88,16 +88,6 @@ result = reduce(lambda x, y: x + y, a)
 print(list(result))  # 1 + 2 + 3 + 4 = 10
 ```
 
-## dict操作
-
-### dict合并
-
-```python
-dict1 = {"a": 1, "b": 2}
-dict2 = {"a": 2, "c": 3}
-dict3 = {**dict1, **dict2}  # 用dict2更新dict1
-```
-
 # 二、第三方module
 
 ## 1. pandas
@@ -193,6 +183,10 @@ tmp = df[0:3]       # 只能用于行选择
 # 获取列名
 columns_value = df.columns          # 返回 <class 'pandas.core.indexes.base.Index'> 格式
 columns_value = df.columns.values   # 返回list格式
+
+# 筛选出符合条件的行
+## 删选test列为1的所有数据
+tmp = df[df['test'].isin([1])]
 
 #################### 改 ######################
 # 修改某个值，查到就能改，用上面查找的方法直接改

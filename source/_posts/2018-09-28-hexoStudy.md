@@ -106,18 +106,18 @@ npm install hexo-generator-index-pin-top --save
 ### 修改 主题配置文件
 
 ```yml
-    # Post wordcount display settings
-    # Dependencies: https://github.com/theme-next/hexo-symbols-count-time
-    symbols_count_time:
-     separated_meta: true
-     #文章中的显示是否显示文字（本文字数|阅读时长）
-     item_text_post: true
-     #网页底部的显示是否显示文字（站点总字数|站点阅读时长）
-     item_text_total: false
-     # Average Word Length (chars count in word)
-     awl: 4
-     # Words Per Minute
-     wpm: 275
+# Post wordcount display settings
+# Dependencies: https://github.com/theme-next/hexo-symbols-count-time
+symbols_count_time:
+    separated_meta: true
+    #文章中的显示是否显示文字（本文字数|阅读时长）
+    item_text_post: true
+    #网页底部的显示是否显示文字（站点总字数|站点阅读时长）
+    item_text_total: false
+    # Average Word Length (chars count in word)
+    awl: 4
+    # Words Per Minute
+    wpm: 275
 ```
 
 ## 4. latex公式支持
@@ -191,6 +191,47 @@ baidu_url_submit:
 
 ```shell
 npm install --save hexo-filter-kroki
+```
+
+### 7.1. 配置
+
+- 不配置就是默认的配置
+- 注意不能替换成plantuml搭建的服务器，因为默认是base64加密，和plantuml不一致
+
+```yml
+kroki:
+  # the kroki free service server, you may switch to your self-hosted sever.
+  server: "https://kroki.io/"       # 服务器地址，想要自己搭建就 docker pull yuzutech/kroki
+  # Available values
+  # "inline": <svg>xxx<svg/>
+  # "inlineUrlEncode": <img src='data:image/svg+xml;>
+  # "inlineBase64": <img src='data:image/svg+xml;base64>
+  # "localLink": <img src="/assert/puml/xxxx.svg">
+  # "externalLink": <img src="http://www.plantuml.com/plantuml/svg/xxx">
+  link: "externalLink"
+
+  # common options: svg/png
+  outputFormat: "svg"
+  # the generated img will have a default class name.
+  className: 'kroki'
+
+  # append some fragment per diagram, used for the theme or else config
+  inserts:
+    - diagram: plantuml
+      after: 1
+      # see https://plantuml.com/en/theme
+      fragment: '!theme sketchy-outline'
+    - diagram: mermaid
+      after: 0
+      # see https://mermaid-js.github.io/mermaid/#/theming
+      fragment: "%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#ff0000'}}}%%"
+```
+
+### 7.2. 搭建kroki本地服务器
+
+```shell
+docker pull yuzutech/kroki
+docker run -d -p 8000:8000 yuzutech/kroki
 ```
 
 **效果**

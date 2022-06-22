@@ -284,7 +284,8 @@ class threadPool {
 ### thread 线程类
 
 - thread是c++11封装的上层线程类，可以直接创建线程
-- 等待线程退出使用join()函数
+- 等待线程退出使用`join()`函数
+- 不调用`join()`且线程还没有退出时析构`thread`，将会出现栈溢出
 
 <img src = "2020-08-17-01.jpg">
 
@@ -385,10 +386,19 @@ void threadPool::run() {
 
 ### future 未来值获取
 
+**future**
+
 - future主要用于进程中异步获取返回值。提前声明变量，在子线程跑的过程，主进程可以处理其他任务，然后通过future获取子线程的各种值
 - future一般和promise一起用，future单独用主要用于当做返回值
+- future在析构时，会自动调用`wait()`
 
-示例
+**promise**
+
+- 使用promise需要注意作用域，如果promise析构了，再使用`set_value()`会引起线程崩溃
+- 一般promise使用是作为线程同步使用
+
+#### 1) 示例1 等待子进程退出
+
 ```cpp
 int test1(promise<int> &promisObj) {
     sleep(10);
@@ -427,6 +437,28 @@ int main(int argC, char *arg[]) {
 - future直接调用get也会先调用wait再调用get
 - future本身可以当做函数返回值传入到线程中，当线程函数返回会赋值future，但是一般需要用到packaged_task来包装线程函数
 - 线程的thread类参数中需要使用ref来传引用，由于线程传入参数是拷贝，隐式使用引用编译会报错，需要使用ref包裹来告诉编译器传入引用
+
+#### 2) 示例2 异步调用转同步
+
+```cpp
+using namespace std;
+int main(int argC, char *arg[]) {
+    testPool &pool = testPool::getInstance();
+    pool.init(5);
+    // 声明promise
+	promise<void> promisObj;
+    int testValue;
+    // 起一个线程处理
+    pool.commit([&testValue, &promiseObj]() {
+        testValue = 1;
+        promiseObj.set_value();
+    });
+    // 等待线程返回
+    promiseObj.get_future().wait();
+    LOG_DEBUG("testValue %d", testValue);
+    return 0;
+}
+```
 
 ### packaged_task
 
