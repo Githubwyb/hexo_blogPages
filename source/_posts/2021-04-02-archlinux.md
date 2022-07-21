@@ -213,7 +213,6 @@ trust anchor --remove 'pkcs11:id=%2E%57%67%B4%D5%D0%13%93%52%B5%4F%7C%87%1C%FC%4
 
 #### (1) 快捷键
 
--   `Ctrl + F8`: 置顶/取消置顶
 -   `Ctrl + 鼠标`: 拖动位置
 
 ### 1.2. goldendict 翻译工具，支持鼠标取词
@@ -265,6 +264,20 @@ XMODIFIERS=@im=fcitx
 [ 【
 ] 】
 ```
+
+### 1.3. wps
+
+#### 1) 安装
+
+```shell
+# wps-office-mui-zh-cn是为了安装中文语言包
+yay -S wps-office-cn wps-office-mui-zh-cn
+```
+
+#### 2) 无法打开中文路径
+
+- 将设置中的`Region settings`->`Formats`->`Region`改成`zh_CN.UTF-8`
+- 重启电脑就好了，没生效就可以将`Formats`下所有都改成`zh_CN.UTF-8`再次重启就好了
 
 ## 2. 命令行工具
 
@@ -345,3 +358,11 @@ sudo pacman -S gnome-keyring
 
 - arch将`sysctl.conf`分到了`/etc/sysctl.d/*.conf`下，需要移动进去
 - 具体说明见`man sysctl.d`
+
+## 4. 挂载ntfs磁盘分区仅能使用只读
+
+```shell
+sudo ntfsfix /dev/sdb4
+sudo umount /dev/sdb4
+sudo mount /dev/sdb4 /path/to/mount
+```

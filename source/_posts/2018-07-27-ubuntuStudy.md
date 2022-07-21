@@ -42,6 +42,11 @@ XMODIFIERS=@im=fcitx
 5. 添加开机启动程序，参照上面
 6. 重启
 
+
+## 3. 快捷键
+
+- `Ctrl + d`: 收藏文件夹
+
 # 二、kde桌面操作
 
 ## 1. 安装
@@ -53,31 +58,18 @@ XMODIFIERS=@im=fcitx
 
 - 步骤同上，就是把`fcitx5-frontend-gtk3 fcitx5-frontend-gtk2`换成`fcitx5-frontend-gtk3 fcitx5-frontend-qt5`
 
-# 解决依赖关系
+# 三、纯命令行的操作
 
-## 不指名解决依赖关系
+## 1. apt安装软件
+
+### 1.1. 解决依赖关系
+
+#### 不指名解决依赖关系
 ```shell
 sudo apt --fix-broken install
 ```
 
-# 设置默认终端
-
-```shell
-gsettings set org.gnome.desktop.default-applications.terminal exec /usr/bin/terminator
-gsettings set org.gnome.desktop.default-applications.terminal exec-arg "-x"
-```
-
-# 快捷键
-
-- `Ctrl + d`: 收藏文件夹
-
-# 添加移除开机启动程序
-
-```shell
-update-rc.d xxx enable/disable
-```
-
-# 忽略某个包的更新
+### 1.2. 忽略某个包的更新
 
 使用以下命令可以忽略某个包的更新
 
@@ -91,19 +83,13 @@ sudo apt-mark hold (pack)
 sudo apt-mark unhold (pack)
 ```
 
-# 添加编码
-
-```shell
-sudo dpkg-reconfigure locales   # 跟着步骤配一下自己需要的编码
-```
-
-# 清除已经删除的软件的配置
+### 1.3. 清除已经删除的软件的配置
 
 ```shell
 dpkg -l |grep "^rc"|awk '{print $2}' |xargs apt -y purge
 ```
 
-# 添加/删除ppa源
+### 1.4. 添加/删除ppa源
 
 ```shell
 # 添加ppa源
@@ -111,6 +97,75 @@ sudo add-apt-repository xxx
 # 删除ppa源
 sudo add-apt-repository -r xxx
 ```
+
+## 2. 设置默认终端
+
+```shell
+gsettings set org.gnome.desktop.default-applications.terminal exec /usr/bin/terminator
+gsettings set org.gnome.desktop.default-applications.terminal exec-arg "-x"
+```
+
+## 3. 添加移除开机启动程序
+
+```shell
+update-rc.d xxx enable/disable
+```
+
+## 4. 添加编码
+
+```shell
+sudo dpkg-reconfigure locales   # 跟着步骤配一下自己需要的编码
+```
+
+# 四、一些软件的安装配置
+
+## 1. bind9 搭建dns服务器
+
+参考 [Ubuntu 用bind9搭建DNS服务器](https://blog.csdn.net/weixin_37813152/article/details/122521851)
+
+### 1.1. 安装启动
+
+```shell
+sudo apt install bind9
+sudo systemctl enable bind9
+sudo systemctl start bind9
+```
+
+### 1.2. 添加dns正向解析记录
+
+1. 编辑`/etc/bind/named.conf.local`，添加下面的记录
+
+```conf
+zone "proxy.com" {
+    type master;
+    file "/etc/bind/zones/db.proxy.com";
+};
+```
+
+2. 新建文件`/etc/bind/zones/db.proxy.com`，目录不存在就创建，内容如下
+
+```
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     proxy.com. root.proxy.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+; proxy.com
+@       IN  A   199.200.2.170
+; www.proxy.com
+@       IN  NS  www
+www     IN  A   199.200.2.170
+; test.proxy.com
+@       IN  NS  test
+test    IN  A   199.200.2.170
+```
+
+3. 重启bind9服务就可以解析`proxy.com`、`www.proxy.com`、`test.proxy.com`
 
 # 小技巧和踩坑记
 

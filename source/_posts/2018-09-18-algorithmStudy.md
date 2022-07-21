@@ -794,3 +794,46 @@ int main() {
 
 - 如果差值和被除数之间不含有公因数，效果一样
 - 如果含有公因数，碰撞概率会变高
+
+## 3. bitmap 位图
+
+### 3.1. 原理
+
+- 一个int表示32位，可以表示32个数字，即
+
+| 0   | 1   | 2   | 3   | ... | 31  |
+| --- | --- | --- | --- | --- | --- |
+| 0   | 0   | 1   | 0   | ... | 1   |
+
+- 代表2和31都在集合中
+- 按照在二进制中的位置表示对应的数字
+- 使用数组可以将一个很大的内存区域集合在一起，根据对应的位置说明对应的数字
+
+### 3.2. 举例
+
+- 对一大批不同的11位qq号进行排序
+
+#### 1) 实现
+
+- 11位qq号最大99999999999，也就是需要 $1 \times 10^{12}$ 个bit保存
+- 计算成int数组 $1 \times 10^{12} / 32 = 31250000000$
+
+```cpp
+#define MAX_QQ_NUMBER 99999999ll
+const long BITS_PER_LONG = 8 * sizeof(long);
+long qq_bitmap[MAX_QQ_NUMBER / BITS_PER_LONG + 1] = {0};
+
+void set_qq_bitmap(long long qq) {
+    if (qq > MAX_QQ_NUMBER) return;
+    // 假设32位，long为32位
+    // 先将输入的qq按照32一组找到对应的位置，然后将在其在32个一组中的位置置1
+    // 61 => qq_bitmap[1] |= (1 << 29)
+    qq_bitmap[qq / BITS_PER_LONG] |= (1 << (qq % BITS_PER_LONG));
+}
+
+long check_qq_bitmap(long long qq) {
+    if (qq > MAX_QQ_NUMBER) return 0;
+    // 同理，找到qq按照32个一组的位置，检查对应的32个数字中的位置是否为1
+    return qq_bitmap[qq / BITS_PER_LONG] & (1 << (qq % BITS_PER_LONG));
+}
+```

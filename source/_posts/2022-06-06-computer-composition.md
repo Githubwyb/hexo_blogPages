@@ -7,6 +7,15 @@ categories: [Knowledge, Study]
 
 # 一、计算机组成
 
+## 1. cpu
+
+### 1.1. 指令周期、cpu周期、时钟周期
+
+参考 [【浅析】CPU中的指令周期、CPU周期和时钟周期](https://zhuanlan.zhihu.com/p/90829922)
+
+- 一个指令周期包含取指令和执行指令，包含多个cpu周期
+- 一个cpu周期包含多个时钟周期
+
 # 二、机器码
 
 ## 1. 补码

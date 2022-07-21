@@ -190,3 +190,16 @@ SYSCALL_DEFINE4(epoll_wait, int, epfd, struct epoll_event __user *, events,
 ```cpp
 
 ```
+
+## 2. sendmsg 发送消息到另一个进程
+
+- 可以将一个文件句柄交接所属到另一个进程
+  - 如将和客户端建立的fd交接到另一个进程进行处理
+
+# 五、底层的几个机制
+
+## 1. 惊群现象和处理
+
+参考 [深入浅出 Linux 惊群：现象、原因和解决方案](https://zhuanlan.zhihu.com/p/385410196)
+
+- 在linux的2.6.x已经解决，底层仅会唤起一个进程进行处理

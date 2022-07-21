@@ -193,6 +193,8 @@ baidu_url_submit:
 npm install --save hexo-filter-kroki
 ```
 
+[hexo-filter-kroki文档](https://www.npmjs.com/package/hexo-filter-kroki)
+
 ### 7.1. 配置
 
 - 不配置就是默认的配置
@@ -258,51 +260,9 @@ c->a
 
 # 踩坑记
 
-## [latex注意事项](#latex)
+## 1. [latex注意事项](#latex)
 
-## 表格相关
-
-表格使用markdown无法合并单元格，如果使用html标签来写，需要写到一行中，否则会出现大段空行
-
-```markdown
-# 没有空行
-<table><tr><th>姓名</th><td>Bill Gates</td></tr><tr><th rowspan="2">电话</th><td>555 77 854</td></tr><tr><td>555 77 855</td></tr></table>
-
-# 大段空行
-<table>
-    <tr>
-        <th>姓名</th>
-        <td>Bill Gates</td>
-    </tr>
-    <tr>
-        <th rowspan="2">电话</th>
-        <td>555 77 854</td>
-    </tr>
-    <tr>
-        <td>555 77 855</td>
-    </tr>
-</table>
-```
-
-效果
-
-<table><tr><th>姓名</th><td>Bill Gates</td></tr><tr><th rowspan="2">电话</th><td>555 77 854</td></tr><tr><td>555 77 855</td></tr></table>
-
-<table>
-    <tr>
-        <th>姓名</th>
-        <td>Bill Gates</td>
-    </tr>
-    <tr>
-        <th rowspan="2">电话</th>
-        <td>555 77 854</td>
-    </tr>
-    <tr>
-        <td>555 77 855</td>
-    </tr>
-</table>
-
-## 自建域名在博客部署后解析失败
+## 2. 自建域名在博客部署后解析失败
 
 ### 原因
 
