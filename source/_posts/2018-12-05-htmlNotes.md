@@ -351,6 +351,12 @@ Uncaught SyntaxError: Cannot use import statement outside a module
 </html>
 ```
 
+### 6.2. 禁止回车自动提交
+
+```html
+<input type="text" name="moduleName" onkeydown="if (event.keyCode == 13) { return false; }" />
+```
+
 ## 7. span标签
 
 ### 7.1. 显示换行
@@ -370,6 +376,21 @@ Uncaught SyntaxError: Cannot use import statement outside a module
 aaaasdf
 -->
 <h1>我还是代码<h1>
+```
+
+## 9. 键盘事件
+
+- 可以用下面代码把所有键盘事件输出对应的keyCode
+
+```html
+<script type="text/javascript">
+    window.addEventListener("keydown", (event) => {
+        if (event.keyCode != undefined) {
+        	alert(event.keyCode);
+            return;
+        }
+    }, true);
+</script>
 ```
 
 # 二、工程相关

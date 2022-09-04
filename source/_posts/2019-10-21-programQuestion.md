@@ -6,6 +6,10 @@ categories: [Knowledge, Study]
 top: 15
 ---
 
+# 前言
+
+leetcode刷题记录在 [LeetCode刷题思路总结](/bookPages/docs/leetcode/)
+
 # 1. 二维数组查找
 
 ## 题目

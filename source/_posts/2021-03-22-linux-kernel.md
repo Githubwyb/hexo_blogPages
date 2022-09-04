@@ -14,6 +14,8 @@ categories: [Program, C/C++]
 https://mirrors.edge.kernel.org/pub/linux/kernel/
 ```
 
+由于篇幅问题，后续更新放在 [linux内核源码分析记录](/bookPages/docs/linux-kernel/)
+
 # 二、linux启动过程
 
 ## 1. 从引导加载程序内核
@@ -74,127 +76,46 @@ MBR
 
 # 三、数据结构
 
-## 1. `container_of`从节点找value
+## 1. 公共机制
 
-- 这个东西看了好久才看懂，不过真的很强大
-- 考虑一个场景，我们定义树需要怎么写，类似下面这样
+### 1.1. `container_of` 根据数据结构节点找value
 
-```cpp
-struct treeNode {
-  treeNode *left;
-  treeNode *right;
-  void *value;
-};
-```
-
-- 这时发现这个value每次都要定义，并且每个treeNode都需要新建地址
-- linux的这群大佬就开始搞事情，如果treeNode的地址和value的地址结合一下，不用每次创建两个地址，一个地址搞定
-- 这时候就出现一种定义方式
-
-```cpp
-struct treeNode {
-  treeNode *left;
-  treeNode *right;
-};
-
-struct valueTemplate {
-  treeNode node;
-  int value;
-}
-```
-
-- 这样写，对树操作时不用关心value是啥，只需要关心自己的数据结构实现就好了
-- 但是怎么找到value呢，`container_of`就出现了
-
-```cpp
-#define container_of(ptr, type, member) \
-    (type *)((char *)(ptr) - (char *) &((type *)0)->member)
-
-// 示例用法
-void func(treeNode *node) {
-  valueTemplate *value = container_of(node, struct valueTemplate, node)
-}
-```
-
-- 展开一下
-
-```cpp
-valueTemplate *value = (valueTemplate *)((char *)node  - (char *)&((valueTemplate *)0)->node)
-```
-
-- 加地址是向后偏移，减地址是向前偏移，所以这句话意思是通过成员变量找到结构体指针
-- 使用0地址的成员变量的地址偏移来计算结构体指针到成员变量的偏移量，然后用成员变量地址向前偏移去查找value
-- 这个想法是真的强大
+[container_of](/bookPages/docs/linux-kernel/data-structures/container_of/)
 
 ## 2. rbtree
 
-```cpp
-// include/linux/rbtree.h
-struct rb_node {
-	unsigned long  __rb_parent_color;
-	struct rb_node *rb_right;
-	struct rb_node *rb_left;
-} __attribute__((aligned(sizeof(long))));
-```
+[rbtree](/bookPages/docs/linux-kernel/data-structures/rbtree/)
 
-- 先参考 [地址对齐](/blogs/2022-06-06-computer-composition/#1-地址对齐) 了解为什么可以使用`__rb_parent_color`的低两位作为颜色
+## 3. rcu 读拷贝更新
+
+[rcu](/bookPages/docs/linux-kernel/data-structures/rcu/)
 
 # 四、系统调用
 
-## 1. epoll
+## 1. 网络相关
 
-- epoll对于fd的储存使用的是红黑树
-- 使用链表保存处于就绪状态的fd
+### 1.1. epoll
 
-### 1.1. 接口定义
+[epoll](/bookPages/docs/linux-kernel/net/epoll/)
+
+### 1.2. bind 绑定地址到socket
+
+#### 1) 接口定义
 
 ```cpp
-// fs/eventpoll.c
-SYSCALL_DEFINE1(epoll_create, int, size)
+// net/socket.c
+SYSCALL_DEFINE3(bind, int, fd, struct sockaddr __user *, umyaddr, int, addrlen)
 {
-	if (size <= 0)
-		return -EINVAL;
-
-	return do_epoll_create(0);
-}
-
-/*
- * The following function implements the controller interface for
- * the eventpoll file that enables the insertion/removal/change of
- * file descriptors inside the interest set.
- */
-SYSCALL_DEFINE4(epoll_ctl, int, epfd, int, op, int, fd,
-		struct epoll_event __user *, event)
-{
-	struct epoll_event epds;
-
-	if (ep_op_has_event(op) &&
-	    copy_from_user(&epds, event, sizeof(struct epoll_event)))
-		return -EFAULT;
-
-	return do_epoll_ctl(epfd, op, fd, &epds, false);
-}
-
-SYSCALL_DEFINE4(epoll_wait, int, epfd, struct epoll_event __user *, events,
-		int, maxevents, int, timeout)
-{
-	struct timespec64 to;
-
-	return do_epoll_wait(epfd, events, maxevents,
-			     ep_timeout_to_timespec(&to, timeout));
+	return __sys_bind(fd, umyaddr, addrlen);
 }
 ```
 
-### 1.2. 数据结构
+### 1.3. unix套接字
 
-```cpp
+源码主要看`net/unix/af_unix.c`
 
-```
-
-## 2. sendmsg 发送消息到另一个进程
-
-- 可以将一个文件句柄交接所属到另一个进程
-  - 如将和客户端建立的fd交接到另一个进程进行处理
+- unix套接字仅支持`SOCK_STREAM`、`SOCK_RAW`、`SOCK_DGRAM`、`SOCK_SEQPACKET`这几种type，源码看`unix_create()`
+- 使用unix套接字，protocol参数必须为`0`，原因查看`unix_create()`的第一个判断
 
 # 五、底层的几个机制
 

@@ -90,3 +90,15 @@ reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colou
 ## 2. 使用id_rsa私钥登陆
 
 - 需要使用自带的puttygen将id_rsa导入进去另存为putty识别的密钥，再次使用就可以了
+
+# 七、sublime text
+
+## 1. 查看文件在文件树中的位置
+
+- 在打开的文件中右键选`Reveal in Side Bar`
+
+# 八、vmware
+
+## 1. windows安装linux虚拟机启动报`A fault has occurred causing a virtual CPU to enter the shutdown state`
+
+- 看看是不是装了`vmare 16.0`，是的话更新到最新版vmware，将对应的虚拟机迁移到新版本即可，`16.0`存在bug

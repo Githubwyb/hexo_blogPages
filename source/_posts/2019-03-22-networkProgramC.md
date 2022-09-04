@@ -1,5 +1,5 @@
 ---
-title: 网络编程笔记（C语言）
+title: linux网络编程（C语言）
 date: 2019-03-22 17:25:35
 tags: [网络]
 categories: [Program, C/C++]
@@ -44,7 +44,7 @@ int socket (int __domain, int __type, int __protocol);
 - `PF_INET`: Protocol Family
   - 在windows中 `AF_INET`和`PF_INET`完全一样
   - 在某些Linux中两者会有差距（但一般也相同），理论上建立socket时是指定协议，应该用`PF_XXX`，设置地址时用`AF_XXX`，不过在两者相等的情况下混用也没啥。
-- `AF_UNIX`: 用于同一台计算机的进程间通信
+- `AF_UNIX`: 域套接字，用于同一台计算机的进程间通信
 - `AF_INET6`:ipv6网络协议
 
 **`__type` 指明socket类型**

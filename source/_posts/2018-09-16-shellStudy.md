@@ -1590,6 +1590,37 @@ help [cmd]                  # GDB帮助命令，提供对GDB名种命令的解�
 
 ### 13.2. 可以看代码版本 cgdb
 
+#### 1) 快捷键
+
+**gdb窗口**
+
+- `Esc`: 转到代码窗口
+
+**代码窗口**
+
+- `i`: 转到gdb窗口
+- `o`: 打开源码文件列表，`/`搜索
+- `j`: 光标下移
+- `k`: 光标上移
+- `Space`: 当前行打断点
+- `=`: 放大代码窗口一行
+- `-`: 减小代码窗口一行
+- `Shift + +`: 放大窗口一大段
+- `Shift + _`: 缩小窗口一大段
+
+### 13.3. 函数堆栈
+
+- `bt`: 查看当前堆栈
+- `frame <n>`: 跳转到当前哪一层堆栈
+- `up <n>`: 向上跳几层
+- `down <n>`: 向下跳几层
+
+### 13.4. 带参数的执行
+
+```shell
+gdb --args /path/to/run a b
+```
+
 ## 14. <span id = "tmux">tmux</span>
 
 ### 快捷键
@@ -1708,6 +1739,16 @@ alias phptags='ctags --langmap=php:.engine.inc.module.theme.php  --php-kinds=cdf
 - `-fsanitize=address`: 监听内存泄漏，需要同时加上`-lasan`并且保证已经安装libasan
 - `-fno-omit-frame-pointer`
 - `-Werror`: 所有warning当作error处理
+
+### 17.2. 查看预定义宏
+
+```shell
+=> gcc -dM -E - < /dev/null
+#define __SSP_STRONG__ 3
+#define __DBL_MIN_EXP__ (-1021)
+#define __UINT_LEAST16_MAX__ 0xffff
+...
+```
 
 ## 18. firewalld 防火墙
 
@@ -1930,6 +1971,20 @@ tc -s qdisc ls dev eth0
 
 ```shell
 curl http://1.1.1.1/download/aaa.txt -o aaa.txt
+```
+
+## 27. clang
+
+### 27.1. 查看预定义宏
+
+```shell
+=> clang -dM -E -x c /dev/null | head -n 10
+#define _LP64 1
+#define __ATOMIC_ACQUIRE 2
+#define __ATOMIC_ACQ_REL 4
+#define __ATOMIC_CONSUME 1
+#define __ATOMIC_RELAXED 0
+...
 ```
 
 # 四、小技巧

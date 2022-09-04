@@ -13,6 +13,7 @@ categories:
 
 - shadowsocks服务端和客户端都可以使用python3-pip进行安装，比较方便
 - 最好用管理员权限装，可以所有用户使用，否则只会装到`${HOME}/.local/bin`下面
+- 注意python版本尽量选择`3.8`左右，`3.10`存在另外的问题
 
 ```shell
 sudo pip3 install shadowsocks
@@ -25,8 +26,6 @@ sudo pip3 install shadowsocks
 ```json
 {
     "server": "0.0.0.0",
-    "local_address": "127.0.0.1",
-    "local_port": 1080,
     "port_password": {
         "1234": "xxxx"
     },
@@ -95,6 +94,16 @@ General options:
   -v, -vv                verbose mode
   -q, -qq                quiet mode, only show warnings/errors
   --version              show version information
+```
+
+- 配置
+
+```json
+{
+    "server": "10.242.8.24",
+    "server_port": 8889,
+    "password": "Mylinux123"
+}
 ```
 
 ## 1. 开机自启动

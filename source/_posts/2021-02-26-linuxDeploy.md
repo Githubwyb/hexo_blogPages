@@ -122,8 +122,6 @@ makepkg -si
 - 由于底层使用的是chroot实现，无法使用system命令
 - 启动nginx不需要使用system命令
 
-
-
 # 踩坑记
 
 ## 1. adb调试本机

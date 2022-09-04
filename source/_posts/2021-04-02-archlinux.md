@@ -125,9 +125,15 @@ Driver      "modesetting"
 
 ```shell
 ########## S --sync 同步（安装搜索） ##########
+# 将系统所有软件更新到最新
 # y 同步最新仓库
 # u update
-sudo pacman -Syu xxx
+# --noconfirm 不用输入Y
+sudo pacman -Syu --noconfirm
+
+# 安装软件
+# --needed 软件已经是最新，不用重新安装
+sudo pacman -S --needed xxx
 
 # s 搜索软件
 sudo pacman -Sys xxx
@@ -155,6 +161,17 @@ sudo pacman -Qo /usr/sbin/tcpdump
 sudo pacman -Ql tcpdump
 ```
 
+#### 2) 镜像源选择
+
+```shell
+# 安装reflector
+sudo pacman -S reflector
+# 编辑/etc/xdg/reflector/reflector.conf
+vim /etc/xdg/reflector/reflector.conf
+# 生成mirrorlist
+sudo reflector @/etc/xdg/reflector/reflector.conf
+```
+
 #### **<font color="red">踩坑记</font>**
 
 1. 遇到安装提示`PGP Signature`错误的，安装一下`archlinux-keyring`，原因是签名过期了
@@ -177,9 +194,20 @@ sudo journalctl --vacuum-time=5d
 | ----------------------- | -------------------- |
 | lsusb                   | usbutils             |
 | arch-chroot<br>genfstab | arch-install-scripts |
+| netstat                 | net-tools            |
 | telnet                  | inetutils            |
 | ntpdate                 | ntp                  |
 | nslookup                | bind                 |
+
+### 2.1. 查找命令对应的包
+
+```shell
+=> sudo pacman -S pkgfile
+=> pkgfile -u
+=> pkgfile -s netstat
+core/net-tools
+community/munin-node
+```
 
 ## 3. aur软件包
 
@@ -204,6 +232,49 @@ trust anchor /path/to/cacert.pem
 # 移除授信的ca机构，值由list给出
 trust anchor --remove 'pkcs11:id=%2E%57%67%B4%D5%D0%13%93%52%B5%4F%7C%87%1C%FC%45%43%FF%E7%02;type=cert'
 ```
+
+## 5. 下载安装包的源码
+
+```shell
+# 安装asp
+sudo pacman -S asp
+# 搜索安装包
+asp list-all | grep linux
+# 下载安装包编译脚本
+cd /path/to/package-source-save
+asp checkout linux
+# 进入下载安装包源码和安装依赖
+cd linux
+makepkg -so
+# 编译不安装
+makepkg
+```
+
+## 6. makepkg 编译archlinux的软件安装包
+
+### 6.1. 常用选项
+
+- `-s`: 安装编译依赖
+- `-o`: 只下载源码并解压，不编译
+- `-r`: 在安装完成后移除安装依赖
+
+### 6.2. git仓库太大无法clone的解决
+
+- 先使用命令`makepkg -o`，然后使用`ps auxf`查看git的clone命令
+- 在对应目录下执行
+
+```shell
+git init
+git remote add origin https://xxx/xxx/xxx
+# 拉取代码
+while true; do git fetch; if [ "$?" -eq 0 ]; then break; fi; sleep 1; done
+# 拉取所有tag
+git fetch --tags
+# 切换分支
+git checkout FETCH_HEAD
+```
+
+- 然后在上一级重新执行`makepkg -o`
 
 # 三、好用的工具
 

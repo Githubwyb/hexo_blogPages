@@ -34,7 +34,336 @@ $$ \sum_{i = 0}^{N}A^i = \frac{A^{N+1} - 1}{A - 1} $$
 - $T(N) = \Theta (h(N))$ 当且仅当 $T(N) = O(h(N))$ 且 $T(N) = \Omega(h(N))$ 。
 - 如果 $T(N) = O(p(N))$ 且 $T(N) \neq \Theta(p(N))$ ，则 $T(N) = o(p(N))$
 
-# 三、算法
+
+# 三、数据结构
+
+## 1. 树
+
+### 1.1. 公共部分
+
+#### 1) 遍历
+
+##### (1) <span id = "treeSpan">树的深度优先和广度优先遍历</span>
+
+定义树结构
+
+<img src = "2019_02_27_10.png" width = "40%">
+
+###### 深度优先遍历
+
+深度优先遍历（Depth First Search），简称DFS，其原则是，沿着一条路径一直找到最深的那个节点，当没有子节点的时候，返回上一级节点，寻找其另外的子节点，继续向下遍历，没有就向上返回一级，直到所有的节点都被遍历到，每个节点只能访问一次。
+
+**算法步骤：**
+
+使用栈的数据结构实现
+
+1. 首先将根节点1压入栈中【1】
+2. 将1节点弹出，找到1的两个子节点3，2，首先压入3节点，再压入2节点（后压入左节点的话，会先取出左节点，这样就保证了先遍历左节点），2节点再栈的顶部，最先出来【2，3】
+3. 弹出2节点，将2节点的两个子节点5，4压入【4，5，3】
+4. 弹出4节点，将4的子节点9，8压入【8，9，5，3】
+5. 弹出8，8没有子节点，不压入【9，5，3】
+6. 弹出9，9没有子节点，不压入【5，3】
+7. 弹出5，5有一个节点，压入10，【10，3】
+8. 弹出10，10没有节点，不压入【3】
+9. 弹出3，压入3的子节点7，6【6，7】
+10. 弹出6，没有子节点【7】
+11. 弹出7，没有子节点，栈为空【】，算法结束
+
+出栈顺序【1，2，4，8，9，5，10，3，6，7】
+
+```cpp
+    #include <stack>
+    #include <memory>
+    #include <vector>
+
+    //树结构
+    typedef struct Node {
+        int value;
+        vector<shared_ptr<Node>> pChild;
+        weak_ptr<Node> pParent;
+    } Node;
+
+    //深度优先打印节点
+    void printNodesDeepFirst(const shared_ptr<Node> &node) {
+        stack<shared_ptr<Node>> myStack;
+        myStack.push(node);
+        while (myStack.size() > 0) {
+            shared_ptr<Node> pTmp = myStack.top();
+            myStack.pop();
+            PRINT("%d ", pTmp->value);
+
+            //由于栈的后进先出特性，需要倒序使左节点先出
+            for (int i = pTmp->pChild.size(); i != 0; --i) {
+                myStack.push(pTmp->pChild[i - 1]);
+            }
+        }
+        PRINT("\r\n");
+    }
+```
+
+###### 广度优先遍历
+
+广度优先遍历（Breadth First Search），简称BFS；广度优先遍历的原则就是对每一层的节点依次访问，一层访问结束后，进入下一层，直到最后一个节点，同样的，每个节点都只访问一次。
+
+**算法步骤：**
+
+使用队列的数据结构实现
+
+1. 节点1，插入队列【1】
+2. 取出节点1，插入1的子节点2，3 ，节点2在队列的前端【2，3】
+3. 取出节点2，插入2的子节点4，5，节点3在队列的最前端【3，4，5】
+4. 取出节点3，插入3的子节点6，7，节点4在队列的最前端【4，5，6，7】
+5. 取出节点4，插入3的子节点8，9，节点5在队列的最前端【5，6，7，8，9】
+6. 取出节点5，插入5的子节点10，节点6在队列的最前端【6，7，8，9，10】
+7. 取出节点6，没有子节点，不插入，节点7在队列的最前端【7，8，9，10】
+8. 取出节点7，没有子节点，不插入，节点8在队列的最前端【8，9，10】
+9. 取出节点8，没有子节点，不插入，节点9在队列的最前端【9，10】
+10. 取出节点9，没有子节点，不插入，节点10在队列的最前端【10】
+11. 取出节点10，队列为空，算法结束
+
+我们看一下节点出队的顺序【1，2，3，4，5，6，7，8，9，10】
+
+```cpp
+    #include <queue>
+    #include <memory>
+    #include <vector>
+
+    //树结构
+    typedef struct Node {
+        int value;
+        vector<shared_ptr<Node>> pChild;
+        weak_ptr<Node> pParent;
+    } Node;
+
+    //广度优先打印节点
+    void printNodesWidthFirst(const shared_ptr<Node> &node) {
+        queue<shared_ptr<Node>> myQueue;
+        myQueue.push(node);
+        while (myQueue.size() > 0) {
+            shared_ptr<Node> pTmp = myQueue.front();
+            myQueue.pop();
+            PRINT("%d ", pTmp->value);
+
+            for (auto tmp : pTmp->pChild) {
+                myQueue.push(tmp);
+            }
+        }
+        PRINT("\r\n");
+    }
+```
+
+#### 2) 度
+
+- 孩子结点个数就是结点的度，0度就是没有孩子结点
+- 树的度就是结点中最大的度
+
+### 1.2. 二叉树
+
+#### 1) 性质和算法
+
+##### (1) <span id = "towTree">二叉树前中后序遍历</span>
+
+- 前序遍历指先访问根，然后访问子树的遍历方式
+
+<img src = "2019_02_22_05.png" width = "40%">
+
+```cpp
+    void in_order_traversal(TreeNode *root) {
+        // Do Something with root
+        if (root->lchild != NULL)
+            in_order_traversal(root->lchild);
+        if (root->rchild != NULL)
+            in_order_traversal(root->rchild);
+    }
+```
+
+- 中序遍历指先访问左（右）子树，然后访问根，最后访问右（左）子树的遍历方式
+
+<img src = "2019_02_22_06.png" width = "40%">
+
+```cpp
+    void in_order_traversal(TreeNode *root) {
+        if (root->lchild != NULL)
+            in_order_traversal(root->lchild);
+        // Do Something with root
+        if (root->rchild != NULL)
+            in_order_traversal(root->rchild);
+    }
+```
+
+- 后序遍历指先访问子树，然后访问根的遍历方式
+
+<img src = "2019_02_22_07.png" width = "40%">
+
+```cpp
+    void in_order_traversal(TreeNode *root) {
+        if (root->lchild != NULL)
+            in_order_traversal(root->lchild);
+        if (root->rchild != NULL)
+            in_order_traversal(root->rchild);
+        // Do Something with root
+    }
+```
+
+##### (2) 完全二叉树和满二叉树
+
+- 满二叉树，只有最后一行是叶子节点，其他的节点都是度为2的节点
+- 完全二叉树指的是除了最后一行，整体是满二叉树，最后一行叶子节点从左到右依次排列
+
+#### 2) 二叉搜索树
+
+二叉查找树（Binary Search Tree），（又：二叉搜索树，二叉排序树）它或者是一棵空树，或者是具有下列性质的二叉树：
+**若它的左子树不空，则左子树上所有结点的值均小于它的根结点的值； 若它的右子树不空，则右子树上所有结点的值均大于它的根结点的值；**
+它的左、右子树也分别为二叉排序树。
+
+##### 性质
+
+二叉排序树的查找过程和次优二叉树类似，通常采取二叉链表作为二叉排序树的存储结构。**中序遍历**二叉排序树可得到一个关键字的有序序列，一个无序序列可以通过构造一棵二叉排序树变成一个有序序列，构造树的过程即为对无序序列进行排序的过程。每次插入的新的结点都是二叉排序树上新的叶子结点，在进行插入操作时，不必移动其它结点，只需改动某个结点的指针，由空变为非空即可。搜索,插入,删除的复杂度等于树高，O(log(n)).
+
+#### 3) 大（小）根堆（优先队列）
+
+大（小）根堆是堆的两种形式之一。根结点（亦称为堆顶）的关键字是堆里所有结点关键字中最大（小）者，称为大（小）根堆，又称最大（小）堆、大（小）顶堆。大（小）根堆要求根节点的关键字既大（小）于或等于左子树的关键字值，又大（小）于或等于右子树的关键字值。
+普通的队列是一种先进先出的数据结构，元素在队列尾追加，而从队列头删除。在优先队列中，元素被赋予优先级。当访问元素时，具有最高优先级的元素最先删除。优先队列具有最高级先出 （first in, largest out）的行为特征。通常采用堆数据结构来实现。
+
+##### 性质和应用
+
+- 最大或最小值在堆顶，可以用于排序数组
+- 可以用队列表示，第$i$个元素大于或者小于第$i * 2$和第$i * 2 + 1$个元素
+- 最基本的应用，查找[数组最小（大）k个值](/blogs/2019-10-21-programQuestion/#minKNumber)
+- [C++标准库有接口可以直接应用](/blogs/2018-07-06-CppStudy/#bigHeap)
+
+#### 4) 红黑树
+
+参考 [红黑树(R-B tree)原理图文详解](https://zhuanlan.zhihu.com/p/78152265)
+
+##### (1) 红黑树的特性和应用
+
+- 红黑树的查找和插入时间复杂度都是 $O(\log n)$，相比hash表更加稳定
+
+**应用**
+
+- std::map和std::set使用的是红黑树
+- epoll的底层实现是用红黑树组织fd
+
+## 2. hashTable 哈希表
+
+### 2.1. 为什么哈希表的除数要用素数
+
+参考自 [腾讯面试真题：证明为什么哈希表除m取余法的被除数为什么用素数比较好](https://blog.csdn.net/w_y_x_y/article/details/82288178)
+
+- 使用合数可能和等差数列的差值含有公因数，导致碰撞概率增大
+
+#### 1) 假设
+
+- 传入的key是等差数列: 首项1，差值从2到5，长度10
+- 两个hash表，一个使用6取模，一个使用7取模
+
+#### 2) 效果
+
+**差值2**
+
+| 余数 | 0   | 1   | 2   | 3   | 4   | 5   |
+| ---- | --- | --- | --- | --- | --- | --- |
+| 首次 |     | 1   |     | 3   |     | 5   |
+| 碰撞 |     | 7   |     | 9   |     | 11  |
+| 碰撞 |     | 13  |     | 15  |     | 17  |
+| 碰撞 |     | 19  |     |     |     |     |
+
+| 余数 | 0   | 1   | 2   | 3   | 4   | 5   | 6   |
+| ---- | --- | --- | --- | --- | --- | --- | --- |
+| 首次 | 7   | 1   | 9   | 3   | 11  | 5   | 13  |
+| 碰撞 |     | 15  |     | 17  |     | 19  |     |
+
+**差值3**
+
+| 余数 | 0   | 1   | 2   | 3   | 4   | 5   |
+| ---- | --- | --- | --- | --- | --- | --- |
+| 首次 |     | 1   |     |     | 4   |     |
+| 碰撞 |     | 7   |     |     | 10  |     |
+| 碰撞 |     | 13  |     |     | 16  |     |
+| 碰撞 |     | 19  |     |     | 22  |     |
+| 碰撞 |     | 25  |     |     | 28  |     |
+
+| 余数 | 0   | 1   | 2   | 3   | 4   | 5   | 6   |
+| ---- | --- | --- | --- | --- | --- | --- | --- |
+| 首次 | 7   | 1   | 16  | 10  | 4   | 19  | 13  |
+| 碰撞 | 28  | 22  |     |     | 25  |     |     |
+
+**差值4**
+
+| 余数 | 0   | 1   | 2   | 3   | 4   | 5   |
+| ---- | --- | --- | --- | --- | --- | --- |
+| 首次 |     | 1   |     | 9   |     | 5   |
+| 碰撞 |     | 13  |     | 21  |     | 17  |
+| 碰撞 |     | 25  |     | 33  |     | 29  |
+| 碰撞 |     | 37  |     |     |     |     |
+
+| 余数 | 0   | 1   | 2   | 3   | 4   | 5   | 6   |
+| ---- | --- | --- | --- | --- | --- | --- | --- |
+| 首次 | 21  | 1   | 9   | 17  | 25  | 5   | 13  |
+| 碰撞 |     | 29  | 37  |     |     | 33  |     |
+
+**差值5**
+
+| 余数 | 0   | 1   | 2   | 3   | 4   | 5   |
+| ---- | --- | --- | --- | --- | --- | --- |
+| 首次 | 6   | 1   | 26  | 21  | 16  | 11  |
+| 碰撞 | 36  | 31  |     |     | 46  | 41  |
+
+| 余数 | 0   | 1   | 2   | 3   | 4   | 5   | 6   |
+| ---- | --- | --- | --- | --- | --- | --- | --- |
+| 首次 | 21  | 1   | 16  | 31  | 11  | 26  | 6   |
+| 碰撞 |     | 36  |     |     | 46  |     | 41  |
+
+#### 3) 结论
+
+- 如果差值和被除数之间不含有公因数，效果一样
+- 如果含有公因数，碰撞概率会变高
+
+## 3. bitmap 位图
+
+### 3.1. 原理
+
+- 一个int表示32位，可以表示32个数字，即
+
+| 0   | 1   | 2   | 3   | ... | 31  |
+| --- | --- | --- | --- | --- | --- |
+| 0   | 0   | 1   | 0   | ... | 1   |
+
+- 代表2和31都在集合中
+- 按照在二进制中的位置表示对应的数字
+- 使用数组可以将一个很大的内存区域集合在一起，根据对应的位置说明对应的数字
+
+### 3.2. 举例
+
+- 对一大批不同的11位qq号进行排序
+
+#### 1) 实现
+
+- 11位qq号最大99999999999，也就是需要 $1 \times 10^{12}$ 个bit保存
+- 计算成int数组 $1 \times 10^{12} / 32 = 31250000000$
+
+```cpp
+#define MAX_QQ_NUMBER 99999999ll
+const long BITS_PER_LONG = 8 * sizeof(long);
+long qq_bitmap[MAX_QQ_NUMBER / BITS_PER_LONG + 1] = {0};
+
+void set_qq_bitmap(long long qq) {
+    if (qq > MAX_QQ_NUMBER) return;
+    // 假设32位，long为32位
+    // 先将输入的qq按照32一组找到对应的位置，然后将在其在32个一组中的位置置1
+    // 61 => qq_bitmap[1] |= (1 << 29)
+    qq_bitmap[qq / BITS_PER_LONG] |= (1 << (qq % BITS_PER_LONG));
+}
+
+long check_qq_bitmap(long long qq) {
+    if (qq > MAX_QQ_NUMBER) return 0;
+    // 同理，找到qq按照32个一组的位置，检查对应的32个数字中的位置是否为1
+    return qq_bitmap[qq / BITS_PER_LONG] & (1 << (qq % BITS_PER_LONG));
+}
+```
+
+# 四、算法
 
 ## 1. 排序算法
 
@@ -127,7 +456,7 @@ void shellSort(T *data, int length, bool order = true) {
 
 ### Dijkstra(迪杰斯特拉)算法
 
-Dijkstra(迪杰斯特拉)算法是典型的单源最短路径算法，用于计算一个节点到其他所有节点的最短路径。主要特点是以起始点为中心向外层层扩展，直到扩展到终点为止。
+Dijkstra(迪杰斯特拉)算法是典型的单源最短路径算法，用于计算一个节点到某个节点的最短路径。主要特点是以起始点为中心向外层层扩展，直到扩展到终点为止。
 
 #### 算法描述
 
@@ -135,169 +464,89 @@ Dijkstra(迪杰斯特拉)算法是典型的单源最短路径算法，用于计�
 
 <img src = "2019_02_23_09.png" width = "80%">
 
-示例，自己写的，没有考虑内存和时间，改了一下，变成有向路径算法。无向路径可以使用上述U集作为while判断，减少循环次数
-
-```cpp
-#include "log.hpp"
-
-#include <iostream>
-#include <memory>
-#include <vector>
-#include <fstream>
-#include <map>
-
-#define InputFileName "../input.txt"
-
-using namespace std;
-
-//按行返回数据
-int readFile(string &input) {
-    input = "";
-    static ifstream inFile(InputFileName);
-    if (!inFile) {
-        LOG_ERROR("Failed to open file %s", InputFileName);
-        return -1;
-    }
-
-    while (!inFile.eof()) {
-        char buf[128];
-        inFile.getline(buf, 128);
-        input = string(buf);
-        return 0;
-    }
-
-    return -1;
+```go
+type pointS struct {
+	ch   byte
+	step int
 }
 
-//将字母转成数字
-int getIndex(char a) {
-    switch (a) {
-        case 'A':
-            return 0;
+type littleQueue []pointS
 
-        case 'B':
-            return 1;
+func (q *littleQueue) Push(v interface{}) {
+	*q = append(*q, v.(pointS))
+}
+func (q *littleQueue) Pop() interface{} {
+	x := (*q)[len(*q)-1]
+	*q = (*q)[:len(*q)-1]
+	return x
+}
+func (q *littleQueue) Len() int           { return len(*q) }
+func (q *littleQueue) Less(i, j int) bool { return (*q)[i].step < (*q)[j].step }
+func (q *littleQueue) Swap(i, j int)      { (*q)[i], (*q)[j] = (*q)[j], (*q)[i] }
 
-        case 'C':
-            return 2;
+func dijkstra(src byte, dst byte, distMaps map[byte]map[byte]int) int {
+	// 定义小根堆，主要为了每次取最小的一个距离进行扩展
+	pq := make(littleQueue, 1)
+	// 把起点插入
+	pq[0] = pointS{src, 0}
+	heap.Init(&pq)
+	// 记录一下从起点到某一个点的最小距离
+	finalDistMap := make(map[byte]int)
 
-        case 'D':
-            return 3;
-
-        case 'E':
-            return 4;
-
-        case 'F':
-            return 5;
-
-        default:
-            return -1;
-    }
+	for pq.Len() > 0 {
+		// 取头部当前已走的最小距离的点进行拓展
+		t := heap.Pop(&pq).(pointS)
+		// 如果当前是目的地址，那么步数就是最小的
+		// 反证一下，假设存在一个更小的，那么肯定还没到目的点，如果到了，前面会插入到小根堆中，这次就不会取到大的
+		//          如果没到，还得再走，距离会是那个点继续加，那么就不可能比当前更小
+		if t.ch == dst {
+			return t.step
+		}
+		// 从此点向外走，获取此点能到的最近的点的距离
+		distMap := distMaps[t.ch]
+		for i, v := range distMap {
+			// 从起点到t再走到i的距离
+			step := t.step + v
+			// 如果记录的到i点距离更小，这个点就不走了，因为之前记录那一次走过了
+			if d, ok := finalDistMap[i]; ok && d <= step {
+				continue
+			}
+			finalDistMap[i] = step
+			heap.Push(&pq, pointS{i, step})
+		}
+	}
+	return -1
 }
 
-//将数字转成字母
-char getChar(int a) {
-    switch (a) {
-        case 0:
-            return 'A';
-
-        case 1:
-            return 'B';
-
-        case 2:
-            return 'C';
-
-        case 3:
-            return 'D';
-
-        case 4:
-            return 'E';
-
-        case 5:
-            return 'F';
-
-        default:
-            return -1;
-    }
-}
-
-int main() {
-    //由于已知点数量，第一行废掉
-    string inputStr = "";
-    if (readFile(inputStr) != 0) {
-        LOG_ERROR("Read file error");
-        return -1;
-    }
-
-    //定义距离矩阵
-    int distance[6][6] = {0};
-    for (int i = 0; i < 6; ++i) {
-        for (int j = 0; j < 6; ++j) {
-            //初始化所有距离为-1
-            distance[i][j] = -1;
-        }
-        //自己到自己为0
-        distance[i][i] = 0;
-    }
-
-    map<char, string> road;
-    while (readFile(inputStr) == 0) {
-        int a = getIndex(inputStr[0]);      //第一个点
-        int b = getIndex(inputStr[2]);      //第二个点
-        int c = stoi(inputStr.substr(3));   //距离
-        //赋值给距离矩阵
-        LOG_INFO("%c--%c: %d", getChar(a), getChar(b), c);
-        distance[a][b] = c;
-    }
-
-    while (true) {
-        bool change = false;
-        for (int i = 0; i < 6; ++i) {
-            //U集合中A点可到达的点i
-            if (distance[0][i] != -1) {
-                //将路径加进去
-                if (road.count(getChar(i)) == 0) {
-                    string roadStr = "A";
-                    road[getChar(i)] = roadStr + getChar(i);
-                }
-
-                for (int j = 0; j < 6; ++j) {
-                    //筛选出i点可到达的j点
-                    if (distance[i][j] != -1) {
-                        //A点不可到达j点或者当前已计算的距离大于A从i到达j的距离
-                        if (distance[0][j] == -1 ||
-                            distance[0][j] > (distance[0][i] + distance[i][j])) {
-                            change = true;
-                            //更新距离表
-                            distance[0][j] = distance[0][i] + distance[i][j];
-                            //更新路径表
-                            string tmpStr = road[getChar(i)];
-                            road[getChar(j)] = tmpStr + getChar(j);
-                        }
-                    }
-                }
-            }
-        }
-
-        //一轮没有改变则证明已经计算完毕
-        if (!change) {
-            break;
-        }
-    }
-
-    for (int i = 0; i < 6; ++i) {
-        for (int j = 0; j < 6; ++j) {
-            PRINT("%d\t", distance[i][j]);
-        }
-        PRINT("\r\n");
-    }
-
-    //打印结果
-    PRINT("\r\n");
-    LOG_INFO("Result:");
-    for (int m = 0; m < 6; ++m) {
-        LOG_INFO("%c %s: %d", getChar(m), road[getChar(m)].c_str(), distance[0][m]);
-    }
+func main() {
+	// 定义好距离矩阵
+	distMaps := make(map[byte]map[byte]int)
+	distMaps['A'] = make(map[byte]int)
+	distMaps['A']['B'] = 6
+	distMaps['A']['C'] = 3
+	distMaps['B'] = make(map[byte]int)
+	distMaps['B']['A'] = 6
+	distMaps['B']['C'] = 2
+	distMaps['B']['D'] = 5
+	distMaps['C'] = make(map[byte]int)
+	distMaps['C']['A'] = 3
+	distMaps['C']['B'] = 2
+	distMaps['C']['D'] = 3
+	distMaps['C']['E'] = 4
+	distMaps['D'] = make(map[byte]int)
+	distMaps['D']['B'] = 5
+	distMaps['D']['C'] = 3
+	distMaps['D']['E'] = 2
+	distMaps['D']['F'] = 3
+	distMaps['E'] = make(map[byte]int)
+	distMaps['E']['C'] = 4
+	distMaps['E']['D'] = 2
+	distMaps['E']['F'] = 5
+	distMaps['F'] = make(map[byte]int)
+	distMaps['F']['D'] = 3
+	distMaps['F']['E'] = 5
+	// A => F 最短路径为 A => C => D => F = 9
+	fmt.Println(dijkstra('A', 'F', distMaps))
 }
 ```
 
@@ -474,366 +723,184 @@ int main() {
 }
 ```
 
-## 其他算法
+## 3. bfs 广度优先遍历
 
-### 3.1. 全排列算法（回溯法）
+#### 1) 二叉树的广度优先遍历
+
+```go
+type TreeNode struct {
+	value int
+	left  *TreeNode
+	right *TreeNode
+}
+
+func bfs(root *TreeNode) {
+	var queue list.List
+	queue.PushBack(&root)
+	for queue.Len() > 0 {
+		node := queue.Front().Value.(*TreeNode)
+		queue.Remove(queue.Front())
+		if node.left != nil {
+			queue.PushBack(node.left)
+		}
+		if node.right != nil {
+			queue.PushBack(node.right)
+		}
+		fmt.Println(node.value)	// 这里取值
+	}
+}
+```
+
+#### 2) 方格中找两点最短路径
+
+- 两格之间步数为1，`#`作为墙不可走
+
+```go
+type pointT struct {
+	x int
+	y int
+}
+
+var (
+	// 按照上下左右的相对位置设定，用于后面方便找四周的点
+	kRoundPoints = [][]int{
+		{0, -1},
+		{0, 1},
+		{-1, 0},
+		{1, 0},
+	}
+)
+
+// 返回从src到dst的最短路径长度，带层间隔版本
+func bfsFloor(src pointT, dst pointT, grid []string) int {
+	// 减小计算量，走过的路不再走，记录一下哪里走过了
+	seen := make([][]bool, len(grid))
+	for i := range seen {
+		seen[i] = make([]bool, len(grid[0]))
+	}
+	// 源地址记录走过了，注意x是第二维的坐标
+	seen[src.y][src.x] = true
+
+	// 使用层数作为步数
+	curDepth := 0
+	var queue list.List
+	// 插入源地址，作为第一层，使用nil作为层间隔
+	queue.PushBack(src)
+	queue.PushBack(nil)
+	// 队列一定含有一个层间隔，不在头就在尾，如果只剩一个层间隔，说明没路可走
+	for queue.Len() > 1 {
+		tmp := queue.Front().Value
+		queue.Remove(queue.Front())
+		if tmp == nil {
+			// 找到层间隔，说明当前层遍历完了，步数加一准备下一层
+			curDepth++
+			// 当前层遍历完，队列剩余的都是下一层，加入一个层间隔
+			queue.PushBack(nil)
+			continue
+		}
+
+		// 判断当前点是不是目标点，如果是，说明走到了，返回步数
+		tx, ty := tmp.(pointT).x, tmp.(pointT).y
+		if tx == dst.x && ty == dst.y {
+			return curDepth
+		}
+		// 不是目标点，从此点出发，向四周走一下
+		for i := range kRoundPoints {
+			px, py := tx+kRoundPoints[i][0], ty+kRoundPoints[i][1]
+			// 如果超出边界或者已经走过了或者碰到墙，就继续
+			if py < 0 || py >= len(grid) || px < 0 || px >= len(grid[0]) || seen[py][px] || grid[py][px] == '#' {
+				continue
+			}
+			// 这个点可以走，走上去，记录到队列中，作为下一层的起点
+			seen[py][px] = true
+			queue.PushBack(pointT{px, py})
+		}
+	}
+	return -1
+}
+
+type pointST struct {
+	x    int
+	y    int
+	step int
+}
+
+// 返回从src到dst的最短路径长度
+func bfs(src pointST, dst pointST, grid []string) int {
+	// 减小计算量，走过的路不再走，记录一下哪里走过了
+	seen := make([][]bool, len(grid))
+	for i := range seen {
+		seen[i] = make([]bool, len(grid[0]))
+	}
+	// 源地址记录走过了，注意x是第二维的坐标
+	seen[src.y][src.x] = true
+
+	var queue list.List
+	// 插入源地址
+	queue.PushBack(src)
+	for queue.Len() > 0 {
+		tmp := queue.Front().Value.(pointST)
+		queue.Remove(queue.Front())
+
+		// 判断当前点是不是目标点，如果是，说明走到了，返回步数
+		if tmp.x == dst.x && tmp.y == dst.y {
+			return tmp.step
+		}
+		// 不是目标点，从此点出发，向四周走一下
+		for i := range kRoundPoints {
+			px, py := tmp.x+kRoundPoints[i][0], tmp.y+kRoundPoints[i][1]
+			// 如果超出边界或者已经走过了或者碰到墙，就继续
+			if py < 0 || py >= len(grid) || px < 0 || px >= len(grid[0]) || seen[py][px] || grid[py][px] == '#' {
+				continue
+			}
+			// 这个点可以走，走上去，记录到队列中，作为下一层的起点
+			seen[py][px] = true
+			queue.PushBack(pointST{px, py, tmp.step+1})
+		}
+	}
+	return -1
+}
+
+func main() {
+	/*
+		@ # . . *
+		. . . # .
+		# . . . .
+	*/
+	grid := []string{"@#..*", "...#.", "#...."}
+	// @ 到 * 的最短距离为6
+	fmt.Println(bfs(pointST{0, 0, 0}, pointST{4, 0, 0}, grid))
+	fmt.Println(bfsFloor(pointT{0, 0}, pointT{4, 0}, grid))
+}
+```
+
+## 4. 全排列算法（回溯法）
 
 <img src = "2020_04_29_01.png">
 
 - 原理是遍历替换首字母和后面的字符，替换到最后输出
 
-```C++
-    class Solution {
-       public:
-        vector<string> Permutation(string str) {
-            int len = str.length();
-            if (len == 0) {
-                return {};
-            }
-            m_result.clear();
-            Permutation(str, 0, len);
-            // 这里做字典排序
-            sort(m_result.begin(), m_result.end());
-            m_result.erase(unique(m_result.begin(), m_result.end()),
-                           m_result.end());
-            return m_result;
-        }
+```go
+// 全排列
+func permutation(str []byte, index int, f func(str []byte)) {
+	if len(str) == index {
+        // 这里输出结果
+		f(str)
+		return
+	}
 
-       private:
-        // index为交换的头指针
-        void Permutation(string str, int index, int len) {
-            if (len == index) {
-                m_result.emplace_back(str);
-                return;
-            }
-
-            // 不交换的情况
-            Permutation(str, index + 1, len);
-            for (int i = index + 1; i < len; i++) {
-                // 交换首字符和后面的字符，继续遍历
-                swap(str[index], str[i]);
-                Permutation(str, index + 1, len);
-                swap(str[index], str[i]);
-            }
-        }
-
-        vector<string> m_result;
-    };
+	// 不交换的场景
+	permutation(str, index+1, f)
+	// index对应位置向后交换
+	for i := index + 1; i < len(str); i++ {
+		str[i], str[index] = str[index], str[i]
+		permutation(str, index+1, f)
+		str[i], str[index] = str[index], str[i]
+	}
+}
 ```
 
-### 3.2. 动态规划
+## 5. 动态规划
 
 - 动态规划一般是推导真实场景的某一状态和下一状态之间的关系
 - 根据两个状态的关系列出方程，然后从第一个状态不断向状态n靠近
-
-# 四、数据结构
-
-## 1. 树
-
-### 1.1. 遍历
-
-#### 1) <span id = "treeSpan">树的深度优先和广度优先遍历</span>
-
-定义树结构
-
-<img src = "2019_02_27_10.png" width = "40%">
-
-##### 深度优先遍历
-
-深度优先遍历（Depth First Search），简称DFS，其原则是，沿着一条路径一直找到最深的那个节点，当没有子节点的时候，返回上一级节点，寻找其另外的子节点，继续向下遍历，没有就向上返回一级，直到所有的节点都被遍历到，每个节点只能访问一次。
-
-###### 算法步骤：
-
-使用栈的数据结构实现
-
-1. 首先将根节点1压入栈中【1】
-2. 将1节点弹出，找到1的两个子节点3，2，首先压入3节点，再压入2节点（后压入左节点的话，会先取出左节点，这样就保证了先遍历左节点），2节点再栈的顶部，最先出来【2，3】
-3. 弹出2节点，将2节点的两个子节点5，4压入【4，5，3】
-4. 弹出4节点，将4的子节点9，8压入【8，9，5，3】
-5. 弹出8，8没有子节点，不压入【9，5，3】
-6. 弹出9，9没有子节点，不压入【5，3】
-7. 弹出5，5有一个节点，压入10，【10，3】
-8. 弹出10，10没有节点，不压入【3】
-9. 弹出3，压入3的子节点7，6【6，7】
-10. 弹出6，没有子节点【7】
-11. 弹出7，没有子节点，栈为空【】，算法结束
-
-出栈顺序【1，2，4，8，9，5，10，3，6，7】
-
-```cpp
-    #include <stack>
-    #include <memory>
-    #include <vector>
-
-    //树结构
-    typedef struct Node {
-        int value;
-        vector<shared_ptr<Node>> pChild;
-        weak_ptr<Node> pParent;
-    } Node;
-
-    //深度优先打印节点
-    void printNodesDeepFirst(const shared_ptr<Node> &node) {
-        stack<shared_ptr<Node>> myStack;
-        myStack.push(node);
-        while (myStack.size() > 0) {
-            shared_ptr<Node> pTmp = myStack.top();
-            myStack.pop();
-            PRINT("%d ", pTmp->value);
-
-            //由于栈的后进先出特性，需要倒序使左节点先出
-            for (int i = pTmp->pChild.size(); i != 0; --i) {
-                myStack.push(pTmp->pChild[i - 1]);
-            }
-        }
-        PRINT("\r\n");
-    }
-```
-
-##### 广度优先遍历
-
-广度优先遍历（Breadth First Search），简称BFS；广度优先遍历的原则就是对每一层的节点依次访问，一层访问结束后，进入下一层，直到最后一个节点，同样的，每个节点都只访问一次。
-
-###### 算法步骤：
-
-使用队列的数据结构实现
-
-1. 节点1，插入队列【1】
-2. 取出节点1，插入1的子节点2，3 ，节点2在队列的前端【2，3】
-3. 取出节点2，插入2的子节点4，5，节点3在队列的最前端【3，4，5】
-4. 取出节点3，插入3的子节点6，7，节点4在队列的最前端【4，5，6，7】
-5. 取出节点4，插入3的子节点8，9，节点5在队列的最前端【5，6，7，8，9】
-6. 取出节点5，插入5的子节点10，节点6在队列的最前端【6，7，8，9，10】
-7. 取出节点6，没有子节点，不插入，节点7在队列的最前端【7，8，9，10】
-8. 取出节点7，没有子节点，不插入，节点8在队列的最前端【8，9，10】
-9. 取出节点8，没有子节点，不插入，节点9在队列的最前端【9，10】
-10. 取出节点9，没有子节点，不插入，节点10在队列的最前端【10】
-11. 取出节点10，队列为空，算法结束
-
-我们看一下节点出队的顺序【1，2，3，4，5，6，7，8，9，10】
-
-```cpp
-    #include <queue>
-    #include <memory>
-    #include <vector>
-
-    //树结构
-    typedef struct Node {
-        int value;
-        vector<shared_ptr<Node>> pChild;
-        weak_ptr<Node> pParent;
-    } Node;
-
-    //广度优先打印节点
-    void printNodesWidthFirst(const shared_ptr<Node> &node) {
-        queue<shared_ptr<Node>> myQueue;
-        myQueue.push(node);
-        while (myQueue.size() > 0) {
-            shared_ptr<Node> pTmp = myQueue.front();
-            myQueue.pop();
-            PRINT("%d ", pTmp->value);
-
-            for (auto tmp : pTmp->pChild) {
-                myQueue.push(tmp);
-            }
-        }
-        PRINT("\r\n");
-    }
-```
-
-#### 2) <span id = "towTree">二叉树前中后序遍历</span>
-
-- 前序遍历指先访问根，然后访问子树的遍历方式
-
-<img src = "2019_02_22_05.png" width = "40%">
-
-```cpp
-    void in_order_traversal(TreeNode *root) {
-        // Do Something with root
-        if (root->lchild != NULL)
-            in_order_traversal(root->lchild);
-        if (root->rchild != NULL)
-            in_order_traversal(root->rchild);
-    }
-```
-
-- 中序遍历指先访问左（右）子树，然后访问根，最后访问右（左）子树的遍历方式
-
-<img src = "2019_02_22_06.png" width = "40%">
-
-```cpp
-    void in_order_traversal(TreeNode *root) {
-        if (root->lchild != NULL)
-            in_order_traversal(root->lchild);
-        // Do Something with root
-        if (root->rchild != NULL)
-            in_order_traversal(root->rchild);
-    }
-```
-
-- 后序遍历指先访问子树，然后访问根的遍历方式
-
-<img src = "2019_02_22_07.png" width = "40%">
-
-```cpp
-    void in_order_traversal(TreeNode *root) {
-        if (root->lchild != NULL)
-            in_order_traversal(root->lchild);
-        if (root->rchild != NULL)
-            in_order_traversal(root->rchild);
-        // Do Something with root
-    }
-```
-
-### 1.2. 二叉搜索树
-
-二叉查找树（Binary Search Tree），（又：二叉搜索树，二叉排序树）它或者是一棵空树，或者是具有下列性质的二叉树：
-**若它的左子树不空，则左子树上所有结点的值均小于它的根结点的值； 若它的右子树不空，则右子树上所有结点的值均大于它的根结点的值；**
-它的左、右子树也分别为二叉排序树。
-
-#### 性质
-
-二叉排序树的查找过程和次优二叉树类似，通常采取二叉链表作为二叉排序树的存储结构。**中序遍历**二叉排序树可得到一个关键字的有序序列，一个无序序列可以通过构造一棵二叉排序树变成一个有序序列，构造树的过程即为对无序序列进行排序的过程。每次插入的新的结点都是二叉排序树上新的叶子结点，在进行插入操作时，不必移动其它结点，只需改动某个结点的指针，由空变为非空即可。搜索,插入,删除的复杂度等于树高，O(log(n)).
-
-### 1.3. 大（小）根堆（优先队列）
-
-大（小）根堆是堆的两种形式之一。根结点（亦称为堆顶）的关键字是堆里所有结点关键字中最大（小）者，称为大（小）根堆，又称最大（小）堆、大（小）顶堆。大（小）根堆要求根节点的关键字既大（小）于或等于左子树的关键字值，又大（小）于或等于右子树的关键字值。
-普通的队列是一种先进先出的数据结构，元素在队列尾追加，而从队列头删除。在优先队列中，元素被赋予优先级。当访问元素时，具有最高优先级的元素最先删除。优先队列具有最高级先出 （first in, largest out）的行为特征。通常采用堆数据结构来实现。
-
-#### 性质和应用
-
-- 最大或最小值在堆顶，可以用于排序数组
-- 可以用队列表示，第$i$个元素大于或者小于第$i * 2$和第$i * 2 + 1$个元素
-- 最基本的应用，查找[数组最小（大）k个值](/blogs/2019-10-21-programQuestion/#minKNumber)
-- [C++标准库有接口可以直接应用](/blogs/2018-07-06-CppStudy/#bigHeap)
-
-### 1.4. 红黑树
-
-参考 [红黑树(R-B tree)原理图文详解](https://zhuanlan.zhihu.com/p/78152265)
-
-#### 1) 红黑树的特性和应用
-
-- 红黑树的查找和插入时间复杂度都是 $O(\log n)$，相比hash表更加稳定
-
-**应用**
-
-- std::map和std::set使用的是红黑树
-- epoll的底层实现是用红黑树组织fd
-
-## 2. hashTable 哈希表
-
-### 2.1. 为什么哈希表的除数要用素数
-
-参考自 [腾讯面试真题：证明为什么哈希表除m取余法的被除数为什么用素数比较好](https://blog.csdn.net/w_y_x_y/article/details/82288178)
-
-- 使用合数可能和等差数列的差值含有公因数，导致碰撞概率增大
-
-#### 1) 假设
-
-- 传入的key是等差数列: 首项1，差值从2到5，长度10
-- 两个hash表，一个使用6取模，一个使用7取模
-
-#### 2) 效果
-
-**差值2**
-
-| 余数 | 0   | 1   | 2   | 3   | 4   | 5   |
-| ---- | --- | --- | --- | --- | --- | --- |
-| 首次 |     | 1   |     | 3   |     | 5   |
-| 碰撞 |     | 7   |     | 9   |     | 11  |
-| 碰撞 |     | 13  |     | 15  |     | 17  |
-| 碰撞 |     | 19  |     |     |     |     |
-
-| 余数 | 0   | 1   | 2   | 3   | 4   | 5   | 6   |
-| ---- | --- | --- | --- | --- | --- | --- | --- |
-| 首次 | 7   | 1   | 9   | 3   | 11  | 5   | 13  |
-| 碰撞 |     | 15  |     | 17  |     | 19  |     |
-
-**差值3**
-
-| 余数 | 0   | 1   | 2   | 3   | 4   | 5   |
-| ---- | --- | --- | --- | --- | --- | --- |
-| 首次 |     | 1   |     |     | 4   |     |
-| 碰撞 |     | 7   |     |     | 10  |     |
-| 碰撞 |     | 13  |     |     | 16  |     |
-| 碰撞 |     | 19  |     |     | 22  |     |
-| 碰撞 |     | 25  |     |     | 28  |     |
-
-| 余数 | 0   | 1   | 2   | 3   | 4   | 5   | 6   |
-| ---- | --- | --- | --- | --- | --- | --- | --- |
-| 首次 | 7   | 1   | 16  | 10  | 4   | 19  | 13  |
-| 碰撞 | 28  | 22  |     |     | 25  |     |     |
-
-**差值4**
-
-| 余数 | 0   | 1   | 2   | 3   | 4   | 5   |
-| ---- | --- | --- | --- | --- | --- | --- |
-| 首次 |     | 1   |     | 9   |     | 5   |
-| 碰撞 |     | 13  |     | 21  |     | 17  |
-| 碰撞 |     | 25  |     | 33  |     | 29  |
-| 碰撞 |     | 37  |     |     |     |     |
-
-| 余数 | 0   | 1   | 2   | 3   | 4   | 5   | 6   |
-| ---- | --- | --- | --- | --- | --- | --- | --- |
-| 首次 | 21  | 1   | 9   | 17  | 25  | 5   | 13  |
-| 碰撞 |     | 29  | 37  |     |     | 33  |     |
-
-**差值5**
-
-| 余数 | 0   | 1   | 2   | 3   | 4   | 5   |
-| ---- | --- | --- | --- | --- | --- | --- |
-| 首次 | 6   | 1   | 26  | 21  | 16  | 11  |
-| 碰撞 | 36  | 31  |     |     | 46  | 41  |
-
-| 余数 | 0   | 1   | 2   | 3   | 4   | 5   | 6   |
-| ---- | --- | --- | --- | --- | --- | --- | --- |
-| 首次 | 21  | 1   | 16  | 31  | 11  | 26  | 6   |
-| 碰撞 |     | 36  |     |     | 46  |     | 41  |
-
-#### 3) 结论
-
-- 如果差值和被除数之间不含有公因数，效果一样
-- 如果含有公因数，碰撞概率会变高
-
-## 3. bitmap 位图
-
-### 3.1. 原理
-
-- 一个int表示32位，可以表示32个数字，即
-
-| 0   | 1   | 2   | 3   | ... | 31  |
-| --- | --- | --- | --- | --- | --- |
-| 0   | 0   | 1   | 0   | ... | 1   |
-
-- 代表2和31都在集合中
-- 按照在二进制中的位置表示对应的数字
-- 使用数组可以将一个很大的内存区域集合在一起，根据对应的位置说明对应的数字
-
-### 3.2. 举例
-
-- 对一大批不同的11位qq号进行排序
-
-#### 1) 实现
-
-- 11位qq号最大99999999999，也就是需要 $1 \times 10^{12}$ 个bit保存
-- 计算成int数组 $1 \times 10^{12} / 32 = 31250000000$
-
-```cpp
-#define MAX_QQ_NUMBER 99999999ll
-const long BITS_PER_LONG = 8 * sizeof(long);
-long qq_bitmap[MAX_QQ_NUMBER / BITS_PER_LONG + 1] = {0};
-
-void set_qq_bitmap(long long qq) {
-    if (qq > MAX_QQ_NUMBER) return;
-    // 假设32位，long为32位
-    // 先将输入的qq按照32一组找到对应的位置，然后将在其在32个一组中的位置置1
-    // 61 => qq_bitmap[1] |= (1 << 29)
-    qq_bitmap[qq / BITS_PER_LONG] |= (1 << (qq % BITS_PER_LONG));
-}
-
-long check_qq_bitmap(long long qq) {
-    if (qq > MAX_QQ_NUMBER) return 0;
-    // 同理，找到qq按照32个一组的位置，检查对应的32个数字中的位置是否为1
-    return qq_bitmap[qq / BITS_PER_LONG] & (1 << (qq % BITS_PER_LONG));
-}
-```

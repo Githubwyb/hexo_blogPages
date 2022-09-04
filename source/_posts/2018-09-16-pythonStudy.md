@@ -827,6 +827,13 @@ timestamp_s = int(timestamp_float)
 time_str = time.strftime("%Y-%m-%d %H:%M:%S", time_s)
 ```
 
+### 5.3. sleep 睡眠
+
+```python
+# 睡眠1.5s
+time.sleep(1.5)
+```
+
 ## 6. math 数学库
 
 ### 6.1. 取整
