@@ -609,23 +609,9 @@ watch -n 1 free -h
 
 ### 13.1. 知识填充
 
-#### 1) 表 table
+查看 [iptables原理和源码分析](/bookPages/docs/linux-kernel/net/iptables/)
 
-nat
-
-#### 2) 链 chain
-
-- `INPUT`: 进来的数据包
-- `OUTPUT`: 外出的数据包
-- `FORWARD`: 转发数据包时
-- `PREROUTING`: 对数据包作路由选择前
-- `POSTROUTING`: 对数据包作路由选择后
-
-### 13.2. 选项
-
-- `-t [table]`: 查看具体表，表有`nat`等
-
-### 13.3. 实例
+### 13.2. 实例
 
 ```shell
 ########## 插入规则 ##########
@@ -778,6 +764,7 @@ sed -i 's/aaa''{''/bbb''{''/' aaa.txt
 ## 17. echo 输出
 
 - `-n`: 不换行
+- `-e`: 解析`\n`等字符，默认不解析
 
 ## 18. diff & patch 差异输出和应用
 
@@ -1548,6 +1535,12 @@ sshfs xxx@xxx.xxx.xxx.xxx:/aaa ~/xxx
 CMakeLists.txt编写参见[CMakeLists.txt](/blogs/2019-06-03-makefile/#CMakeLists)
 
 ### 12.1 基本使用命令
+
+- `-DCMAKE_BUILD_TYPE`
+    - `STRING=Debug`: 在linux上会编译出`libxxxd.so`
+    - `STRING=Release`
+    - `STRING=MinSizeRel`
+    - `STRING=RelWithDebInfo`: 在linux上会编译出`libxxxrd.so`
 
 ```shell
 # 指定build目录生成工程

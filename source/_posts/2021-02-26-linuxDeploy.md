@@ -22,7 +22,7 @@ linux deploy是在android手机上使用chroot搭建的linux环境，可以在�
 ## 2. <span id="source_url">镜像站列表</span>
 
 - ubuntu: `http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports`
-- arch linux: `http://mirrors.ustc.edu.cn/archlinuxarm`
+- arch linux: `http://mirrors.tuna.tsinghua.edu.cn/archlinuxarm`
 
 ## 3. 安装
 
@@ -105,8 +105,8 @@ linux deploy是在android手机上使用chroot搭建的linux环境，可以在�
 - 使用下面命令进行安装
 
 ```shell
-sudo pacman -S git
-sudo git clone https://aur.archlinux.org/yay-git.git
+cd /path/to/dir
+git clone https://aur.archlinux.org/yay-git.git
 cd yay-git
 makepkg -si
 ```
@@ -114,6 +114,43 @@ makepkg -si
 **报错fakeroot错误**
 
 参考这篇博客[解决chroot/proot/wsl容器安装archlinux不能使用fakeroot的问题](https://zsxwz.com/2021/02/08/%e8%a7%a3%e5%86%b3chroot-proot-wsl%e5%ae%b9%e5%99%a8%e5%ae%89%e8%a3%85archlinux%e4%b8%8d%e8%83%bd%e4%bd%bf%e7%94%a8fakeroot%e7%9a%84%e9%97%ae%e9%a2%98/)
+
+### 1.3. fakeroot
+
+- 原始的fakeroot不能使用yay，参考上面的链接，安装
+
+```shell
+# 安装依赖
+sudo pacman -S po4a automake autoconf --overwrite "*" --needed
+# 老的可能不是pacman装的，新装一个覆盖一下
+sudo pacman -S fakeroot --overwrite "*"
+# 然后再卸掉
+sudo pacman -Rnsuc fakeroot
+
+# 安装一个debian版本的，这个是为了让fakeroot-tcp能编译通过
+wget http://ftp.debian.org/debian/pool/main/f/fakeroot/fakeroot_1.29.orig.tar.gz
+tar -xzvf fakeroot_1.29.orig.tar.gz
+cd fakeroot_1.29
+./bootstrap
+./configure --prefix=/opt/fakeroot --libdir=/opt/fakeroot/libs --disable-static --with-ipc=tcp
+make
+sudo make install
+
+# 创建软链接
+ln -s /opt/fakeroot/bin/fakeroot /usr/bin/
+ln -s /opt/fakeroot/bin/faked /usr/bin/
+
+# 安装fakeroot-tcp
+cd ..
+git clone https://aur.archlinux.org/fakeroot-tcp.git
+cd fakeroot-tcp
+#安装，应该是安装不上去的，但是生成了离线安装包。
+makepkg
+#删除之前编译的fakeroot
+sudo rm -rf /opt/fakeroot
+#覆盖安装，离线安装包
+sudo pacman -U --overwrite "*" fakeroot*.pkg.tar.xz
+```
 
 # 四、软件使用
 

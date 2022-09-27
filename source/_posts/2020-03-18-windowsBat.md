@@ -612,6 +612,25 @@ Windows IP 配置
 
 ```
 
+## 26. 弹框获取管理员权限
+
+```bat
+set current_dir=%~dp0
+echo %current_dir%
+
+@echo off&color 17
+if exist "%SystemRoot%\SysWOW64" path %path%;%windir%\SysNative;%SystemRoot%\SysWOW64;%~dp0
+bcdedit >nul
+if '%errorlevel%' NEQ '0' (goto UACPrompt) else (goto UACAdmin)
+:UACPrompt
+%1 start "" mshta vbscript:createobject("shell.application").shellexecute("""%~0""","::",,"runas",1)(window.close)&exit
+exit /B
+:UACAdmin
+
+cd /d %current_dir%
+```
+
+
 ## 小技巧和踩坑记
 
 ### 1. 逻辑判断中多行设置变量不符合预期

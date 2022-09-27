@@ -115,6 +115,21 @@ sudo pacman -S plasma kde-applications xorg-server xorg-drivers sddm
 Driver      "modesetting"
 ```
 
+### 4.2. 开机默认启用小键盘
+
+- 安装`numlockx`
+
+```shell
+sudo pacman -S numlockx
+```
+
+- 修改`/etc/sddm.conf`
+
+```conf
+[General]
+Numlock=on
+```
+
 # 二、日常操作
 
 ## 1. 常用命令
@@ -140,6 +155,9 @@ sudo pacman -Sys xxx
 
 # c 从缓存仓库清理旧包，cc清理所有
 sudo pacman -Scc
+
+# --overwrite "*" 遇到冲突文件，强制覆盖
+sudo pacman -S xxx --overwrite "*"
 
 ########## R --remove 移除 ##########
 # u 移除用不到的包
@@ -203,7 +221,7 @@ sudo journalctl --vacuum-time=5d
 
 ```shell
 => sudo pacman -S pkgfile
-=> pkgfile -u
+=> sudo pkgfile -u
 => pkgfile -s netstat
 core/net-tools
 community/munin-node
@@ -240,12 +258,13 @@ trust anchor --remove 'pkcs11:id=%2E%57%67%B4%D5%D0%13%93%52%B5%4F%7C%87%1C%FC%4
 sudo pacman -S asp
 # 搜索安装包
 asp list-all | grep linux
-# 下载安装包编译脚本
-cd /path/to/package-source-save
+# 到一个目录，下载安装包编译脚本
+cd /path/to/dir
 asp checkout linux
-# 进入下载安装包源码和安装依赖
+# 进入下载安装包源码和安装依赖，要找到PKGBUILD所在的目录
 cd linux
-makepkg -so
+# 只下载源码，不编译，并且安装依赖，不检查PGP签名
+makepkg -so --skippgpcheck
 # 编译不安装
 makepkg
 ```
@@ -257,6 +276,7 @@ makepkg
 - `-s`: 安装编译依赖
 - `-o`: 只下载源码并解压，不编译
 - `-r`: 在安装完成后移除安装依赖
+- `--skippgpcheck`: 不检查PGP签名
 
 ### 6.2. git仓库太大无法clone的解决
 
@@ -394,6 +414,10 @@ MariaDB [(none)]> exit;
 ```shell
 mysql -u xxx -p
 ```
+
+### 2.2. gvim
+
+- 默认的vim不包含剪贴板相关功能，使用gvim可以包含此功能
 
 ## 3. vmware
 

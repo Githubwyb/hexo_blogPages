@@ -117,6 +117,159 @@ SYSCALL_DEFINE3(bind, int, fd, struct sockaddr __user *, umyaddr, int, addrlen)
 - unix套接字仅支持`SOCK_STREAM`、`SOCK_RAW`、`SOCK_DGRAM`、`SOCK_SEQPACKET`这几种type，源码看`unix_create()`
 - 使用unix套接字，protocol参数必须为`0`，原因查看`unix_create()`的第一个判断
 
+## 2. 文件相关
+
+### 2.1. 监听文件变化 inotify
+
+- inotify是linux内核给用户态提供的一个监听文件变化的接口
+
+```cpp
+class FileMonitor {
+public:
+    FileMonitor(const std::string &path) : m_filePath(path) {
+        std::promise<void> p;
+        m_monitorFuture = std::async(std::launch::async, [&p, path, this]() {
+            p.set_value();
+            const std::string tag = "file monitor loop";
+            LOGI(WHAT("{} begin", tag));
+
+            auto fd = inotify_init();
+            if (fd < 0) {
+                LOGE(WHAT("{}, inotify_init failed", tag),
+                     REASON("ec: {}", std::to_string(std::error_code(errno, std::system_category()))),
+                     WILL("exit thread"));
+                return;
+            }
+
+            {
+                std::lock_guard<std::mutex> lock(m_fdMutex);
+                m_monitorFD = fd;
+            }
+
+            // 添加文件监听的函数
+            auto addFileWatch = [&tag, this]() {
+                int watchFD = -1;
+                while (true) {
+                    // 监听所有事件，除了访问，打开和关闭，主要监听修改删除
+                    watchFD = inotify_add_watch(m_monitorFD, m_filePath.c_str(),
+                                                IN_ALL_EVENTS ^ (IN_ACCESS | IN_OPEN | IN_CLOSE));
+                    if (watchFD > 0) {
+                        break;
+                    }
+                    LOGW(WHAT("{}, inotify_add_watch failed", tag),
+                         REASON("ec: {}", std::to_string(std::error_code(errno, std::system_category()))),
+                         WILL("retry after 1 second"));
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                }
+
+                // 这里赋值成成员变量，用于析构时可以退出
+                {
+                    std::lock_guard<std::mutex> lock(m_fdMutex);
+                    m_watchFD = watchFD;
+                }
+            };
+            addFileWatch();
+            while (true) {
+                char buffer[(sizeof(struct inotify_event) + NAME_MAX + 1)] = {0};
+                // 阻塞读取event事件
+                auto len = read(fd, buffer, sizeof(struct inotify_event));
+                // 监听的fd被关掉，也就是外部调用了inotify_rm_watch。当前仅析构函数会调用，直接退出
+                auto err = errno;
+                if (len < 0 && err == EBADF) {
+                    LOGI(WHAT("{}, stop monitor file {}", tag, m_filePath));
+                    break;
+                }
+                /* Some signal, likely ^Z/fg's STOP and CONT interrupted the inotify read, retry */
+                if (len < 0 && err != EINTR && err != EAGAIN) {
+                    LOGW(WHAT("{}, read get err", tag),
+                         REASON("get error {}", std::to_string(std::error_code(err, std::system_category()))),
+                         WILL("retry after 1 second"));
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                    continue;
+                }
+
+                if (len < (int)sizeof(struct inotify_event)) {
+                    LOGW(WHAT("{}, read len error", tag), REASON("len {}, need {}", len, sizeof(struct inotify_event)),
+                         WILL("retry after 1 second"));
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                    continue;
+                }
+
+                int index = 0;
+                while (index < len) {
+                    auto event = reinterpret_cast<struct inotify_event *>(buffer + index);
+                    index += sizeof(struct inotify_event) + event->len;
+                    if (event->wd != m_watchFD) {
+                        continue;
+                    }
+                    if (event->mask & (IN_IGNORED)) {
+                        continue;
+                    }
+
+                    // 这个文件被删除或重命名，需要重新进行添加
+                    if (event->mask & (IN_DELETE_SELF | IN_MOVE_SELF)) {
+                        LOGI(WHAT("{}, file {} was renamed or deleted, retry open", tag, m_filePath));
+                        {
+                            std::lock_guard<std::mutex> lock(m_fdMutex);
+                            inotify_rm_watch(fd, m_watchFD);
+                            m_watchFD = -1;
+                        }
+                        addFileWatch();
+                        // 到这里说明文件重新创建，同样认为是修改，调用修改回调
+                    }
+                    // 文件发生变化
+                    LOGI(WHAT("file {} change", m_filePath));
+                }
+            }
+
+            {
+                std::lock_guard<std::mutex> lock(m_fdMutex);
+                if (m_monitorFD >= 0) {
+                    if (m_watchFD >= 0) {
+                        inotify_rm_watch(m_monitorFD, m_watchFD);
+                        m_watchFD = -1;
+                    }
+                    close(m_monitorFD);
+                    m_monitorFD = -1;
+                }
+            }
+
+            LOGI(WHAT("{} end", tag));
+        });
+        p.get_future().wait();
+    }
+
+    ~FileMonitor() {
+        do {
+            std::lock_guard<std::mutex> lock(m_fdMutex);
+            if (m_monitorFD >= 0) {
+                if (m_watchFD >= 0) {
+                    inotify_rm_watch(m_monitorFD, m_watchFD);
+                    m_watchFD = -1;
+                }
+                close(m_monitorFD);
+                m_monitorFD = -1;
+            }
+            // 可能还没打开就关闭了，这里确保一下future是正常的，防止死锁
+        } while (m_monitorFuture.wait_for(std::chrono::milliseconds(1)) != std::future_status::ready);
+    }
+
+    void registerMonitor(std::function<void()> callback) {
+        std::lock_guard<std::mutex> lockGuard(m_callbackMutex);
+        m_monitors.emplace_back(callback);
+    }
+
+private:
+    std::string m_filePath;
+    std::future<void> m_monitorFuture;
+    std::mutex m_fdMutex;
+    int m_monitorFD = -1;  // inotify的句柄
+    int m_watchFD = -1;    // 被添加的文件句柄
+    std::mutex m_callbackMutex;
+    std::vector<std::function<void()>> m_monitors;
+};
+```
+
 # 五、底层的几个机制
 
 ## 1. 惊群现象和处理

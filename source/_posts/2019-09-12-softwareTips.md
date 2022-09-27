@@ -102,3 +102,23 @@ reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colou
 ## 1. windows安装linux虚拟机启动报`A fault has occurred causing a virtual CPU to enter the shutdown state`
 
 - 看看是不是装了`vmare 16.0`，是的话更新到最新版vmware，将对应的虚拟机迁移到新版本即可，`16.0`存在bug
+
+## 九、Visual Studio Community
+
+### 1. 增加评估时间
+
+参考 [https://github.com/beatcracker/VSCELicense](https://github.com/beatcracker/VSCELicense)
+
+- 使用管理员启动powershell
+- 把仓库clone下来，cd到目录
+
+```bat
+@REM 添加可执行策略
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
+@REM 导入powershell命令
+Import-Module -Name .\VSCELicense.psd1
+@REM 查看当前过期时间
+Get-VSCELicenseExpirationDate -Version 2015
+@REM 基于当前时间增加评估时间，多次执行效果一样，不会多增加时间，而且最大31
+Set-VSCELicenseExpirationDate -Version 2015 -AddDays 31
+```

@@ -604,6 +604,52 @@ int clientInitUnix(const char *unixPath) {
 
 - 和tcp不同点在于，服务端不需要listen，调用完bind就可以直接recv
 - 客户端不需要connect，创建完socket就可以直接调用`sendto`
+- 如果对端是一个服务器，但是端口没开放，会回复icmp端口不可达，这个需要通过设置sockopt才能在recvfrom时返回错误，不然就会阻塞
+- 如果对端地址不可达，那就无法得知，不会回复icmp不可达的信息
+
+### 2.2. 客户端代码
+
+```cpp
+int main(int argc, char *argv[]) {
+    /********** 1. 创建套接字 **********/
+    auto fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (fd < 0) {
+        LOG_ERROR("socket error");
+        return -1;
+    }
+    // 想要收到icmp端口不可达的信息，需要设置下面的选项
+    int val = 1;
+    setsockopt(fd, IPPROTO_IP, IP_RECVERR, &val, sizeof(val));
+
+    /********** 2. 发送消息 **********/
+    LOGI(WHAT("Begin send"));
+    auto msg = "hello";
+    struct sockaddr_in addr = {0};
+    addr.sin_family = AF_INET;                    // ipv4
+    addr.sin_port = htons(5555);                  // 端口号转换为网络字节序
+    addr.sin_addr.s_addr = inet_addr("10.240.17.101");  // 连接本机的服务器
+    auto ret = sendto(fd, msg, strlen(msg), 0, reinterpret_cast<sockaddr *>(&addr), sizeof(addr));
+    if (ret < 0) {
+        LOG_ERROR("send error {}", std::to_string(std::error_code(errno, std::system_category())));
+        return 1;
+    }
+
+    /********** 3. 接收服务端的消息 **********/
+    LOGI(WHAT("Begin recv"));
+    char buf[1024] = {0};
+    // recv函数会直接阻塞，直到服务端发送消息过来
+    socklen_t len = sizeof(addr);
+    ret = recvfrom(fd, buf, sizeof(buf), 0, reinterpret_cast<sockaddr *>(&addr), &len);
+    if (ret < 0) {
+        LOG_ERROR("recv error {}", std::to_string(std::error_code(errno, std::system_category())));
+        return 1;
+    }
+    LOG_DEBUG("recv msg {}", buf);
+
+    /********** 4. 关闭客户端套接字 **********/
+    close(fd);
+}
+```
 
 ## 3. 转移文件句柄到另一个进程
 
@@ -666,20 +712,20 @@ void sendFd(int clientFd) {
 }
 ```
 
-- 接受端
+- 接收端
 
 ```cpp
 int recvFd(int clientFd) {
     /********** 1. 构建msg进行接收文件描述符 **********/
     struct msghdr msg = {0};
-    // 这里留下可接受的空间即可，其他不用设置
+    // 这里留下可接收的空间即可，其他不用设置
     union {
         struct cmsghdr cm;
-        char control[CMSG_SPACE(sizeof(clientFd))];  // 只接受一个文件描述符，所以只需要一个空间
+        char control[CMSG_SPACE(sizeof(clientFd))];  // 只接收一个文件描述符，所以只需要一个空间
     } control_un;
     msg.msg_control = control_un.control;
     msg.msg_controllen = sizeof(control_un.control);
-    // 这里使用同样的或者更大的内存进行接受都可以，但是必须分配内存进行接受
+    // 这里使用同样的或者更大的内存进行接收都可以，但是必须分配内存进行接收
     struct iovec vec = {0};
     unsigned char data = 0;
     vec.iov_base = &data;
@@ -688,7 +734,7 @@ int recvFd(int clientFd) {
     msg.msg_iovlen = 1;
     LOG_DEBUG("msg_controllen {}, control_un.cm.cmsg_len {}", msg.msg_controllen, control_un.cm.cmsg_len);
 
-    /********** 3. 接受文件描述符 **********/
+    /********** 3. 接收文件描述符 **********/
     auto ret = recvmsg(clientFd, &msg, 0);
     if (ret < 0) {
         LOG_ERROR("recvmsg error");
