@@ -414,3 +414,8 @@ aaaasdf
 ## 1. 浏览器不拉取最新代码
 
 `Ctrl + F5`强制刷新，适用于chrome、edge
+
+## 2. 访问https站点，其中的http请求被转成https
+
+- 这个是chrome的安全设置，不允许在https页面访问http的请求，会自动提升为https
+- 在火狐上没有这个限制

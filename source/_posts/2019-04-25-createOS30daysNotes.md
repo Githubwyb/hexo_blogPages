@@ -101,7 +101,8 @@ GS ---- segment part 3      没有名称
 - CPU寄存器很少，32位也只有44个字节的空间，所以需要内存当**外部储存器**
 - 内存和CPU使用管脚连接，速度虽然光速，但是比起来内部寄存器还是慢很多
 - 程序代码储存在内存中，一条一条读取出来进行运行
-- 启动区内容的装载地址为`0x00007c00 -- 0x00007dff`，所以ORG指令选择此处为起始地址，也仅有512字节
+- `0xf0000`附近存在bios本身
+- 启动区内容的装载地址为`0x00007c00 -- 0x00007dff`，为IBM和intel规定的。所以ORG指令选择此处为起始地址，也仅有512字节
 
 # 第3天
 
@@ -180,7 +181,7 @@ _io_hlt:	; void io_hlt(void);
 
 - 调色板是显卡的一个模块，由于颜色只有8位，也就是256色，但是正常RGB有24位
 - 所以我们可以给显卡设置256种颜色，0-255分别表示一种颜色
-- 在用的时候直接设置对应内存为一个号码，显卡就会直接将对应位置显示成对应的颜色
+- **<font color="red">在用的时候直接设置对应内存为一个号码，显卡就会直接将对应位置显示成对应的颜色</font>**
 - 但是cpu中断和调色板的io存取需要使用汇编来实现，c语言无法实现
 
 **设置调色板**
@@ -208,4 +209,326 @@ void set_palette(int start, int end, unsigned char *rgb) {
 }
 ```
 
+# 第5天
 
+## 1. 字符点阵
+
+- 假设一个字符占用像素点为8x16，那么可以使用`char[16]`表示一个字符的点阵
+- 作者找其他人要了一个`hankaku.txt`里面包含了`char`里面所有可见字符的点阵，总共由256个字符，占用4096个字节
+- 在对应的vram位置设置color就可以直接显示字符
+
+```cpp
+// 由hankaku.txt编译而来
+extern char hankaku[4096];
+
+/**
+ * @brief 输入一个字符
+ *
+ * @param vram 显示内存起始位置
+ * @param xsize 屏幕的宽度，因为要换行显示，需要知道宽度
+ * @param x 位置x
+ * @param y 位置y
+ * @param color 字体颜色
+ * @param c 字符
+ */
+static void put_font8(char *vram, int xsize, int x, int y, char color, char c) {
+    int i, j;
+    char *font8 = hankaku + c * 16;
+    for (i = 0; i < 16; ++i) {
+        // 找到对应行的最左边
+        char *p = vram + (y + i) * xsize + x;
+        char tmp = font8[i];
+        for (j = 0; j < 8; ++j) {
+            if ((tmp & (0x80 >> j)) > 0) {
+                p[j] = color;
+            }
+        }
+    }
+}
+```
+
+## 2. GDT和IDT
+
+### 2.1. 分段
+
+- 因为操作系统可以执行多个进程，但是每个进程使用的内存是独立的，需要使用分段让每个进程使用的内存隔开
+
+### 2.2. GDT: global segment descriptor table
+
+- 全局段记录表
+- 段寄存器是16位，一位一个字节。一个段描述结构体是8个字节占用3位，所以低三位不能用，只有13位，一共8192个段描述结构体组成表
+- 段寄存器可以指示65536个字节（64KB），cpu没这么大内存存储，所以需要放到内存里面，我们可以任意指定一块内存，将首地址和个数信息放到GDTR寄存器中就好了
+- 段描述结构体见下面定义，来自于cpu手册，一共8个字节
+
+```cpp
+/* 8 byte segment descriptor */
+struct desc_struct {
+    u16 limit0;         // 段管理的内存上限low
+    u16 base0;          // 段的对应的内存实际地址low
+    u16 base1 : 8;      // 段的对应的内存实际地址mid
+    u16 type : 4;
+    u16 s : 1;          // 系统段为1，普通段为0
+    u16 dpl : 2;
+    u16 p : 1;
+    u16 limit1 : 4;     // 段管理的内存上限low
+    u16 avl : 1;
+    u16 l : 1;
+    u16 d : 1;
+    u16 g : 1;          // 为1就是4K为单位定义上限（上限1，管理内存4K），为0则以一个字节为单位
+    u16 base2 : 8;      // 段的对应的内存实际地址high
+} __attribute__((packed));
+```
+
+- 随意取内存一段地址 `0x00270000 - 0x0027ffff` 这一段存储
+- 将所有段初始化成全0
+- 将段号1设置位cpu管理段，在内存的地址为0，大小为4GB，为32位内管理的最大内存，可读可写
+- 段号为2的设置为`bootpack.hrb`程序所在的内存段，地址在0x00280000，大小512K，可读可执行
+- 最后通过汇编导出的函数写入GDTR，因为c语言无法设置GDTR
+
+```cpp
+#define ADR_GDT 0x00270000       // GDT的内存位置
+#define LIMIT_GDT 0x0000ffff     // GDT占用的字节数
+#define ADR_BOTPAK 0x00280000    // bootpack.hrb所在的地址
+#define LIMIT_BOTPAK 0x0007ffff  // bootpack.hrb最大为512k
+#define AR_DATA32_RW 0x4092      // 数据段，可读写
+#define AR_CODE32_ER 0x409a      // 代码段，可读可执行，不可写
+
+static void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar) {
+    if (limit > 0xfffff) {
+        ar |= 0x8000; /* G_bit = 1 */
+        limit /= 0x1000;
+    }
+    sd->limit_low = limit & 0xffff;
+    sd->base_low = base & 0xffff;
+    sd->base_mid = (base >> 16) & 0xff;
+    sd->access_right = ar & 0xff;
+    sd->limit_high = ((limit >> 16) & 0x0f) | ((ar >> 8) & 0xf0);
+    sd->base_high = (base >> 24) & 0xff;
+    return;
+}
+
+void init_gdtidt(void) {
+    struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
+    struct GATE_DESCRIPTOR *idt = (struct GATE_DESCRIPTOR *)ADR_IDT;
+    int i;
+
+    // 初始化GDT
+    for (i = 0; i < LIMIT_GDT / sizeof(struct SEGMENT_DESCRIPTOR); i++) {
+        set_segmdesc(gdt + i, 0, 0, 0);
+    }
+    // cpu管理的总内存
+    set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, AR_DATA32_RW);
+    // bootpack.hrb的段
+    set_segmdesc(gdt + 2, LIMIT_BOTPAK, ADR_BOTPAK, AR_CODE32_ER);
+    load_gdtr(LIMIT_GDT, ADR_GDT);
+    ...
+}
+```
+
+### 2.3. IDT: interrupt descriptor table
+
+- 中断记录表，结构定义在cpu手册中
+
+<img src="2022-10-24-01.png" />
+
+- 代码定义的结构
+
+```cpp
+struct idt_bits {
+    u16 ist : 3;
+    u16 zero : 5;
+    u16 type : 5;
+    u16 dpl : 2;    // Descriptor Privilege Level
+    u16 p : 1;
+} __attribute__((packed));
+
+struct gate_struct {
+    u16 offset_low;         // 函数在段内的偏移地址low
+    u16 segment;            // 段配置对应的偏移，比如第2号段，就是 2 * 8，一个段配置8个字节
+    struct idt_bits bits;
+    u16 offset_middle;      // 函数在段内的偏移地址mid
+#ifdef CONFIG_X86_64
+    u32 offset_high;
+    u32 reserved;
+#endif
+} __attribute__((packed));
+```
+
+### 2.4. GDT、IDT、LDT和TSS的关系
+
+- GDT，IDT都是全局的。LDT是局部的（在GDT中有它的描述符）
+- GDT用来存储描述符（门或非门）；系统中几个CPU,就有几个GDT
+- IDT整个系统只有一个
+- 系统启动时候需要初始化GDT和IDT。LDT和进程相关，并不一定必有
+- TSS: Task-State Segment，任务状态段，保存任务状态信息的系统段
+- TSS只能存在于GDT中
+- Task-Gate Descriptor，任务门描述符，用来间接的宝玉引用任务。可以放到GDT、LDT、IDT中，里面的TSS段选择指向GDT的TSS描述符
+- 下图为32位TSS结构
+
+<img src="2022-10-24-03.png" />
+
+- 下图为64位TSS结构
+
+<img src="2022-10-24-02.png" />
+
+# 第六天 中断处理
+
+## 1. PIC: Programmable interrupt controller
+
+- 可编程中断控制器
+- 就是一个芯片，将8个中断信号合成一个中断信号输出给cpu
+- 当前电脑上不止8个外部设备，所以使用两个pic合并成15个中断信号（主PIC的IRQ2被从PIC占据）
+
+<img src="2022-10-23-01.png" />
+
+- PIC是外部设备，不能直接使用C语言的等于赋值，需要使用`io_out8`
+- 主从PIC的寄存器赋值需要使用端口进行，具体端口定义如下
+
+```cpp
+#define PIC0_ICW1 0x0020    // initial controlword，初始化控制数据。用于设置中断的模式，0x11为边沿触发
+#define PIC0_OCW2 0x0020    // 用于通知PIC已经收到某中断，0x60+IRQ号即可，IRQ1就是0x61
+#define PIC0_IMR 0x0021     // interrupt maskregister，中断屏蔽寄存器，8位对应8路中断信号，为1就屏蔽
+#define PIC0_ICW2 0x0021    // 中断号的起始，设置为0x20，0-7号IRQ触发的中断号为0x20-0x27
+#define PIC0_ICW3 0x0021    // 控制主从设定，第几位为1就代表几号IRQ和从PIC相连，当前cpu写死使用0x00000100，也就是IRQ2
+#define PIC0_ICW4 0x0021    // 用于设置中断模式，0x01为无缓冲区模式
+
+#define PIC1_ICW1 0x00a0    // 用于设置中断的模式，0x11为边沿触发
+#define PIC1_OCW2 0x00a0    // 用于通知PIC已经收到某中断，设置这个同时也要设置PIC0_OCW2，0x62
+#define PIC1_IMR 0x00a1     // interrupt maskregister，中断屏蔽寄存器，8位对应8路中断信号，为1就屏蔽
+#define PIC1_ICW2 0x00a1    // 中断号的起始，设置为0x28，0-7号IRQ（对应主PIC的8-15号IRQ）触发的中断号为0x28-0x2f
+#define PIC1_ICW3 0x00a1    // 仅用低3位表示和主设备的几号IRQ相连，当前写死为2，为主PIC的IRQ2
+#define PIC1_ICW4 0x00a1    // 用于设置中断模式，0x01为无缓冲区模式
+```
+
+- `0x00-0x1f`中断号不能使用，是cpu内部用于产生错误的中断号，所以从0x20开始
+- 设置PIC的代码如下
+
+```cpp
+void init_pic() {
+    io_out8(PIC0_IMR, 0xff);  // 禁止所有中断
+    io_out8(PIC1_IMR, 0xff);  // 禁止所有中断
+
+    io_out8(PIC0_ICW1, 0x11);    // 边沿触发模式
+    io_out8(PIC0_ICW2, 0x20);    // IRQ0-7由INT20-27接收
+    io_out8(PIC0_ICW3, 1 << 2);  // PIC1由IRQ2连接
+    io_out8(PIC0_ICW4, 0x01);    // 无缓冲区模式
+
+    io_out8(PIC1_ICW1, 0x11);    // 边沿触发模式
+    io_out8(PIC1_ICW2, 0x28);    // IRQ8-15由INT28-2f接收
+    io_out8(PIC1_ICW3, 1 << 1);  // PIC1由IRQ2连接
+    io_out8(PIC1_ICW4, 0x01);    // 无缓冲区模式
+
+    io_out8(PIC0_IMR, 0xfb);  // 11111011 PIC1以外全部禁止
+    io_out8(PIC1_IMR, 0xff);  // 禁止所有中断
+}
+```
+
+## 2. 中断号对应的中断类型
+
+| 硬件中断号 | 系统中断号 | 用途                    |
+| ---------- | ---------- | ----------------------- |
+| IRQ0       | INT20      |                         |
+| IRQ1       | INT21      | PS/2键盘                |
+| IRQ2       | INT22      | PIC1的中断              |
+| IRQ3       | INT23      |                         |
+| IRQ4       | INT24      |                         |
+| IRQ5       | INT25      |                         |
+| IRQ6       | INT26      |                         |
+| IRQ7       | INT27      | 初始化PIC可能引发的中断 |
+| IRQ8       | INT28      |                         |
+| IRQ9       | INT29      |                         |
+| IRQ10      | INT2a      |                         |
+| IRQ11      | INT2b      |                         |
+| IRQ12      | INT2c      | PS/2鼠标                |
+| IRQ13      | INT2d      |                         |
+| IRQ14      | INT2e      |                         |
+| IRQ15      | INT2f      |                         |
+
+## 3. 注册中断函数
+
+- 也就是将中断函数地址写入idt中
+- 找到对应中断号对应的idt地址，将函数地址和对应的段号放进去，设置标志位即可
+- 由于中断最终要调用IRETD汇编指令退出，所以使用汇编函数调用c函数的方式来进行，并在里面存储了中断打断的进程的上下文信息
+
+```cpp
+// 注册中断处理函数
+set_gatedesc(idt + 0x21, (int)asm_inthandler21, 2 * 8, AR_INTGATE32);
+set_gatedesc(idt + 0x27, (int)asm_inthandler27, 2 * 8, AR_INTGATE32);
+set_gatedesc(idt + 0x2c, (int)asm_inthandler2c, 2 * 8, AR_INTGATE32);
+```
+
+## 4. 中断处理
+
+- 中断中尽可能少执行代码，所以将中断数据放到全局变量中，在外部进程上下文中读取变量进行处理
+
+# 第七天 FIFO与鼠标控制
+
+## 1. 鼠标键盘数据读取
+
+- 鼠标键盘都属于键盘控制电路，数据获取都在端口`0x0060`
+- 只能通过中断号来判断此端口数据是属于鼠标还是键盘
+
+## 2. fifo
+
+- 由于中断数据可能很多，所以需要使用fifo进行存取，防止数据丢失
+- fifo自己参考linux的实现，没有使用书上的实现，具体原理查看 [linux源码分析-kfifo](/bookPages/docs/linux-kernel/data-structures/kfifo/)
+
+## 3. 鼠标初始化
+
+- 由于一开始鼠标并不是必须品，后来鼠标才加入
+- 鼠标加入后，当时使用者并不怎么使用，为了防止频繁中断，将鼠标控制默认关闭了
+- 所以想要使用鼠标，还需要进行特定操作进行激活鼠标
+
+```cpp
+#define PORT_KEYDAT 0x0060
+#define PORT_KEYSTA 0x0064
+#define PORT_KEYCMD 0x0064
+#define KEYSTA_SEND_NOTREADY 0x02
+#define KEYCMD_WRITE_MODE 0x60
+#define KBC_MODE 0x47
+
+/**
+ * @brief 等待键盘控制器可以发送数据
+ *
+ */
+void wait_KBC_sendready() {
+    for (;;) {
+        if ((io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0) {
+            break;
+        }
+    }
+}
+
+/**
+ * @brief 键盘控制器的初始化
+ *
+ */
+void init_keyboard() {
+    wait_KBC_sendready();
+    io_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
+    wait_KBC_sendready();
+    io_out8(PORT_KEYDAT, KBC_MODE);
+    return;
+}
+
+#define KEYCMD_SENDTO_MOUSE 0xd4
+#define MOUSECMD_ENABLE 0xf4
+
+/**
+ * @brief 使能鼠标
+ *
+ */
+void enable_mouse() {
+    wait_KBC_sendready();
+    io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
+    wait_KBC_sendready();
+    io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
+    // 如果成功，就会发送ACK(0xfa)
+}
+```
+
+# 第八天 鼠标控制与32位模式切换
+
+## 1. 鼠标数据解读
+
+- 鼠标使能后会先发送`0xfa`数据，然后会连续三个中断发送三个字节数据

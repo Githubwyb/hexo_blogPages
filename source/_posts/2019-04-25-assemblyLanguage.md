@@ -38,7 +38,7 @@ JBE     ; "Jump if below or equal"，小于等于跳转，否则继续执行，�
 JC      ; "Jump if carry"，捕获"进位标志"，如果为1则跳转
 JNC     ; "Jump if not carry"，捕获"进位标志"，如果为0则跳转
 EQU     ; 定义常数，相当于define
-HLT     ; CPU停止动作，外部事件唤醒，HLT
+HLT     ; CPU停止动作，外部事件唤醒，可能时键盘、鼠标等外部事件
 PUSH    ; 将寄存器内容入栈，PUSH EBP
 POP     ; 将栈顶内容设置到寄存器内，POP EBP
 CLI     ; 禁止CPU中断
@@ -119,7 +119,7 @@ _write_mem8:	; void write_mem8(char *addr, char data);
     RET
 ```
 
-- gcc编译出来的
+- nask编译出来的
 
 ```assembly
 	GLOBAL	_write_mem8

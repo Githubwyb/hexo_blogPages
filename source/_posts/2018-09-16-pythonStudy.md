@@ -46,7 +46,7 @@ python -m ensurepip
 
 ## 2. jupyter notebook
 
-### 安装
+### 2.1. 安装
 
 使用pip安装没有找到怎么命令行调用，使用apt可以直接命令行调用
 
@@ -54,7 +54,7 @@ python -m ensurepip
 sudo apt install jupyter-notebook
 ```
 
-### 配置远程访问
+### 2.2. 配置远程访问
 
 ```shell
 ~|⇒ jupyter notebook --generate-config      # 生成jupyter配置文件
@@ -71,6 +71,12 @@ Verify password:
 c.NotebookApp.ip = '*'              # 允许所有ip访问
 c.NotebookApp.open_browser = False  # 不自动打开浏览器
 c.NotebookApp.port = 8888           #可自行指定一个端口, 访问时使用该端口
+```
+
+### 2.3. 设置matplotlib的图像显示大小
+
+```python
+plt.rcParams["figure.figsize"] = (15.0, 12.0)
 ```
 
 ## 3. pylint 代码风格检查配置
@@ -297,6 +303,70 @@ for index, value in enumerate(listValues):
 
 - 普通的`for value in listValues:`无法修改list的值，list值修改只能用index的方式
 
+### 4.4. 索引
+
+- 没有冒号就是单纯找下标
+
+```python
+>>> a = [1, 2, 3, 4, 5, 6]
+# 正序下标
+>>> a[2]
+3
+# 超出范围
+>>> a[12]
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+IndexError: list index out of range
+# 倒序下标
+>>> a[-1]
+6
+```
+
+- 单冒号输出数组
+
+```python
+>>> a = [1, 2, 3, 4, 5, 6]
+# 取1到2，不包含2为下标的数组
+>>> a[1:2]
+[2]
+# 右边没有，代表到末尾
+>>> a[-1:]
+[6]
+# 左边没有，代表从头开始
+>>> a[:4]
+[1, 2, 3, 4]
+# 超出边界相当于没写
+>>> a[1:10]
+[2, 3, 4, 5, 6]
+# 相等是空数组
+>>> a[1:1]
+[]
+# 倒序返回空
+>>> a[2:1]
+[]
+# 倒序返回空
+>>> a[-1:1]
+[]
+```
+
+- 双冒号相当于在后面加了一个间隔
+
+```python
+>>> a = [1, 2, 3, 4, 5, 6]
+# 反转数组
+>>> a[::-1]
+[6, 5, 4, 3, 2, 1]
+# 挑奇数位置
+>>> a[::2]
+[1, 3, 5]
+# 倒序，下标不倒序为空
+>>> a[0:4:-1]
+[]
+# 4开始倒序到0，不包含0
+>>> a[4:0:-1]
+[5, 4, 3, 2]
+```
+
 ## 4. 类
 
 ### 4.1. 类的几个特殊函数
@@ -367,7 +437,7 @@ class Base(object):
 
 ## 6. 函数
 
-### lambda 匿名函数
+### 6.1. lambda 匿名函数
 
 ```python
 lambda arg1, arg2, ...argN : expression using arguments
@@ -377,6 +447,10 @@ lambda arg1, arg2, ...argN : expression using arguments
 
 - lambda 函数不能包含命令，包含的表达式不能超过一个。不要试图向 lambda 函数中塞入太多的东西；如果你需要更复杂的东西，应该定义一个普通函数，然后想让它多长就多长。
 - 就lambda而言，它并没有给程序带来性能上的提升，它带来的是代码的简洁。
+
+### 6.2. 不定参数
+
+
 
 ## 7. try 异常处理
 
@@ -868,6 +942,21 @@ with open(file_path, 'rb') as f:
     hash_value = sha256_handle.hexdigest()
 
 print(hash_value)
+```
+
+## 8. functools 内置的一些函数
+
+### 8.1. reduce
+
+- 就是python2的reduce
+- 第一个x和y为前两个元素，计算结果作为下一个x，下一个元素作为y
+
+```python
+>>> import functools
+>>> a = [1, 2, 3, 4, 5, 6]
+>>> result = functools.reduce(lambda x, y: x + y, a)
+>>> print(result)
+21
 ```
 
 # 四、好用的module推荐

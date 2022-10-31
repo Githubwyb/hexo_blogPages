@@ -373,7 +373,14 @@ C:\Users\User>tracert 199.200.2.170
 
 ## 14. netsh 网络相关命令工具
 
-### 14.1. ipv6
+### 14.1. 通用命令
+
+```bat
+:: 重置网络配置
+netsh winsock reset
+```
+
+### 14.2. ipv6
 
 - ipv6使用需要使用`netsh interface ipv6`命令
 

@@ -370,6 +370,46 @@ yay -S wps-office-cn wps-office-mui-zh-cn
 - 将设置中的`Region settings`->`Formats`->`Region`改成`zh_CN.UTF-8`
 - 重启电脑就好了，没生效就可以将`Formats`下所有都改成`zh_CN.UTF-8`再次重启就好了
 
+### 1.4. 远程桌面
+
+#### 1) 类似teamviewer，两边都能看到
+
+- 使用x11vnc，具体看 [x11vnc linux远程桌面](/blogs/2018-09-16-shellStudy/#8-2-x11vnc-linux%E8%BF%9C%E7%A8%8B%E6%A1%8C%E9%9D%A2)
+
+#### 2) 类似windows远程桌面，远程操作，本地看不到
+
+- 需要使用lightdm桌面管理器
+- 安装
+
+```shell
+sudo pacman -Sy lightdm lightdm-gtk-greeter tigervnc
+```
+
+- 配置vnc密码
+
+```shell
+sudo vncpasswd /etc/vncpasswd
+```
+
+- 配置lightdm，编辑`/etc/lightdm/lightdm.conf`，最后几行开启
+
+```shell
+[VNCServer]
+enabled=true
+command=Xvnc -rfbauth /etc/vncpasswd
+port=5900
+#listen-address=
+width=1920
+height=1080
+depth=32
+```
+
+- 启动lightdm即可
+
+```shell
+sudo systemctl restart lightdm
+```
+
 ## 2. 命令行工具
 
 ### 2.1. mysql

@@ -36,6 +36,7 @@ top: true
 5. CARP-合成/聚合复用原则: 尽量使用合成/聚合，尽量不要使用继承（因继承是强偶合）
 6. LoD-迪米特法则: 若两个类不必直接通信，则不应直接交互。成员该私有要私有
 7. SRP-单一职责原则: 就一个类而言，应该仅有一个引起它变化的原因
+8. 封装变化点，分析需求上的易变点和不变点，将易变的封装成类
 
 ## A．创建型模式
 
@@ -651,9 +652,10 @@ func main() {
 - 定义一种策略，比如从A到B
 - 使用多个方法进行实现此策略，比如飞机、汽车、走路
 - 使用者自己选择方法，调用同一个策略进行执行
+- 本质是封装公共的调用逻辑和方法，如超市的接口方法为算要付多少钱，但是存在不同的策略，如打几折，满多少送多少等
 
 ```go
-// 定义策略接口，但方法外部不可见
+// 定义策略接口，公共方法为执行策略
 type Strategy interface {
 	run()
 }
@@ -668,24 +670,26 @@ type StrategyB struct {
 	Strategy
 }
 
+// 实现具体的执行策略的方式
 func (s *StrategyA) run() {
 	fmt.Println("StrategyA")
 }
 
+// 实现具体的执行策略的方式
 func (s *StrategyB) run() {
 	fmt.Println("StrategyB")
 }
 
-// 对外暴露运行策略的函数
+// 对外仅有一个公共的执行策略的流程，如调用run
 func RunStrategy(s Strategy) {
 	s.run()
 }
 
 func main() {
-	// 执行策略A
-	RunStrategy(&StrategyA{})
-	// 执行策略B
-	RunStrategy(&StrategyB{})
+	// 使用策略A，调用公共执行流程
+	strategy.RunStrategy(&strategy.StrategyA{})
+	// 使用策略B，调用公共执行流程
+	strategy.RunStrategy(&strategy.StrategyB{})
 }
 ```
 

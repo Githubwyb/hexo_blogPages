@@ -77,17 +77,6 @@ result = zip(lambda x, y: x + y, a, b)
 print(list(result))  # [[1, 4], [2, 5], [3, 6], [4, 7]]
 ```
 
-## reduce向量挨个计算
-
-- 两个同样长度的向量，每个元素进行计算，结果和下个元素进行计算
-
-```python
-a = [1, 2, 3, 4]
-result = reduce(lambda x, y: x + y, a)
-# 输出是结果
-print(list(result))  # 1 + 2 + 3 + 4 = 10
-```
-
 # 二、第三方module
 
 ## 1. pandas
@@ -326,7 +315,7 @@ data = np.load("file directory")
 
 ### 2.3. ndarray 矩阵
 
-#### reshape 重置矩阵形状
+#### 1) reshape 重置矩阵形状
 
 从最外层开始重置矩阵形状，默认按行读取，-1代表未知数量，由numpy自动计算
 
@@ -356,9 +345,9 @@ x = np.linspace(m, n) # 同上，z默认取50
 
 ## 3. matplotlib
 
-### pyplot 画图
+### 3.1. pyplot 画图
 
-#### 新开一个页面 figure
+#### 1) 新开一个页面 figure
 
 ```python
 import matplotlib.pyplot as plt
@@ -370,7 +359,7 @@ plt.figure()
 plt.show()
 ```
 
-#### 一页多图 subplot
+#### 2) 一页多图 subplot
 
 ```python
 import matplotlib.pyplot as plt
@@ -391,7 +380,7 @@ plt.show()
 
 <img src = "2018_11_29_01.png">
 
-#### 页面属性更改
+#### 3) 页面属性更改
 
 ```python
 import matplotlib.pyplot as plt
@@ -401,10 +390,14 @@ plt.figure("abc") # 整个图表名字
 plt.xlabel("x") # 横坐标名称
 plt.ylabel("y") # 纵坐标名称
 plt.title("y = f(x)") # 当前图的名字
+ax = plt.gca()  # 获取坐标轴对象
+ax.xaxis.set_major_locator(MultipleLocator(100))    # 设置x轴刻度间隔为100
+ax.yaxis.set_major_locator(MultipleLocator(50))     # 设置y轴刻度间隔为50
+ax.xaxis.set_ticks_position('top')                  # 设置x轴刻度在上方显示，默认是下方
 plt.show()
 ```
 
-#### stem 散点图
+#### 4) stem 散点图
 
 ```python
 # coding=utf-8
@@ -423,9 +416,23 @@ plt.show()
 
 <img src = "2018_11_29_02.png">
 
+#### 5) 展示图片
+
+- 需要用到PIL库
+
+```python
+import matplotlib.pyplot as plt
+from PIL import Image
+
+img = Image.open('./screen.png')
+plt.figure()
+plt.imshow(img)
+plt.show()
+```
+
 ## 4. seaborn
 
-### 画图统计向量中值的出现次数 countplot
+### 4.1. 画图统计向量中值的出现次数 countplot
 
 ```python
 import matplotlib.pyplot as plt
@@ -439,11 +446,11 @@ plt.show()
 
 <img src = "2018_11_29_03.png">
 
-## 5.  scipy
+## 5. scipy
 
-### fftpack
+### 5.1. fftpack
 
-#### fft 快速傅里叶变换
+#### 1) fft 快速傅里叶变换
 
 ```python
 from scipy.fftpack import fft

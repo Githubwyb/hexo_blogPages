@@ -65,6 +65,7 @@ XMODIFIERS=@im=fcitx
 ### 1.1. 解决依赖关系
 
 #### 不指名解决依赖关系
+
 ```shell
 sudo apt --fix-broken install
 ```
@@ -98,6 +99,17 @@ sudo add-apt-repository xxx
 sudo add-apt-repository -r xxx
 ```
 
+### 1.5. 下载包不安装
+
+- 使用下面命令进行下载，下载的包在`/var/cache/apt/archives/`下
+
+```shell
+# 没有安装的包
+sudo apt install -d xxx
+# 已经安装过的包
+sudo apt reinstall -d xxx
+```
+
 ## 2. 设置默认终端
 
 ```shell
@@ -115,6 +127,20 @@ update-rc.d xxx enable/disable
 
 ```shell
 sudo dpkg-reconfigure locales   # 跟着步骤配一下自己需要的编码
+```
+
+## 5. apt-file 查看文件所在包的位置
+
+- 使用`apt-file`可以查看
+
+```shell
+# 安装
+=> sudo apt install apt-file
+# 更新数据库
+=> sudo apt-file update
+# 查找文件
+=> apt-file search "dbus/dbus.h"
+libdbus-1-dev: /usr/include/dbus-1.0/dbus/dbus.h
 ```
 
 # 四、一些软件的安装配置
@@ -166,6 +192,52 @@ test    IN  A   199.200.2.170
 ```
 
 3. 重启bind9服务就可以解析`proxy.com`、`www.proxy.com`、`test.proxy.com`
+
+### 1.3. 添加反向记录 PTR
+
+- 反向记录一般是nslookup用于展示dns服务器地址的域名使用
+- 如下面的结果会发起一个 `101.17.240.10.in-addr.arpa` 的 `PTR` 请求
+
+```shell
+=> nslookup www.testweb.com
+Server:  dns.proxy.com
+Address:  10.240.17.101
+
+Name:    www.testweb.com
+Address:  199.200.2.170
+```
+
+1. 编辑`/etc/bind/named.conf.local`，添加下面的记录，添加`10.240.17.0/24`的反查记录
+
+```conf
+zone "17.240.10.in-addr.arpa" {
+    type master;
+    file "/etc/bind/zones/17.240.10.zone";
+};
+```
+
+2. 新增文件`/etc/bind/zones/17.240.10.zone`，`NS`是必须的，添加101的解析
+
+```conf
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     proxy.com. root.proxy.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+; dns.proxy.com
+@       IN  NS      dns.proxy.com.
+101     IN  PTR     dns.proxy.com.
+```
+
+## 2. lightdm 使用vnc远程连接
+
+- 需要安装`tigervnc-standalone-server`和`tigervnc-common`
+- 其他参考 [archlinux配置lightdm远程桌面](/blogs/2021-04-02-archlinux/#1-4-远程桌面)
 
 # 小技巧和踩坑记
 
