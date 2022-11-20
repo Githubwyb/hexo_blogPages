@@ -904,3 +904,28 @@ func permutation(str []byte, index int, f func(str []byte)) {
 
 - 动态规划一般是推导真实场景的某一状态和下一状态之间的关系
 - 根据两个状态的关系列出方程，然后从第一个状态不断向状态n靠近
+
+## 6. gcd 最大公约数算法
+
+- 利用欧几里得算法，即辗转相除法
+
+### 证明
+
+- a可以表示成 $a = kb + r$（a，b，k，r皆为正整数，且 $r<b$ ），则 $r = a\ mod\ b$
+- 假设d是a,b的一个公约数，记作 $d|a, d|b$，即a和b都可以被d整除。
+- 而 $r = a - kb$，两边同时除以d， $r/d = a/d - kb/d = m$，由等式右边可知m为整数，因此 $d|r$
+- 因此d也是 $b, a\ mod\ b$ 的公约数
+- 假设d是 $b, a\ mod\ b$ 的公约数, 则 $d|b,d|(a - k \times b)$，k是一个整数
+- 因此 $(a, b)$ 和 $(b,a\ mod\ b)$ 的公约数是一样的，其最大公约数也必然相等，得证
+
+### 代码
+
+```go
+func gcd(a int, b int) int {
+    // 当a为最大公约数时，计算后a = 0，b = a
+	for a != 0 {
+		a, b = b%a, a
+	}
+	return b
+}
+```

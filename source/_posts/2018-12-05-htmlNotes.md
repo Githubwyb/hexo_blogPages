@@ -162,6 +162,9 @@ Uncaught SyntaxError: Cannot use import statement outside a module
                 success: function(){
                     console.log("send success");
                 },
+                error: function (response) {
+                    console.log("get error " + response.responseText);
+                },
             });
         }
     </script>
@@ -391,6 +394,14 @@ aaaasdf
         }
     }, true);
 </script>
+```
+
+## 10. 调整样式
+
+- 在内部使用`style=""`
+
+```html
+<input type="text" style="width: 50px;" id="queryInterval" />
 ```
 
 # 二、工程相关

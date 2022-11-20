@@ -55,12 +55,15 @@ U 盘中这样搞启动时没检测到硬盘，GG 了
 ### 2.1. 安装
 
 ```shell
-pacstrap /mnt linux base linux-firmware networkmanager tmux vim grub net-tools efibootmgr archlinux-keyring
+pacstrap /mnt linux base linux-firmware networkmanager tmux sudo sed gvim grub net-tools efibootmgr archlinux-keyring pkgfile systemd-sysvcompat
 ```
+
+- `systemd-sysvcompat`是为了生成`/sbin/init`
 
 ### 2.2. 配置
 
--   生成 linux 的 img
+- 生成 linux 的 img
+- 提示`/etc/mkinitcpio.d/linux.present`是空的，就从安装的iso里面拷贝过去
 
 ```shell
 mkinitcpio -p linux
@@ -87,9 +90,9 @@ grub-install --target=i386-pc /dev/sda
 
 ### 3.2. grub 创建引导菜单
 
--   如果想要探测其他分区的系统，需要安装 os-prober，并且在`/etc/default/grub`添加`GRUB_DISABLE_OS_PROBER=false`
--   需要将需要启动系统的磁盘先挂载好再执行
--   执行下面语句添加引导菜单
+- 如果想要探测其他分区的系统，需要安装 os-prober，并且在`/etc/default/grub`添加`GRUB_DISABLE_OS_PROBER=false`
+- 需要将需要启动系统的磁盘先挂载好再执行
+- 执行下面语句添加引导菜单
 
 ```shell
 grub-mkconfig -o /boot/grub/grub.cfg
@@ -129,6 +132,20 @@ sudo pacman -S numlockx
 [General]
 Numlock=on
 ```
+
+## 5. 中文配置
+
+### 5.1. 安装字体
+
+```shell
+sudo pacman -S wqy-microhei
+```
+
+## 6. 字体
+
+| font    | package              |
+| ------- | -------------------- |
+| consola | ttf-vista-fonts(aur) |
 
 # 二、日常操作
 
@@ -230,6 +247,22 @@ community/munin-node
 ## 3. aur软件包
 
 - aurhelper很多，我一般使用yay进行aur包安装
+
+### 3.1. yay
+
+#### 1) 安装
+
+```shell
+# 需要go、fakeroot环境
+sudo pacman -S go fakeroot
+# clone仓库
+git clone https://aur.archlinux.org/yay.git
+# 安装
+cd yay && makepkg -si
+```
+
+#### 2) 使用
+
 - yay可以使用所有pacman能用的命令选项
 - 下面列举一些pacman没有的命令
 
@@ -335,11 +368,11 @@ QT_IM_MODULE=fcitx
 XMODIFIERS=@im=fcitx
 ```
 
--   安装完成后找到`fcitx5-configure`配置自己输入习惯
+- 安装完成后找到`fcitx5-configure`配置自己输入习惯
 
 **主题**
 
--   github 搜索`fcitx5-themes`下载后，将里面的文件夹拷贝到`~/.local/share/fcitx5/themes`下就可以配置了
+- github 搜索`fcitx5-themes`下载后，将里面的文件夹拷贝到`~/.local/share/fcitx5/themes`下就可以配置了
 
 #### (2) 注意事项
 
@@ -367,8 +400,7 @@ yay -S wps-office-cn wps-office-mui-zh-cn
 
 #### 2) 无法打开中文路径
 
-- 将设置中的`Region settings`->`Formats`->`Region`改成`zh_CN.UTF-8`
-- 重启电脑就好了，没生效就可以将`Formats`下所有都改成`zh_CN.UTF-8`再次重启就好了
+- 将设置中的`Region settings`->`Region&Language`里面的部分选项改成`zh_CN.UTF-8`，重启电脑就好了
 
 ### 1.4. 远程桌面
 
@@ -470,6 +502,12 @@ sudo systemctl start vmware-networks.service
 sudo systemctl start vmware-usbarbitrator.service
 ```
 
+## 4. xfce4 桌面
+
+### 4.1. 有线无线网络管理
+
+- 需要安装`network-manager-applet`
+
 # 踩坑记和小技巧
 
 ## 1. 安装 kde 桌面后，发现特别卡慢
@@ -501,3 +539,11 @@ sudo ntfsfix /dev/sdb4
 sudo umount /dev/sdb4
 sudo mount /dev/sdb4 /path/to/mount
 ```
+
+## 5. 安装提示`bsdtar: Option --no-read-sparse is not supported`
+
+- 把conda退了就好了，应该是conda的环境跟bsdtar冲突了
+
+## 6. 安装提示`error: missing package metadata in xxx`
+
+- 此问题是因为cache目录存在脏数据，使用`yay -Scc`清理一下就好了

@@ -445,6 +445,24 @@ C:\Users\User>netsh interface ipv6 add route
 C:\Users\User>netsh interface ipv6 del route 3ffe::/16 "Internet" fe80::1
 ```
 
+### 14.3. ipv4
+
+#### 1) 端口转发
+
+```bat
+:: 将1234端口的tcp请求转发到445 ::
+netsh interface portproxy add v4tov4 listenport=1234 listenaddress=127.0.0.1 connectport=445 connectaddress=127.0.0.1 protocol=tcp
+```
+
+### 14.4. 防火墙
+
+#### 1) `advfirewall firewall`
+
+```bat
+:: 开放1234的tcp端口 ::
+netsh advfirewall firewall add rule name=shared_folder action=allow protocol=TCP localport=1234
+```
+
 ## 15. taskkill
 
 - `/im [xxx.exe]`: 删除某exe的进程
