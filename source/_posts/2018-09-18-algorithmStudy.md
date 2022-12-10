@@ -363,6 +363,76 @@ long check_qq_bitmap(long long qq) {
 }
 ```
 
+## 4. ST 稀疏表
+
+### 4.1. 原理
+
+- 本身是解决区间问题，也就是给一个序列，找到`a-b`之间的最大值（或者其他值）为x的有几组
+- 这种题目暴力解决，需要先计算所有两个点之间的最大值存到一个 $n \times n$ 的表里面，然后遍历表进行统计，空间复杂度和时间复杂度太高
+- 使用稀疏表可以使用比较少的空间并节省大量的计算，用到的矩阵大小是 $n \times log_2 n$
+- 首次对数据进行预处理形成一个稀疏表后，可以直接进行 $O(1)$ 的查询
+- 整理成的矩阵的每个元素代表（拿取最大值表示）
+
+$$
+st[j][i] = \max \limits_{j \le x \le j + 2^{i}-1} arr[x]
+$$
+
+- 想要取a到b之间的结果，那么取 $s = log_2(b-a+1)$
+
+$$
+f(a, b) = \max(st[a][s], st[b-2^{s}+1][s])
+$$
+
+- 其中 $a + 2^{s}-1 = a + (b - a + 1) - 1 = b \ge a = b - (b - a + 1) + 1 = b - 2^{s} + 1$
+
+## 5. 并查集
+
+### 5.1. 原理
+
+- 找关系，给一系列点，给出一些点和点的关系。然后找出某两个点是否有关系
+- 单一一个可以直接使用bfs解就好了，如果空间不足，使用并查集可以做到 $O(n)$ 的空间复杂度
+- 首先将所有点初始化关系只有自己和自己
+- 然后遍历一边关系列表，将点和点连接起来，找到公共的父级
+- 查找时就是看是否两个点存在公共父级
+
+### 5.2. 实现
+
+- 主要实现两个方法，查找和插入
+- 由于查找要用递归，想要减少递归深度，每次查找，整条链上的所有节点的父级都要指向最终点，这样下次只有一级查找
+
+```go
+type unionFind struct {
+	parent []int
+}
+
+func initUnionFind(n int) unionFind {
+	u := unionFind{}
+	u.parent = make([]int, n)
+	for i := range u.parent {
+		u.parent[i] = i
+	}
+	return u
+}
+
+func (u unionFind) find(a int) int {
+	ap := u.parent[a]
+	// 找到最终节点
+	for ap != u.parent[ap] {
+		ap = u.parent[ap]
+	}
+	// 沿途都赋值最终节点
+	for a != ap {
+		u.parent[a], a = ap, u.parent[a]
+	}
+	return ap
+}
+
+func (u unionFind) merge(a, b int) {
+	// b的父节点等于a的父节点，就是将两个点合并
+	u.parent[u.find(b)] = u.find(a)
+}
+```
+
 # 四、算法
 
 ## 1. 排序算法

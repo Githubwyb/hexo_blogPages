@@ -376,7 +376,137 @@ void getSystemNSList() {
         res_nclose(&res);
     }
 }
+```
 
+## 6. 忽略路由绑定网卡发包
+
+- 方案一
+
+```cpp
+#include <arpa/inet.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
+static const uint8_t udpData[] = {
+    0xe2, 0x60, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02,
+    0x63, 0x73, 0x06, 0x64, 0x65, 0x76, 0x6f, 0x70, 0x73, 0x07, 0x73, 0x61, 0x6e,
+    0x67, 0x66, 0x6f, 0x72, 0x03, 0x6f, 0x72, 0x67, 0x00, 0x00, 0x01, 0x00, 0x01,
+};
+
+int main() {
+    ssize_t ret = 0;
+    char buf[1024] = {0};
+    auto fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (fd < 0) {
+        printf("socket error\n");
+        return -1;
+    }
+    struct sockaddr_in addr = {0};
+    socklen_t len = sizeof(addr);
+    addr.sin_family = AF_INET;                              // ipv4
+    addr.sin_port = htons(53);                              // 端口号转换为网络字节序
+    addr.sin_addr.s_addr = inet_addr("114.114.114.114");    // 连接本机的服务器
+
+    // 定义网卡接口
+    struct ifreq ifr = {0};
+    strncpy(ifr.ifr_ifrn.ifrn_name, "ens18", sizeof(ifr.ifr_ifrn.ifrn_name));
+
+    // 设置socket属性，使用绑定设备的方式
+    ret = setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, sizeof(ifr));
+    if (ret < 0) {
+        printf("setsockopt error\n");
+        return -1;
+    }
+
+    ret = sendto(fd, udpData, sizeof(udpData), 0, (sockaddr *)&addr, sizeof(addr));
+    if (ret < 0) {
+        printf("send error\n");
+        goto err;
+    }
+
+    ret = recvfrom(fd, buf, sizeof(buf), 0, (sockaddr *)&addr, &len);
+    if (ret < 0) {
+        printf("recvfrom error\n");
+        goto err;
+    }
+    log_hex(buf, ret);
+    close(fd);
+    return 0;
+err:
+    close(fd);
+    return 1;
+}
+```
+
+- 方案二
+
+```cpp
+#include <arpa/inet.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
+static const uint8_t udpData[] = {
+    0xe2, 0x60, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02,
+    0x63, 0x73, 0x06, 0x64, 0x65, 0x76, 0x6f, 0x70, 0x73, 0x07, 0x73, 0x61, 0x6e,
+    0x67, 0x66, 0x6f, 0x72, 0x03, 0x6f, 0x72, 0x67, 0x00, 0x00, 0x01, 0x00, 0x01,
+};
+
+int main() {
+    ssize_t ret = 0;
+    char buf[1024] = {0};
+    auto fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (fd < 0) {
+        printf("socket error\n");
+        return -1;
+    }
+    struct sockaddr_in addr = {0};
+    socklen_t len = sizeof(addr);
+    addr.sin_family = AF_INET;                              // ipv4
+    addr.sin_port = htons(53);                              // 端口号转换为网络字节序
+    addr.sin_addr.s_addr = inet_addr("114.114.114.114");    // 连接本机的服务器
+
+    // 定义网卡接口
+    struct ifreq ifr = {0};
+    strncpy(ifr.ifr_ifrn.ifrn_name, "ens18", sizeof(ifr.ifr_ifrn.ifrn_name));
+    // 获取网卡的index
+    ioctl(fd, SIOCGIFINDEX, &ifr);
+
+    uint32_t ifindex_opt = htonl(ifr.ifr_ifindex);
+    // 设置socket属性，IP_UNICAST_IF为单播，传入网卡index
+    ret = setsockopt(fd, IPPROTO_IP, IP_UNICAST_IF, &ifindex_opt, sizeof(ifindex_opt));
+    if (ret < 0) {
+        printf("setsockopt error\n");
+        return -1;
+    }
+
+    ret = sendto(fd, udpData, sizeof(udpData), 0, (sockaddr *)&addr, sizeof(addr));
+    if (ret < 0) {
+        printf("send error\n");
+        goto err;
+    }
+
+    ret = recvfrom(fd, buf, sizeof(buf), 0, (sockaddr *)&addr, &len);
+    if (ret < 0) {
+        printf("recvfrom error\n");
+        goto err;
+    }
+    log_hex(buf, ret);
+    close(fd);
+    return 0;
+err:
+    close(fd);
+    return 1;
+}
 ```
 
 # 六、实战示例

@@ -618,14 +618,23 @@ watch -n 1 free -h
 # -I插入到前面，-A插入到后面
 iptables -I INPUT -i eth0 -s 200.200.87.48 -p tcp --dport 22 -j ACCEPT
 iptables -A INPUT -p tcp --dport 22 -j DROP
+# 添加输出日志
+# INPUT、OUTPUT、FORWARD都可以在filter表添加日志
+# --log-prefix 输出的前缀，可以用来查询
+# --log-level 输出级别 0是emerg,1是alert，2是crit，3是err，4是warning，5是notice，6是info，7是debug
+iptables -I INPUT -i eth0 -p udp --dport 53 -j LOG --log-prefix "input dns: " --log-level 7
+# PREROUTING和POSTROUTING可以在raw或mangle表添加日志，nat添加日志无输出
+iptables -t raw -A PREROUTING -i eth0 -p udp --dport 53 -j LOG --log-prefix "prerouting dns: " --log-level 7
 
 ########## 查询规则 ##########
 iptables -L INPUT --line-numbers
 
 ########## 删除规则 ##########
 # line_number是上面查出来的
+# 这种方式可以删除filter表
 iptables -D INPUT [line_number]
-
+# nat表可以用下面进行全清
+iptables -F INPUT
 ```
 
 ## 14. ls 列举目录
@@ -964,6 +973,7 @@ route del -net 1.1.1.1/24 dev eth0
 
 ```shell
 ########### 查看路由 ##########
+# 这里查看的是main表
 => ip route show
 default via 199.200.2.254 dev ens18 proto static metric 100
 199.200.0.0/16 dev ens18 proto kernel scope link src 199.200.2.199 metric 100
@@ -972,12 +982,16 @@ default via 199.200.2.254 dev ens18 proto static metric 100
 => ip r get 199.200.2.170
 199.200.2.170 via 10.240.255.254 dev ens18 src 10.240.17.101 uid 1000
     cache
+# 查看不同路由表，可以查看main、local
+=> ip route list table local
 
 ########## 配置路由 ##########
-# 默认路由
-ip route add default via 192.168.0.150/24
+# 配置默认路由，需要先将网关的网段指向具体网卡，然后再添加默认路由指定网关地址，仅指定网卡并不能通
+# 仅指定网关会导致无法配置网卡作为默认出口，虽然route命令可以
+ip route add 192.168.0.0/24 dev ens18
+ip route add default via 192.168.0.254 dev ens18
 # 静态路由
-ip route add 172.16.32.32 via 192.168.0.150/24 dev enp0s3
+ip route add 192.168.0.101/32 via 192.168.0.254 dev enp0s3
 ```
 
 ### 30.2. 查看网卡ip
@@ -1457,11 +1471,12 @@ dd if=xxx.des3 | openssl des3 -d -k 'xxx' | tar -zxf - -C xxx/
 
 #### 5.2.1. 压缩
 
-压缩只会追加不会删除已经存在zip文件中的文件
+压缩只会追加不会删除已经存在于zip文件中的文件
 
 - `-j`: 去除路径
 - `-r`: 递归压缩所有文件
 - `-m`: 打包后删除压缩的源文件
+- `-x <pattern>`: 忽略某些文件
 
 ```shell
 zip -r (filename.zip) (path)
