@@ -353,6 +353,8 @@ struct ip6_hdr
 
 - `version`: 前4bit，ipv6就只有6
 - `Traffic Class`: 紧跟的8bit
+- `ip6_un1_plen`: 应用数据包大小（不算ip头）
+- `ip6_un1_nxt`: 协议（UDP、TCP等）
 - `ip6_src`: 64bit源地址
 - `ip6_dst`: 64bit目的地址
 

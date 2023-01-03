@@ -1,8 +1,8 @@
 ---
 title: 分布式存储
 date: 2022-11-27 14:13:32
-tags:
-categories:
+tags: [后台开发]
+categories: [Program, Web]
 ---
 
 # 一、前言

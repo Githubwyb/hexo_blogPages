@@ -1994,10 +1994,58 @@ tc -s qdisc ls dev eth0
 
 ## 26. curl 网络请求工具
 
-### 26.1. 下载文件
+### 26.1. 选项解释
+
+- `-X [proto]`: 指定协议，可选`POST/GET/HEAD/DELETE/PUT/PATCH`，默认是GET
+- `-H "[name]: [value]"`: 添加一个header头，示例`-H "Content-Type: application/json"`
+- `-d @file`: 文件内容为post内容
+- `-d "string"`: 内容为post的body内容，指定了`-d`会默认使用POST
+- `-F "name=@file"`: 表单形式提交文件，会自动设置`Content-Type: multipart/form-data`，示例`-F "page=@/tmp/a;filename=a.txt"`
+- `--insecure`: 允许不授信的证书
+- `-o [filename]`: 输出储存到文件
+- `-c [filename]`: 将返回的cookie保存到文件
+- `-b [filename]`: 将文件内容作为cookie发送
+- `-b 'name=value; name=value'`: 设置cookie
+- `-x "127.0.0.1:1080"`: 使用代理访问
+
+**POST默认的头部数据**
+
+```
+POST /api HTTP/1.1
+Host: 10.240.17.101
+User-Agent: curl/7.86.0
+Accept: */*
+Content-Length: 7
+Content-Type: application/x-www-form-urlencoded
+```
+
+**GET默认头部数据**
+
+```
+GET /api HTTP/1.1
+Host: 10.240.17.101
+User-Agent: curl/7.86.0
+Accept: */*
+```
+
+### 26.1. 几种常用的示例
 
 ```shell
+# get请求下载文件
 curl http://1.1.1.1/download/aaa.txt -o aaa.txt
+# get发起请求，传参
+curl http://1.1.1.1/api?a=1&b=2
+# post发起请求，传输x-www-form-urlencoded数据
+curl -X POST -d 'a=1&b=2' http://2.2.2.2/api
+# post发起请求，传输json数据
+curl -X POST -H "Content-Type: application/json" -d '{"a":1,"b":2}' http://1.1.1.1/api
+# 忽略证书错误的请求
+curl https://1.1.1.1/api --insecure
+# 上传文件
+curl -X POST -F 'file=@test.txt;filename=a.txt' http://10.240.17.101/api
+# 储存cookie到文件，下次请求携带过去
+curl -X GET http://10.240.17.101/api -c cookie.txt
+curl -X GET http://10.240.17.101/api -b cookie.txt
 ```
 
 ## 27. clang
