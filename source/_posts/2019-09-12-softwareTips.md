@@ -38,6 +38,10 @@ categories: [Software Usage]
 
 - 加速github下载的插件
 
+## 4. chrome处理json时preview中文乱码
+
+- 需要服务端将响应头的`Content-Type`设置为`application/json; charset=utf-8`即可
+
 # 三、vscode
 
 [vscode使用技巧记录](/blogs/2022-02-15-vscode)

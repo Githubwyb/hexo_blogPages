@@ -1257,6 +1257,10 @@ total kB            6804    4276     228
 => sudo setcap -r /usr/sbin/tcpdump
 ```
 
+## 40. xdg-open 按照系统默认打开方式打开文件
+
+- 可以打开url、文件等
+
 # 三、工具命令
 
 ## 1. 文件夹目录大小 du
@@ -1396,18 +1400,22 @@ fi
 
 ### 踩坑记
 
-#### (1) 低版本ssh连接失败，提示key不支持
+#### (1) 低版本ssh连接失败
 
 ```
-no matching host key type found. Their offer: ssh-rsa,ssh-dss
 ```
 
 - 修改`/etc/ssh/ssh_config`，添加下面字段即可
 
 ```conf
 Host *
+    # no matching host key type found. Their offer: ssh-rsa,ssh-dss
     HostkeyAlgorithms +ssh-rsa
     PubkeyAcceptedAlgorithms +ssh-rsa
+    # no matching key exchange method found. Their offer: diffie-hellman-group1-sha1,diffie-hellman-group14-sha1
+    KexAlgorithms +diffie-hellman-group1-sha1
+    # no matching cipher found. Their offer: aes128-cbc,3des-cbc,blowfish-cbc,aes192-cbc,aes256-cbc,rijndael128-cbc,rijndael192-cbc,rijndael256-cbc,rijndael-cbc@lysator.liu.se
+    Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-cbc,3des-cbc
 ```
 
 #### (2) ssh首次登录总要等一会才提示密码框
@@ -1993,6 +2001,8 @@ tc -s qdisc ls dev eth0
 ## 25. nc 网络链接工具
 
 ## 26. curl 网络请求工具
+
+参考: https://blog.csdn.net/angle_chen123/article/details/120675472
 
 ### 26.1. 选项解释
 

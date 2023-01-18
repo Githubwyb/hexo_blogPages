@@ -454,6 +454,31 @@ C:\Users\User>netsh interface ipv6 del route 3ffe::/16 "Internet" fe80::1
 netsh interface portproxy add v4tov4 listenport=1234 listenaddress=127.0.0.1 connectport=445 connectaddress=127.0.0.1 protocol=tcp
 ```
 
+#### 2) dns配置
+
+```bat
+:: 显示dns配置
+C:\Users\User>netsh interface ip show dnsservers
+
+接口 "以太网 2" 的配置
+    通过 DHCP 配置的 DNS 服务器:      223.5.5.5
+                                          114.114.114.114
+    用哪个前缀注册:                   只是主要
+
+接口 "Loopback Pseudo-Interface 1" 的配置
+    静态配置的 DNS 服务器:            无
+    用哪个前缀注册:                   只是主要
+
+:: 配置为网卡为静态dns
+C:\Users\User>netsh interface ip set dns "以太网 2" static 233.5.5.5
+
+:: 添加新的静态dns
+C:\Users\User>netsh interface ip add dns "以太网 2" 114.114.114.114
+
+:: 恢复dns为dhcp获取
+C:\Users\User>netsh interface ip set dns "以太网 2" source=dhcp
+```
+
 ### 14.4. 防火墙
 
 #### 1) `advfirewall firewall`
@@ -655,6 +680,87 @@ exit /B
 cd /d %current_dir%
 ```
 
+## 27. windows特殊目录
+
+- `％AllUsersProfile％`: 打开所有用户的配置文件 `C:\ProgramData`
+- `％AppData％`: 打开AppData文件夹 `C:\Users\{username}\AppData\Roaming`
+- `％CommonProgramFiles％`: `C:\Program Files\Common Files`
+- `％CommonProgramFiles（x86）％`: `C:\Program Files (x86)\Common Files`
+- `％HomeDrive％`: 打开您的主驱动器 `C:\`
+- `％LocalAppData％`: 打开本地AppData文件夹 `C:\Users\{username}\AppData\Local`
+- `％ProgramData％`: `C:\ProgramData`
+- `％ProgramFiles％`: `C:\Program Files`或`C:\Program Files (x86)`
+- `％ProgramFiles（x86）％`: `C:\Program Files (x86)`
+- `％Public％`: `C:\Users\Public`
+- `％SystemDrive％`: `C:`
+- `％SystemRoot％`: 打开Windows文件夹 `C:\Windows`
+- `％Temp％`: 打开临时文件文件夹 `C:\Users\{Username}\AppData\Local\Temp`
+- `％UserProfile％`: 打开用户的配置文件 `C:\Users\{username}`
+- `％AppData％\ Microsoft \ Windows \ Start菜单\程序\启动`: 打开Windows 10启动位置以获取程序快捷方式
+
+## 28. windows常用工具命令
+
+### 打开管理软件
+
+- `taskmgr`: 任务管理器
+- `appwiz.cpl`: 卸载或更改程序
+- `sysdm.cpl`: 系统属性（环境变量、远程等）
+- `desk.cpl`: 显示相关设置
+- `CHARMAP`: 字符映射表
+- `cleanmgr`: 磁盘清理器
+- `comexp.msc`: 组件服务，包含事件查看器和服务管理
+- `services.msc`: 服务管理
+- `eventvwr.msc`: 事件查看器
+- `lusrmgr.msc`: 本地用户和组
+- `secpol.msc`: 本地安全策略
+- `Dxdiag`: DirectX诊断工具
+- `Explorer`: 文件资源管理器
+- `wf.msc`: 防火墙管理器
+- `msconfig`: 启动相关配置，开机启动服务、启动项、引导等
+- `msinfo32`: 系统详细信息
+- `regedit`: 注册表编辑器
+- `gpedit`: 本地组策略编辑器
+- `certmgr.msc`: 证书管理器
+- `devmgmt.msc`: 设备管理器
+- `diskmgmt.msc`: 磁盘管理
+- `fsmgmt.msc`: 文件夹共享管理
+- `compmgmt.msc`: 计算机管理
+- `wmimgmt.msc`: wmi管理控件
+- `perfmon.msc`: 性能监视器
+- `powercfg.cpl`: 电源选项
+- `ncpa.cpl`: 网络连接属性（适配器属性）
+- `inetcpl.cpl`: internel选项
+- `main.cpl`: 鼠标属性
+- `joy.cpl`: 游戏手柄属性
+- `timedate.cpl`: 日期和时间
+- `intl.cpl`: 区域设置
+- `sndvol`: 音量控制
+- `mmsys.cpl`: 声音和音频设备属性
+- `telephon.cpl`: 电话和调制解调器选项
+- `wscui.cpl`: 控制面板的安全和维护
+- `firewall.cpl`: 控制面板的防火墙设置
+- `Odbcad32`: ODBC数据源管理
+
+### 好用的命令
+
+- `Defrag`: 磁盘碎片整理工具
+- `Ftp`: ftp.exe程序
+- `netstat`: 网络连接状态
+- `nslookup`: 域名解析
+- `telnet`: 连接测试
+- `taskkill`: 杀进程
+- `regsvr32`: 注册一个dll
+- `tracert`: 路由追踪
+- `sfc`: 文件扫描并修复
+
+### Microsoft Office套件
+
+winword -Microsoft Word
+excel -Microsoft Excel
+powerpnt -Microsoft PowerPoint
+msaccess -Microsoft Access
+Outlook -Microsoft Outlook
+ois -Microsoft Picture Manager
 
 ## 小技巧和踩坑记
 

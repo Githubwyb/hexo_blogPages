@@ -398,13 +398,49 @@ aaaasdf
 
 ## 10. 调整样式
 
+### 10.1. 内部调整
+
 - 在内部使用`style=""`
 
 ```html
 <input type="text" style="width: 50px;" id="queryInterval" />
 ```
 
-# 二、工程相关
+### 10.2. 外部调整
+
+- `.ant-row`选择`class="ant-row"`
+- `#ant-row`选择`id="ant-row"`
+
+```html
+<style>
+.ant-row {
+  margin-bottom: 10px;
+}
+</style>
+```
+
+# 二、javascript
+
+## 1. 更新标签属性
+
+### 1.1. 基本属性更新
+
+```js
+/********** 隐藏 **********/
+// id为mainTable的标签隐藏
+document.getElementById("mainTable").style.display = "none";
+// 显性
+document.getElementById("mainTable").style.display = "";
+
+/********** 启用禁用 **********/
+document.getElementById("submitButton").disabled = true;
+
+/********** 标签内的内容 ***********/
+// id为errorShow的中间的内容
+$("#errorShow").text(`file upload failed, err ${response.msg}`);
+```
+
+# 三、工程相关
 
 ## 1. html模板
 
