@@ -705,11 +705,14 @@ cd /d %current_dir%
 - `taskmgr`: 任务管理器
 - `appwiz.cpl`: 卸载或更改程序
 - `sysdm.cpl`: 系统属性（环境变量、远程等）
+- `ncpa.cpl`: 网络连接属性（适配器属性）
+- `devmgmt.msc`: 设备管理器
+- `diskmgmt.msc`: 磁盘管理
+- `services.msc`: 服务管理
 - `desk.cpl`: 显示相关设置
 - `CHARMAP`: 字符映射表
 - `cleanmgr`: 磁盘清理器
 - `comexp.msc`: 组件服务，包含事件查看器和服务管理
-- `services.msc`: 服务管理
 - `eventvwr.msc`: 事件查看器
 - `lusrmgr.msc`: 本地用户和组
 - `secpol.msc`: 本地安全策略
@@ -721,14 +724,11 @@ cd /d %current_dir%
 - `regedit`: 注册表编辑器
 - `gpedit`: 本地组策略编辑器
 - `certmgr.msc`: 证书管理器
-- `devmgmt.msc`: 设备管理器
-- `diskmgmt.msc`: 磁盘管理
 - `fsmgmt.msc`: 文件夹共享管理
 - `compmgmt.msc`: 计算机管理
 - `wmimgmt.msc`: wmi管理控件
 - `perfmon.msc`: 性能监视器
 - `powercfg.cpl`: 电源选项
-- `ncpa.cpl`: 网络连接属性（适配器属性）
 - `inetcpl.cpl`: internel选项
 - `main.cpl`: 鼠标属性
 - `joy.cpl`: 游戏手柄属性
@@ -743,6 +743,7 @@ cd /d %current_dir%
 
 ### 好用的命令
 
+- `systeminfo`: 列举出系统所有信息
 - `Defrag`: 磁盘碎片整理工具
 - `Ftp`: ftp.exe程序
 - `netstat`: 网络连接状态

@@ -110,6 +110,21 @@ sudo apt install -d xxx
 sudo apt reinstall -d xxx
 ```
 
+### 1.6. 包和文件互查
+
+```shell
+# 查找包安装的文件列表
+=> dpkg -L openssl
+/.
+/usr
+/usr/lib
+/usr/lib/ssl
+/usr/lib/ssl/misc
+...
+=> dpkg-query -S /usr/bin/openssl
+openssl: /usr/bin/openssl
+```
+
 ## 2. 设置默认终端
 
 ```shell

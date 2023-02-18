@@ -107,6 +107,14 @@ reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colou
 
 - 看看是不是装了`vmare 16.0`，是的话更新到最新版vmware，将对应的虚拟机迁移到新版本即可，`16.0`存在bug
 
+## 2. 合并分离的磁盘文件
+
+- 查看对应虚拟机中磁盘文件路径，然后执行命令
+
+```shell
+vmware-vdiskmanager -r Windows\ 10-0-000004.vmdk -t 0 merged.vmdk
+```
+
 ## 九、Visual Studio Community
 
 ### 1. 增加评估时间

@@ -80,7 +80,7 @@ npm install hexo-generator-index-pin-top --save
 需要创建一个同名的文件夹，放我们要上传的PDF文章
 
 ```php
-    {% pdf  test.pdf %}
+{% pdf  test.pdf %}
 ```
 
 ## 3. 字数统计和阅读时长(网站底部/文章内)
@@ -88,19 +88,19 @@ npm install hexo-generator-index-pin-top --save
 ### 安装插件
 
 ```shell
-    npm install hexo-symbols-count-time --save
+npm install hexo-symbols-count-time --save
 ```
 
 ### 修改 站点配置文件
 
 ```yml
-    symbols_count_time:
-     #文章内是否显示
-     symbols: true
-     time: true
-     # 网页底部是否显示
-     total_symbols: true
-     total_time: true
+symbols_count_time:
+    #文章内是否显示
+    symbols: true
+    time: true
+    # 网页底部是否显示
+    total_symbols: true
+    total_time: true
 ```
 
 ### 修改 主题配置文件

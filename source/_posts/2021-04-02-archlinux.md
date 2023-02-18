@@ -147,6 +147,10 @@ sudo pacman -S wqy-microhei
 | ------- | -------------------- |
 | consola | ttf-vista-fonts(aur) |
 
+## 7. wifi配置
+
+- 需要安装`iwd`包
+
 # 二、日常操作
 
 ## 1. 常用命令

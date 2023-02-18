@@ -1484,12 +1484,14 @@ dd if=xxx.des3 | openssl des3 -d -k 'xxx' | tar -zxf - -C xxx/
 - `-j`: 去除路径
 - `-r`: 递归压缩所有文件
 - `-m`: 打包后删除压缩的源文件
-- `-x <pattern>`: 忽略某些文件
+- `-x <pattern>`: 忽略某些文件，可以连续写多个
 
 ```shell
 zip -r (filename.zip) (path)
 # 去除路径
 zip -jr (filename.zip) (path)
+# 排除zip和cap压缩，-x可以连续写多个
+zip -r xxx.zip ./ -x '*.pcap*' -x '*.zip' -x '*.rar' -x '*.cap' -x '*.7z'
 ```
 
 #### 5.2.2. 解压
@@ -2070,6 +2072,34 @@ curl -X GET http://10.240.17.101/api -b cookie.txt
 #define __ATOMIC_CONSUME 1
 #define __ATOMIC_RELAXED 0
 ...
+```
+
+## 28. brctl 网桥管理命令
+
+- 命令创建的都只是临时生效，重启后就不生效了。想要持续生效需要参考对应的网络管理器的配置。
+- 网桥绑定网卡后，就会接管此网卡，此网卡配置都可以清除，反正不生效。配置网桥即可
+
+### 28.1. 基本用法
+
+```shell
+# 创建网桥
+=> sudo brctl addbr virbr0
+# 设置网桥的stp打开
+=> sudo brctl stp virbr0 on
+# 设置网桥绑定到一个网卡
+=> sudo brctl addif virbr0 eno1
+# 查看网桥
+=> sudo brctl show
+bridge name     bridge id               STP enabled     interfaces
+virbr0          8000.66c563b8e2bc       yes             eno1
+```
+
+## 29. sox 音频转换命令
+
+### 29.1. 常用用法
+
+```shell
+sox rec.au rec.wav
 ```
 
 # 四、小技巧
