@@ -52,7 +52,147 @@ top: 94
 - 应用层需要关心应用程序的逻辑细节，而不是数据在网络中的传输活动。应用层其下三层则处理真正的通信细节。在 Internet 整个发展过程中的所有思想和着重点都以一种称为 RFC（Request For Comments）的文档格式存在。针对每一种特定的 TCP/IP 应用，有相应的 RFC [3]  文档。
 - 一些典型的 TCP/IP 应用有 FTP、Telnet、SMTP、SNTP、REXEC、TFTP、LPD、SNMP、NFS、INETD 等。RFC 使一些基本相同的 TCP/IP 应用程序实现了标准化，从而使得不同厂家开发的应用程序可以互相通信
 
-# 二、传输层
+# 二、网络层
+
+## 1. ip地址分类
+
+<img src="2019_10_14_02.png" width="80%" />
+
+IP地址根据网络号和主机号来分，分为A、B、C三类及特殊地址D、E。全0和全1的都保留不用。
+
+- A类: (1.0.0.0-126.0.0.0)（默认子网掩码: 255.0.0.0或 0xFF000000）第一个字节为网络号，后三个字节为主机号。该类IP地址的最前面为“0”，所以地址的网络号取值于1~126之间。一般用于大型网络。
+- B类: (128.0.0.0-191.255.0.0)（默认子网掩码: 255.255.0.0或0xFFFF0000）前两个字节为网络号，后两个字节为主机号。该类IP地址的最前面为“10”，所以地址的网络号取值于128~191之间。一般用于中等规模网络。
+- C类: (192.0.0.0-223.255.255.0)（子网掩码: 255.255.255.0或 0xFFFFFF00）前三个字节为网络号，最后一个字节为主机号。该类IP地址的最前面为“110”，所以地址的网络号取值于192~223之间。一般用于小型网络。
+- D类: 是多播地址。该类IP地址的最前面为“1110”，所以地址的网络号取值于224~239之间。一般用于多路广播用户[1]  。
+- E类: 是保留地址。该类IP地址的最前面为“1111”，所以地址的网络号取值于240~255之间。
+
+## 2. ip包分析
+
+### 2.1. ipv4包
+
+**结构图**
+
+<img src="2022-03-15-03.png" />
+
+**协议头文件定义**
+
+```cpp
+// netinet/ip.h
+
+struct iphdr
+  {
+// 主机字节序是小端，就在第一个字节后4位
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+    unsigned int ihl:4;         // 0:0-3
+    unsigned int version:4;     // 0:4-7
+#elif __BYTE_ORDER == __BIG_ENDIAN
+    unsigned int version:4;
+    unsigned int ihl:4;
+#else
+# error	"Please fix <bits/endian.h>"
+#endif
+    uint8_t tos;        // 1
+    uint16_t tot_len;   // 2-3
+    uint16_t id;        // 4-5
+    uint16_t frag_off;  // 6-7
+    uint8_t ttl;        // 8
+    uint8_t protocol;   // 9
+    uint16_t check;     // 10-11
+    uint32_t saddr;     // 12-15
+    uint32_t daddr;     // 16-19
+    /*The options start here. */
+  };
+
+// 下面是__USE_MISC定义的
+struct ip
+  {
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+    unsigned int ip_hl:4;		/* header length */
+    unsigned int ip_v:4;		/* version */
+#endif
+#if __BYTE_ORDER == __BIG_ENDIAN
+    unsigned int ip_v:4;		/* version */
+    unsigned int ip_hl:4;		/* header length */
+#endif
+    uint8_t ip_tos;			/* type of service */
+    unsigned short ip_len;		/* total length */
+    unsigned short ip_id;		/* identification */
+    unsigned short ip_off;		/* fragment offset field */
+#define	IP_RF 0x8000			/* reserved fragment flag */
+#define	IP_DF 0x4000			/* dont fragment flag */
+#define	IP_MF 0x2000			/* more fragments flag */
+#define	IP_OFFMASK 0x1fff		/* mask for fragmenting bits */
+    uint8_t ip_ttl;			/* time to live */
+    uint8_t ip_p;			/* protocol */
+    unsigned short ip_sum;		/* checksum */
+    struct in_addr ip_src, ip_dst;	/* source and dest address */
+  };
+```
+
+- 正好20个字节
+
+**详细介绍**
+
+- ihl: ip包头部长度，包括拓展字段长度
+- version: 标识ipv4还是ipv6
+- tos: 服务类型，只有在区分服务的时候才会用
+- tot_len: ip包总长度
+- id: 标识数据包的计数，每一个包，计数加一；分片包此数字一样
+- frag_off: 分片包相关标记
+  - `0x8000`: 保留未使用
+  - `0x4000`: 不分片的flag，分片就是0，不分片为1
+  - `0x2000`: 是否后面还有分片包的标志位
+  - `0x1fff`: 标识分片包顺序的标志位
+- ttl: 生存时间，经过每个路由器，TTL减去消耗的时间，当TTL为0，丢掉此数据包
+- protocol: 标识协议类型，TCP、UDP、ICMP等，具体定义在`netinet/in.h`里面
+- check: ip头校验和
+- saddr: 源地址
+- daddr: 目标地址
+
+### 2.2. ipv6包
+
+**结构图**
+
+<img src="2022-03-29-04.png" />
+
+**wireshark抓包**
+
+<img src="2022-03-29-05.png" />
+
+**协议头文件定义**
+
+```cpp
+// netinet/ip6.h
+
+struct ip6_hdr
+  {
+    union
+      {
+    struct ip6_hdrctl
+      {
+        uint32_t ip6_un1_flow;   /* 4 bits version, 8 bits TC,
+                    20 bits flow-ID */
+        uint16_t ip6_un1_plen;   /* payload length */
+        uint8_t  ip6_un1_nxt;    /* next header */
+        uint8_t  ip6_un1_hlim;   /* hop limit */
+      } ip6_un1;
+    uint8_t ip6_un2_vfc;       /* 4 bits version, top 4 bits tclass */
+      } ip6_ctlun;
+    struct in6_addr ip6_src;      /* source address */
+    struct in6_addr ip6_dst;      /* destination address */
+  };
+```
+
+**详细介绍**
+
+- `version`: 前4bit，ipv6就只有6
+- `Traffic Class`: 紧跟的8bit
+- `ip6_un1_plen`: 应用数据包大小（不算ip头）
+- `ip6_un1_nxt`: 协议（UDP、TCP等）
+- `ip6_src`: 64bit源地址
+- `ip6_dst`: 64bit目的地址
+
+# 三、传输层
 
 - tcp和udp都是ip包的数据段，分片包协议属于ip网络层协议，非传输层
 
@@ -218,155 +358,17 @@ struct udphdr
 };
 ```
 
-# 三、网络层
-
-## 1. ip地址分类
-
-<img src="2019_10_14_02.png" width="80%" />
-
-IP地址根据网络号和主机号来分，分为A、B、C三类及特殊地址D、E。全0和全1的都保留不用。
-
-- A类: (1.0.0.0-126.0.0.0)（默认子网掩码: 255.0.0.0或 0xFF000000）第一个字节为网络号，后三个字节为主机号。该类IP地址的最前面为“0”，所以地址的网络号取值于1~126之间。一般用于大型网络。
-- B类: (128.0.0.0-191.255.0.0)（默认子网掩码: 255.255.0.0或0xFFFF0000）前两个字节为网络号，后两个字节为主机号。该类IP地址的最前面为“10”，所以地址的网络号取值于128~191之间。一般用于中等规模网络。
-- C类: (192.0.0.0-223.255.255.0)（子网掩码: 255.255.255.0或 0xFFFFFF00）前三个字节为网络号，最后一个字节为主机号。该类IP地址的最前面为“110”，所以地址的网络号取值于192~223之间。一般用于小型网络。
-- D类: 是多播地址。该类IP地址的最前面为“1110”，所以地址的网络号取值于224~239之间。一般用于多路广播用户[1]  。
-- E类: 是保留地址。该类IP地址的最前面为“1111”，所以地址的网络号取值于240~255之间。
-
-## 2. ip包分析
-
-### 2.1. ipv4包
-
-**结构图**
-
-<img src="2022-03-15-03.png" />
-
-**协议头文件定义**
-
-```cpp
-// netinet/ip.h
-
-struct iphdr
-  {
-// 主机字节序是小端，就在第一个字节后4位
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-    unsigned int ihl:4;         // 0:0-3
-    unsigned int version:4;     // 0:4-7
-#elif __BYTE_ORDER == __BIG_ENDIAN
-    unsigned int version:4;
-    unsigned int ihl:4;
-#else
-# error	"Please fix <bits/endian.h>"
-#endif
-    uint8_t tos;        // 1
-    uint16_t tot_len;   // 2-3
-    uint16_t id;        // 4-5
-    uint16_t frag_off;  // 6-7
-    uint8_t ttl;        // 8
-    uint8_t protocol;   // 9
-    uint16_t check;     // 10-11
-    uint32_t saddr;     // 12-15
-    uint32_t daddr;     // 16-19
-    /*The options start here. */
-  };
-
-// 下面是__USE_MISC定义的
-struct ip
-  {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-    unsigned int ip_hl:4;		/* header length */
-    unsigned int ip_v:4;		/* version */
-#endif
-#if __BYTE_ORDER == __BIG_ENDIAN
-    unsigned int ip_v:4;		/* version */
-    unsigned int ip_hl:4;		/* header length */
-#endif
-    uint8_t ip_tos;			/* type of service */
-    unsigned short ip_len;		/* total length */
-    unsigned short ip_id;		/* identification */
-    unsigned short ip_off;		/* fragment offset field */
-#define	IP_RF 0x8000			/* reserved fragment flag */
-#define	IP_DF 0x4000			/* dont fragment flag */
-#define	IP_MF 0x2000			/* more fragments flag */
-#define	IP_OFFMASK 0x1fff		/* mask for fragmenting bits */
-    uint8_t ip_ttl;			/* time to live */
-    uint8_t ip_p;			/* protocol */
-    unsigned short ip_sum;		/* checksum */
-    struct in_addr ip_src, ip_dst;	/* source and dest address */
-  };
-```
-
-- 正好20个字节
-
-**详细介绍**
-
-- ihl: ip包头部长度，包括拓展字段长度
-- version: 标识ipv4还是ipv6
-- tos: 服务类型，只有在区分服务的时候才会用
-- tot_len: ip包总长度
-- id: 标识数据包的计数，每一个包，计数加一；分片包此数字一样
-- frag_off: 分片包相关标记
-  - `0x8000`: 保留未使用
-  - `0x4000`: 不分片的flag，分片就是0，不分片为1
-  - `0x2000`: 是否后面还有分片包的标志位
-  - `0x1fff`: 标识分片包顺序的标志位
-- ttl: 生存时间，经过每个路由器，TTL减去消耗的时间，当TTL为0，丢掉此数据包
-- protocol: 标识协议类型，TCP、UDP、ICMP等，具体定义在`netinet/in.h`里面
-- check: ip头校验和
-- saddr: 源地址
-- daddr: 目标地址
-
-### 2.2. ipv6包
-
-**结构图**
-
-<img src="2022-03-29-04.png" />
-
-**wireshark抓包**
-
-<img src="2022-03-29-05.png" />
-
-**协议头文件定义**
-
-```cpp
-// netinet/ip6.h
-
-struct ip6_hdr
-  {
-    union
-      {
-    struct ip6_hdrctl
-      {
-        uint32_t ip6_un1_flow;   /* 4 bits version, 8 bits TC,
-                    20 bits flow-ID */
-        uint16_t ip6_un1_plen;   /* payload length */
-        uint8_t  ip6_un1_nxt;    /* next header */
-        uint8_t  ip6_un1_hlim;   /* hop limit */
-      } ip6_un1;
-    uint8_t ip6_un2_vfc;       /* 4 bits version, top 4 bits tclass */
-      } ip6_ctlun;
-    struct in6_addr ip6_src;      /* source address */
-    struct in6_addr ip6_dst;      /* destination address */
-  };
-```
-
-**详细介绍**
-
-- `version`: 前4bit，ipv6就只有6
-- `Traffic Class`: 紧跟的8bit
-- `ip6_un1_plen`: 应用数据包大小（不算ip头）
-- `ip6_un1_nxt`: 协议（UDP、TCP等）
-- `ip6_src`: 64bit源地址
-- `ip6_dst`: 64bit目的地址
-
 # 四、应用层
 
 ## 1. tls握手流程
 
 参考自 [图解 HTTPS：RSA 握手过程](https://zhuanlan.zhihu.com/p/344086342)
 
-## 2. http header
+## 2. http
 
-### 2.1. General部分
+### 2.1. http header
+
+#### 1) General部分
 
 | Header          | 解释                                     | 示例                                                                 |
 | --------------- | ---------------------------------------- | -------------------------------------------------------------------- |
@@ -376,7 +378,7 @@ struct ip6_hdr
 | Remote Address  | 远程IP地址                               | 119.75.213.61:443                                                    |
 | Referrer Policy | 见下文                                   | unsafe-url                                                           |
 
-#### Referrer Policy States
+##### Referrer Policy States
 
 新的Referrer规定了五种策略：
 - No Referrer：任何情况下都不发送Referrer信息
@@ -385,7 +387,7 @@ struct ip6_hdr
 - Origin When Cross-origin：仅在发生跨域访问时发送只包含host的Referer，同域下还是完整的。与Origin Only的区别是多判断了是否Cross-origin。协议、域名和端口都一致，浏览器才认为是同域。
 - Unsafe URL：全部都发送Referrer信息。最宽松最不安全的策略。
 
-### 2.2. Requests部分
+#### 2) Requests部分
 
 | Header              | 解释                                                                                      | 示例                                                    |
 | ------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------- |
@@ -420,7 +422,7 @@ struct ip6_hdr
 | Via                 | 通知中间网关或代理服务器地址，通信协议                                                    | Via: 1.0 fred, 1.1 nowhere.com (Apache/1.1)             |
 | Warning             | 关于消息实体的警告信息                                                                    | Warn: 199 Miscellaneous warning                         |
 
-### 2.3. Responses 部分
+#### 3) Responses 部分
 
 | Header             | 解释                                                                                | 示例                                                  |
 | ------------------ | ----------------------------------------------------------------------------------- | ----------------------------------------------------- |
@@ -453,49 +455,49 @@ struct ip6_hdr
 | Warning            | 警告实体可能存在的问题                                                              | Warning: 199 Miscellaneous warning                    |
 | WWW-Authenticate   | 表明客户端请求实体应该使用的授权方案                                                | WWW-Authenticate: Basic                               |
 
-## <span id = "statusCode">http状态码记录</span>
+### 2.2. <span id = "statusCode">http状态码记录</span>
 
-### 1xx 消息
+#### 1xx 消息
 
 这一类型的状态码，代表请求已被接受，需要继续处理。这类响应是临时响应，只包含状态行和某些可选的响应头信息，并以空行结束。由于 HTTP/1.0 协议中没有定义任何 1xx 状态码，所以除非在某些试验条件下，服务器禁止向此类客户端发送 1xx 响应。
 
-#### 100 Continue
+##### 100 Continue
 
 客户端应当继续发送请求。这个临时响应是用来通知客户端它的部分请求已经被服务器接收，且仍未被拒绝。客户端应当继续发送请求的剩余部分，或者如果请求已经完成，忽略这个响应。服务器必须在请求完成后向客户端发送一个最终响应。
 
-#### 101 Switching Protocols
+##### 101 Switching Protocols
 
 服务器已经理解了客户端的请求，并将通过Upgrade 消息头通知客户端采用不同的协议来完成这个请求。在发送完这个响应最后的空行后，服务器将会切换到在Upgrade 消息头中定义的那些协议。
 
 只有在切换新的协议更有好处的时候才应该采取类似措施。例如，切换到新的HTTP 版本比旧版本更有优势，或者切换到一个实时且同步的协议以传送利用此类特性的资源。
 
-#### 102 Processing
+##### 102 Processing
 
 由WebDAV（RFC 2518）扩展的状态码，代表处理将被继续执行。
 
-### 2xx 成功
+#### 2xx 成功
 
 这一类型的状态码，代表请求已成功被服务器接收、理解、并接受。
 
-#### 200 OK
+##### 200 OK
 
 请求已成功，请求所希望的响应头或数据体将随此响应返回。出现此状态码是表示正常状态。
 
-#### 201 Created
+##### 201 Created
 
 请求已经被实现，而且有一个新的资源已经依据请求的需要而建立，且其 URI 已经随Location 头信息返回。假如需要的资源无法及时建立的话，应当返回 '202 Accepted'。
 
-#### 202 Accepted
+##### 202 Accepted
 
 服务器已接受请求，但尚未处理。正如它可能被拒绝一样，最终该请求可能会也可能不会被执行。在异步操作的场合下，没有比发送这个状态码更方便的做法了。
 
 返回202状态码的响应的目的是允许服务器接受其他过程的请求（例如某个每天只执行一次的基于批处理的操作），而不必让客户端一直保持与服务器的连接直到批处理操作全部完成。在接受请求处理并返回202状态码的响应应当在返回的实体中包含一些指示处理当前状态的信息，以及指向处理状态监视器或状态预测的指针，以便用户能够估计操作是否已经完成。
 
-#### 203 Non-Authoritative Information
+##### 203 Non-Authoritative Information
 
 服务器已成功处理了请求，但返回的实体头部元信息不是在原始服务器上有效的确定集合，而是来自本地或者第三方的拷贝。当前的信息可能是原始版本的子集或者超集。例如，包含资源的元数据可能导致原始服务器知道元信息的超集。使用此状态码不是必须的，而且只有在响应不使用此状态码便会返回200 OK的情况下才是合适的。
 
-#### 204 No Content
+##### 204 No Content
 
 服务器成功处理了请求，但不需要返回任何实体内容，并且希望返回更新了的元信息。响应可能通过实体头部的形式，返回新的或更新后的元信息。如果存在这些头部信息，则应当与所请求的变量相呼应。
 
@@ -503,13 +505,13 @@ struct ip6_hdr
 
 由于204响应被禁止包含任何消息体，因此它始终以消息头后的第一个空行结尾。
 
-#### 205 Reset Content
+##### 205 Reset Content
 
 服务器成功处理了请求，且没有返回任何内容。但是与204响应不同，返回此状态码的响应要求请求者重置文档视图。该响应主要是被用于接受用户输入后，立即重置表单，以便用户能够轻松地开始另一次输入。
 
 与204响应一样，该响应也被禁止包含任何消息体，且以消息头后的第一个空行结束。
 
-#### 206 Partial Content
+##### 206 Partial Content
 
 服务器已经成功处理了部分 GET 请求。类似于 FlashGet 或者迅雷这类的 HTTP下载工具都是使用此类响应实现断点续传或者将一个大文档分解为多个下载段同时下载。
 
@@ -525,17 +527,17 @@ struct ip6_hdr
 
 假如 ETag 或 Last-Modified 头部不能精确匹配的话，则客户端缓存应禁止将206响应返回的内容与之前任何缓存过的内容组合在一起。
 
-#### 207 Multi-Status
+##### 207 Multi-Status
 
 由WebDAV(RFC 2518)扩展的状态码，代表之后的消息体将是一个XML消息，并且可能依照之前子请求数量的不同，包含一系列独立的响应代码。
 
-### 3xx 重定向
+#### 3xx 重定向
 
 这类状态码代表需要客户端采取进一步的操作才能完成请求。通常，这些状态码用来重定向，后续的请求地址（重定向目标）在本次响应的 Location 域中指明。
 
 当且仅当后续的请求所使用的方法是 GET 或者 HEAD 时，用户浏览器才可以在没有用户介入的情况下自动提交所需要的后续请求。客户端应当自动监测无限循环重定向（例如：A->A，或者A->B->C->A），因为这会导致服务器和客户端大量不必要的资源消耗。按照 HTTP/1.0 版规范的建议，浏览器不应自动访问超过5次的重定向。
 
-#### 300 Multiple Choices
+##### 300 Multiple Choices
 
 被请求的资源有一系列可供选择的回馈信息，每个都有自己特定的地址和浏览器驱动的商议信息。用户或浏览器能够自行选择一个首选的地址进行重定向。
 
@@ -543,7 +545,7 @@ struct ip6_hdr
 
 如果服务器本身已经有了首选的回馈选择，那么在 Location 中应当指明这个回馈的 URI；浏览器可能会将这个 Location 值作为自动重定向的地址。此外，除非额外指定，否则这个响应也是可缓存的。
 
-#### 301 Moved Permanently
+##### 301 Moved Permanently
 
 被请求的资源已永久移动到新位置，并且将来任何对此资源的引用都应该使用本响应返回的若干个 URI 之一。如果可能，拥有链接编辑功能的客户端应当自动把请求的地址修改为从服务器反馈回来的地址。除非额外指定，否则这个响应也是可缓存的。
 
@@ -553,7 +555,7 @@ struct ip6_hdr
 
 注意：对于某些使用 HTTP/1.0 协议的浏览器，当它们发送的 POST 请求得到了一个301响应的话，接下来的重定向请求将会变成 GET 方式。
 
-#### 302 Move temporarily
+##### 302 Move temporarily
 
 请求的资源临时从不同的 URI响应请求。由于这样的重定向是临时的，客户端应当继续向原有地址发送以后的请求。只有在Cache-Control或Expires中进行了指定的情况下，这个响应才是可缓存的。
 上文有提及。
@@ -562,13 +564,13 @@ struct ip6_hdr
 
 注意：虽然RFC 1945和RFC 2068规范不允许客户端在重定向时改变请求的方法，但是很多现存的浏览器将302响应视作为303响应，并且使用 GET 方式访问在 Location 中规定的 URI，而无视原先请求的方法。状态码303和307被添加了进来，用以明确服务器期待客户端进行何种反应。
 
-#### 303 See Other
+##### 303 See Other
 
 对应当前请求的响应可以在另一个 URL 上被找到，而且客户端应当采用 GET 的方式访问那个资源。这个方法的存在主要是为了允许由脚本激活的POST请求输出重定向到一个新的资源。这个新的 URI 不是原始资源的替代引用。同时，303响应禁止被缓存。当然，第二个请求（重定向）可能被缓存。
 
 注意：许多 HTTP/1.1 版以前的浏览器不能正确理解303状态。如果需要考虑与这些浏览器之间的互动，302状态码应该可以胜任，因为大多数的浏览器处理302响应时的方式恰恰就是上述规范要求客户端处理303响应时应当做的。
 
-#### 304 Not Modified
+##### 304 Not Modified
 
 如果客户端发送了一个带条件的 GET 请求且该请求已被允许，而文档的内容（自上次访问以来或者根据请求的条件）并没有改变，则服务器应当返回这个状态码。304响应禁止包含消息体，因此始终以消息头后的第一个空行结尾。
 
@@ -583,17 +585,17 @@ struct ip6_hdr
 
 假如接收到一个要求更新某个缓存条目的304响应，那么缓存系统必须更新整个条目以反映所有在响应中被更新的字段的值。
 
-#### 305 Use Proxy
+##### 305 Use Proxy
 
 被请求的资源必须通过指定的代理才能被访问。Location 域中将给出指定的代理所在的 URI 信息，接收者需要重复发送一个单独的请求，通过这个代理才能访问相应资源。只有原始服务器才能建立305响应。
 
 注意：RFC 2068中没有明确305响应是为了重定向一个单独的请求，而且只能被原始服务器建立。忽视这些限制可能导致严重的安全后果。
 
-#### 306 Switch Proxy
+##### 306 Switch Proxy
 
 在最新版的规范中，306状态码已经不再被使用。
 
-#### 307 Temporary Redirect
+##### 307 Temporary Redirect
 
 请求的资源临时从不同的URI 响应请求。
 
@@ -601,80 +603,80 @@ struct ip6_hdr
 
 如果这不是一个GET 或者 HEAD 请求，那么浏览器禁止自动进行重定向，除非得到用户的确认，因为请求的条件可能因此发生变化。
 
-### 4xx 请求错误
+#### 4xx 请求错误
 
 这类的状态码代表了客户端看起来可能发生了错误，妨碍了服务器的处理。除非响应的是一个 HEAD 请求，否则服务器就应该返回一个解释当前错误状况的实体，以及这是临时的还是永久性的状况。这些状态码适用于任何请求方法。浏览器应当向用户显示任何包含在此类错误响应中的实体内容。
 
 如果错误发生时客户端正在传送数据，那么使用TCP的服务器实现应当仔细确保在关闭客户端与服务器之间的连接之前，客户端已经收到了包含错误信息的数据包。如果客户端在收到错误信息后继续向服务器发送数据，服务器的TCP栈将向客户端发送一个重置数据包，以清除该客户端所有还未识别的输入缓冲，以免这些数据被服务器上的应用程序读取并干扰后者。
 
-#### 400 Bad Request
+##### 400 Bad Request
 
 1. 语义有误，当前请求无法被服务器理解。除非进行修改，否则客户端不应该重复提交这个请求。
 2. 请求参数有误。
 
-#### 401 Unauthorized
+##### 401 Unauthorized
 
 当前请求需要用户验证。该响应必须包含一个适用于被请求资源的 WWW-Authenticate 信息头用以询问用户信息。客户端可以重复提交一个包含恰当的 Authorization 头信息的请求。如果当前请求已经包含了 Authorization 证书，那么401响应代表着服务器验证已经拒绝了那些证书。如果401响应包含了与前一个响应相同的身份验证询问，且浏览器已经至少尝试了一次验证，那么浏览器应当向用户展示响应中包含的实体信息，因为这个实体信息中可能包含了相关诊断信息。参见RFC 2617。
 
-#### 402 Payment Required
+##### 402 Payment Required
 
 该状态码是为了将来可能的需求而预留的。
 
-#### 403 Forbidden
+##### 403 Forbidden
 
 服务器已经理解请求，但是拒绝执行它。与401响应不同的是，身份验证并不能提供任何帮助，而且这个请求也不应该被重复提交。如果这不是一个 HEAD 请求，而且服务器希望能够讲清楚为何请求不能被执行，那么就应该在实体内描述拒绝的原因。当然服务器也可以返回一个404响应，假如它不希望让客户端获得任何信息。
 
-#### 404 Not Found
+##### 404 Not Found
 
 请求失败，请求所希望得到的资源未被在服务器上发现。没有信息能够告诉用户这个状况到底是暂时的还是永久的。假如服务器知道情况的话，应当使用410状态码来告知旧资源因为某些内部的配置机制问题，已经永久的不可用，而且没有任何可以跳转的地址。404这个状态码被广泛应用于当服务器不想揭示到底为何请求被拒绝或者没有其他适合的响应可用的情况下。出现这个错误的最有可能的原因是服务器端没有这个页面。
 
-#### 405 Method Not Allowed
+##### 405 Method Not Allowed
 
 请求行中指定的请求方法不能被用于请求相应的资源。该响应必须返回一个Allow 头信息用以表示出当前资源能够接受的请求方法的列表。
 
 鉴于 PUT，DELETE 方法会对服务器上的资源进行写操作，因而绝大部分的网页服务器都不支持或者在默认配置下不允许上述请求方法，对于此类请求均会返回405错误。
 
-#### 406 Not Acceptable
+##### 406 Not Acceptable
 
 请求的资源的内容特性无法满足请求头中的条件，因而无法生成响应实体。
 
 除非这是一个 HEAD 请求，否则该响应就应当返回一个包含可以让用户或者浏览器从中选择最合适的实体特性以及地址列表的实体。实体的格式由 Content-Type 头中定义的媒体类型决定。浏览器可以根据格式及自身能力自行作出最佳选择。但是，规范中并没有定义任何作出此类自动选择的标准。
 
-#### 407 Proxy Authentication Required
+##### 407 Proxy Authentication Required
 
 与401响应类似，只不过客户端必须在代理服务器上进行身份验证。代理服务器必须返回一个 Proxy-Authenticate 用以进行身份询问。客户端可以返回一个 Proxy-Authorization 信息头用以验证。参见RFC 2617。
 
-#### 408 Request Timeout
+##### 408 Request Timeout
 
 请求超时。客户端没有在服务器预备等待的时间内完成一个请求的发送。客户端可以随时再次提交这一请求而无需进行任何更改。
 
-#### 409 Conflict
+##### 409 Conflict
 
 由于和被请求的资源的当前状态之间存在冲突，请求无法完成。这个代码只允许用在这样的情况下才能被使用：用户被认为能够解决冲突，并且会重新提交新的请求。该响应应当包含足够的信息以便用户发现冲突的源头。
 
 冲突通常发生于对 PUT 请求的处理中。例如，在采用版本检查的环境下，某次 PUT 提交的对特定资源的修改请求所附带的版本信息与之前的某个（第三方）请求向冲突，那么此时服务器就应该返回一个409错误，告知用户请求无法完成。此时，响应实体中很可能会包含两个冲突版本之间的差异比较，以便用户重新提交归并以后的新版本。
 
-#### 410 Gone
+##### 410 Gone
 
 被请求的资源在服务器上已经不再可用，而且没有任何已知的转发地址。这样的状况应当被认为是永久性的。如果可能，拥有链接编辑功能的客户端应当在获得用户许可后删除所有指向这个地址的引用。如果服务器不知道或者无法确定这个状况是否是永久的，那么就应该使用404状态码。除非额外说明，否则这个响应是可缓存的。
 
 410响应的目的主要是帮助网站管理员维护网站，通知用户该资源已经不再可用，并且服务器拥有者希望所有指向这个资源的远端连接也被删除。这类事件在限时、增值服务中很普遍。同样，410响应也被用于通知客户端在当前服务器站点上，原本属于某个个人的资源已经不再可用。当然，是否需要把所有永久不可用的资源标记为'410 Gone'，以及是否需要保持此标记多长时间，完全取决于服务器拥有者。
 
-#### 411 Length Required
+##### 411 Length Required
 
 服务器拒绝在没有定义 Content-Length 头的情况下接受请求。在添加了表明请求消息体长度的有效 Content-Length 头之后，客户端可以再次提交该请求。
 
-#### 412 Precondition Failed
+##### 412 Precondition Failed
 
 服务器在验证在请求的头字段中给出先决条件时，没能满足其中的一个或多个。这个状态码允许客户端在获取资源时在请求的元信息（请求头字段数据）中设置先决条件，以此避免该请求方法被应用到其希望的内容以外的资源上。
 
-#### 413 Request Entity Too Large
+##### 413 Request Entity Too Large
 
 服务器拒绝处理当前请求，因为该请求提交的实体数据大小超过了服务器愿意或者能够处理的范围。此种情况下，服务器可以关闭连接以免客户端继续发送此请求。
 
 如果这个状况是临时的，服务器应当返回一个 Retry-After 的响应头，以告知客户端可以在多少时间以后重新尝试。
 
-#### 414 Request-URI Too Long
+##### 414 Request-URI Too Long
 
 请求的URI 长度超过了服务器能够解释的长度，因此服务器拒绝对该请求提供服务。这比较少见，通常的情况包括：
 
@@ -684,107 +686,142 @@ struct ip6_hdr
 
 客户端正在尝试利用某些服务器中存在的安全漏洞攻击服务器。这类服务器使用固定长度的缓冲读取或操作请求的 URI，当 GET 后的参数超过某个数值后，可能会产生缓冲区溢出，导致任意代码被执行[1]。没有此类漏洞的服务器，应当返回414状态码。
 
-#### 415 Unsupported Media Type
+##### 415 Unsupported Media Type
 
 对于当前请求的方法和所请求的资源，请求中提交的实体并不是服务器中所支持的格式，因此请求被拒绝。
 
-#### 416 Requested Range Not Satisfiable
+##### 416 Requested Range Not Satisfiable
 
 如果请求中包含了 Range 请求头，并且 Range 中指定的任何数据范围都与当前资源的可用范围不重合，同时请求中又没有定义 If-Range 请求头，那么服务器就应当返回416状态码。
 
 假如 Range 使用的是字节范围，那么这种情况就是指请求指定的所有数据范围的首字节位置都超过了当前资源的长度。服务器也应当在返回416状态码的同时，包含一个 Content-Range 实体头，用以指明当前资源的长度。这个响应也被禁止使用 multipart/byteranges 作为其 Content-Type。
 
-#### 417 Expectation Failed
+##### 417 Expectation Failed
 
 在请求头 Expect 中指定的预期内容无法被服务器满足，或者这个服务器是一个代理服务器，它有明显的证据证明在当前路由的下一个节点上，Expect 的内容无法被满足。
-#### 418 I'm a teapot
+##### 418 I'm a teapot
 
-#### 421 too many connections
+##### 421 too many connections
 
 There are too many connections from your internet address
 
 从当前客户端所在的IP地址到服务器的连接数超过了服务器许可的最大范围。通常，这里的IP地址指的是从服务器上看到的客户端地址（比如用户的网关或者代理服务器地址）。在这种情况下，连接数的计算可能涉及到不止一个终端用户。
 
-#### 422 Unprocessable Entity
+##### 422 Unprocessable Entity
 
 请求格式正确，但是由于含有语义错误，无法响应。（RFC 4918 WebDAV）
 
-#### 423 Locked
+##### 423 Locked
 
 当前资源被锁定。（RFC 4918 WebDAV）
 
-#### 424 Failed Dependency
+##### 424 Failed Dependency
 
 由于之前的某个请求发生的错误，导致当前请求失败，例如 PROPPATCH。（RFC 4918 WebDAV）
 
-#### 425 Unordered Collection
+##### 425 Unordered Collection
 
 在WebDav Advanced Collections 草案中定义，但是未出现在《WebDAV 顺序集协议》（RFC 3658）中。
 
-#### 426 Upgrade Required
+##### 426 Upgrade Required
 
 客户端应当切换到TLS/1.0。（RFC 2817）
 
-#### 449 Retry With
+##### 449 Retry With
 
 由微软扩展，代表请求应当在执行完适当的操作后进行重试。
 
-#### 451 Unavailable For Legal Reasons
+##### 451 Unavailable For Legal Reasons
 
 该请求因法律原因不可用。（RFC 7725）
 
-### 5xx、6xx 服务器错误
+#### 5xx、6xx 服务器错误
 
 这类状态码代表了服务器在处理请求的过程中有错误或者异常状态发生，也有可能是服务器意识到以当前的软硬件资源无法完成对请求的处理。除非这是一个HEAD 请求，否则服务器应当包含一个解释当前错误状态以及这个状况是临时的还是永久的解释信息实体。浏览器应当向用户展示任何在当前响应中被包含的实体。
 
 这些状态码适用于任何响应方法。
 
-#### 500 Internal Server Error
+##### 500 Internal Server Error
 
 服务器遇到了一个未曾预料的状况，导致了它无法完成对请求的处理。一般来说，这个问题都会在服务器端的源代码出现错误时出现。
 
-#### 501 Not Implemented
+##### 501 Not Implemented
 
 服务器不支持当前请求所需要的某个功能。当服务器无法识别请求的方法，并且无法支持其对任何资源的请求。
 
-#### 502 Bad Gateway
+##### 502 Bad Gateway
 
 作为网关或者代理工作的服务器尝试执行请求时，从上游服务器接收到无效的响应。
 
-#### 503 Service Unavailable
+##### 503 Service Unavailable
 
 由于临时的服务器维护或者过载，服务器当前无法处理请求。这个状况是临时的，并且将在一段时间以后恢复。如果能够预计延迟时间，那么响应中可以包含一个 Retry-After 头用以标明这个延迟时间。如果没有给出这个 Retry-After 信息，那么客户端应当以处理500响应的方式处理它。
 
 注意：503状态码的存在并不意味着服务器在过载的时候必须使用它。某些服务器只不过是希望拒绝客户端的连接。
 
-#### 504 Gateway Timeout
+##### 504 Gateway Timeout
 
 作为网关或者代理工作的服务器尝试执行请求时，未能及时从上游服务器（URI标识出的服务器，例如HTTP、FTP、LDAP）或者辅助服务器（例如DNS）收到响应。
 注意：某些代理服务器在DNS查询超时时会返回400或者500错误
 
-#### 505 HTTP Version Not Supported
+##### 505 HTTP Version Not Supported
 
 服务器不支持，或者拒绝支持在请求中使用的 HTTP 版本。这暗示着服务器不能或不愿使用与客户端相同的版本。响应中应当包含一个描述了为何版本不被支持以及服务器支持哪些协议的实体。
 
-#### 506 Variant Also Negotiates
+##### 506 Variant Also Negotiates
 
 由《透明内容协商协议》（RFC 2295）扩展，代表服务器存在内部配置错误：被请求的协商变元资源被配置为在透明内容协商中使用自己，因此在一个协商处理中不是一个合适的重点。
 
-#### 507 Insufficient Storage
+##### 507 Insufficient Storage
 
 服务器无法存储完成请求所必须的内容。这个状况被认为是临时的。WebDAV (RFC 4918)
 
-#### 509 Bandwidth Limit Exceeded
+##### 509 Bandwidth Limit Exceeded
 
 服务器达到带宽限制。这不是一个官方的状态码，但是仍被广泛使用。
 
-#### 510 Not Extended
+##### 510 Not Extended
 
 获取资源所需要的策略并没有被满足。（RFC 2774）
 
-#### 600 Unparseable Response Headers
+##### 600 Unparseable Response Headers
 
 源站没有返回响应头部，只返回实体内容。
+
+## 3. DNS
+
+### 3.1. 不同系统处理dns响应和首选备选的区别
+
+#### dns响应的理解
+
+- 空结果代表存在此dns的SOA记录，但是此域名没有请求的类型，系统会认为此域名没有这个类型，不会使用备选dns
+- no such name代表dns上不存在此域名的记录，系统会认为此域名没有配置，不会使用备选dns
+- server failure代表dns服务器出错，会立即使用备选dns
+
+#### 1) linux
+
+- ping会同时请求A记录和AAAA记录
+- nslookup会先A记录再AAAA记录，如果A不通不会请求AAAA
+- 浏览器请求了A记录，根据当前网卡来
+- 本地没有dns时，请求127地址
+- 首选不通，超时5s请求备选
+
+#### 2) windows
+
+- 基本同上，但是超时时间为1s
+
+### 3.2. SOA和NS
+
+参考 [SOA记录和NS记录的通俗解释](https://www.cnblogs.com/bighammerdata/p/12776830.html)
+
+DNS服务器里有两个比较重要的记录。一个叫SOA记录（起始授权机构） 一个叫NS（Name Server）记录（域名服务器）关于这两个记录，很多文章都有解释，但是很多人还是很糊涂。我现在通俗的解释一下这两个记录是干什么的。如果理解有错误，欢迎高手来指正。
+SOA记录表明了DNS服务器之间的关系。SOA记录表明了谁是这个区域的所有者。比如51CTO.COM这个区域。一个DNS服务器安装后，需要创建一个区域，以后这个区域的查询解析，都是通过DNS服务器来完成的。现在来说一下所有者，我这里所说的所有者，就是谁对这个区域有修改权利。常见的DNS服务器只能创建一个标准区域，然后可以创建很多个辅助区域。标准区域是可以读写修改的。而辅助区域只能通过标准区域复制来完成，不能在辅助区域中进行修改。而创建标准区域的DNS就会有SOA记录，或者准确说SOA记录中的主机地址一定是这个标准区域的服务器IP地址。
+
+如果是两台集成了DNS的DC，实际上由于要求DNS区域可写，所以打破了单纯DNS服务器只能有一个标准区域的限制。所以两台DC都有SOA记录指向自己。
+
+NS记录实际上也是在DNS服务器之间，表明谁对某个区域有解释权，即权威DNS。大家都知道电信和网通都有很多的DNS服务器。这些服务器为我们上公网做域名解析提供了很多方便。但是这些DNS服务器有一个有意思的地方是这些DNS不存放任何区域，看上去更像是一个DNS CLIENT，它们被称为唯缓存DNS服务器。它们会缓存大量的解析地址，这样就会让你解析的时候选择它们会觉得很快。它们在查询的时候就会查询NS记录，通过这个记录就知道谁在负责比如51CTO.COM这个地域的管理工作。还有一种情况来说明NS记录的作用。比如你先在万网申请了一个域名ABC.COM。一般情况是万网的域名服务器替你来解析如WWW.ABC.COM这样的主机记录。如果你想自己架设一个DNS服务器，让这台服务器从今往后替代万网的DNS服务器解析，那么你就需要在你的DNS上设置NS记录，然后将万网域名管理系统中的NS记录改成你的DNSIP。这样以后就是你自己的DNS服务器负责提供解析了。即使万网的DNS服务器出现故障，别人仍然可以找到你。
+
+另外值得一说的是，相对你DNS的CLIENT，你设置的DNS服务器地址就是你的权威DNS。通过NSLOOKUP工具可以看到。而那个非权威应答，恰恰是那个区域真正的NS。
 
 # 问题
 

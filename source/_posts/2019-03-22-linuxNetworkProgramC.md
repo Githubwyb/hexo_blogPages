@@ -167,6 +167,7 @@ int accept (int __fd, __SOCKADDR_ARG __addr, socklen_t *__restrict __addr_len);
 
 **close()**
 
+- 头文件`unistd.h`
 - `close()`是关闭文件句柄，如果文件句柄没有引用，会找到对应的socket进行关闭清理
 - 如果存在多个进程共享一个文件句柄，`close()`一个不会断开连接，多个进程都`close()`才会断开连接
 
@@ -521,14 +522,18 @@ err:
 
 ```cpp
 #include <arpa/inet.h>
+#include <errno.h>
 #include <netinet/in.h>
+#include <stdio.h>
+#include <string.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 int serverInitPort(int port) {
     /********** 1. 创建套接字 **********/
     auto fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (fd < 0) {
-        LOG_ERROR("socket error");
+        printf("socket error, %d:%s\n", errno, strerror(errno));
         return -1;
     }
 
@@ -539,14 +544,14 @@ int serverInitPort(int port) {
     addr.sin_addr.s_addr = htonl(INADDR_ANY);  // 监听所有地址 0.0.0.0
     auto ret = bind(fd, (struct sockaddr *)&addr, sizeof(addr));
     if (ret < 0) {
-        LOG_ERROR("bind error");
+        printf("bind error, %d:%s\n", errno, strerror(errno));
         return -1;
     }
 
     /********** 3. 监听端口，这里可以通过netstat查看到 **********/
     ret = listen(fd, SOMAXCONN);  // 队列长度为SOMAXCONN，即最大排队连接数
     if (ret < 0) {
-        LOG_ERROR("listen error");
+        printf("listen error, %d:%s\n", errno, strerror(errno));
         return -1;
     }
 
@@ -604,12 +609,14 @@ void serverRun() {
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <errno.h>
+#include <string.h>
 
 int clientInitPort(const char *ip, int port) {
     /********** 1. 创建套接字 **********/
     auto fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (fd < 0) {
-        LOG_ERROR("socket error");
+        printf("socket error, %d:%s\n", errno, strerror(errno));
         return -1;
     }
 
@@ -621,7 +628,7 @@ int clientInitPort(const char *ip, int port) {
     // 连接服务端
     auto ret = connect(fd, (struct sockaddr *)&addr, sizeof(addr));
     if (ret < 0) {
-        LOG_ERROR("connect error");
+        printf("connect error, %d:%s\n", errno, strerror(errno));
         return -1;
     }
 
@@ -641,7 +648,7 @@ void clientRunPort() {
     // recv和send拿到的都是不包含tcp头部的数据
     auto ret = send(fd, msg, strlen(msg), 0);
     if (ret < 0) {
-        LOG_ERROR("send error");
+        printf("send error, %d:%s\n", errno, strerror(errno));
         return;
     }
 
@@ -765,13 +772,13 @@ int main(int argc, char *argv[]) {
     }
 
     /********** 3. 接收服务端的消息 **********/
-    LOGI(WHAT("Begin recv"));
+    printf("Begin recv\n");
     char buf[1024] = {0};
     // recv函数会直接阻塞，直到服务端发送消息过来
     socklen_t len = sizeof(addr);
     ret = recvfrom(fd, buf, sizeof(buf), 0, reinterpret_cast<sockaddr *>(&addr), &len);
     if (ret < 0) {
-        LOG_ERROR("recv error {}", std::to_string(std::error_code(errno, std::system_category())));
+        printf("recv error, %d:%s\n", errno, strerror(errno));
         return 1;
     }
     LOG_DEBUG("recv msg {}", buf);

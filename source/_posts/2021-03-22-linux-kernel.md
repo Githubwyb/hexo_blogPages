@@ -130,3 +130,175 @@ SYSCALL_DEFINE3(bind, int, fd, struct sockaddr __user *, umyaddr, int, addrlen)
 参考 [深入浅出 Linux 惊群：现象、原因和解决方案](https://zhuanlan.zhihu.com/p/385410196)
 
 - 在linux的2.6.x已经解决，底层仅会唤起一个进程进行处理
+
+# 六、调试内核
+
+参考 [QEMU调试Linux内核环境搭建](https://zhuanlan.zhihu.com/p/499637419)
+
+## 1. 编译内核
+
+- 下载内核源码`https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.19.1.tar.gz`
+- 解压后进入目录
+
+```shell
+# 创建默认配置
+make x86_64_defconfig
+# 进入menu配置模式
+make menuconfig
+```
+
+- 修改下述配置，开启debug，关闭地址随机化
+
+```
+Kernel hacking  --->
+    [*] Kernel debugging
+    Compile-time checks and compiler options  --->
+        [*] Compile the kernel with debug info
+        [*]   Provide GDB scripts for kernel debuggin
+
+
+Processor type and features ---->
+    [] Randomize the address of the kernel image (KASLR)
+```
+
+- 编译
+
+```shell
+make -j 20
+```
+
+## 2. 构建根文件系统
+
+- 这里选择ubuntu的根文件系统 `http://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04-base-amd64.tar.gz`
+- 创建镜像并mount
+
+```shell
+# 创建10G根镜像文件
+fallocate -l 10G rootfs.img
+# 格式化为ext4
+mkfs.ext4 rootfs.img
+# 挂载到一个目录下
+sudo mount -t ext4 -o loop rootfs.img ./fs
+# 解压根文件系统到目录下
+sudo tar -xzvf ubuntu-base-22.04-base-amd64.tar.gz -C ./fs
+# 修改resolv.conf
+cp /etc/resolv.conf ./fs/etc/resolv.conf
+# 修改镜像源
+vim ./fs/etc/apt/sources.list
+# 修改权限
+sudo chown -R root:root ./fs
+sudo chmod -R 777 ./fs
+# 挂载dev到目录下（不然无法操作/dev/null）
+sudo mount -o bind /dev fs/dev
+# chroot上去
+sudo chroot ./fs
+# 更新软件源
+apt update
+# 安装必要的软件
+apt install vim gcc tmux g++ make cmake openssh-server wireless-tools
+apt install net-tools     # ifconfig
+apt install iputils-ping  # ping
+apt install ifupdown      # ip
+apt install network-manager
+# 开机启动NetworkManager
+systemctl enable NetworkManager
+# 修改root密码
+passwd
+# 退出后umount
+exit
+sudo umount ./fs/dev
+sudo umount ./fs
+```
+
+## 3. 创建共享磁盘镜像文件，主机和虚拟机共享文件
+
+```shell
+# 创建10G根镜像文件
+fallocate -l 10G rootfs.img
+# 格式化为ext4
+mkfs.ext4 rootfs.img
+```
+
+## 3. 起系统
+
+- `-s`: 相当于`-gdb tcp::1234`，在1234启用gdb调试
+- `-append "root=/dev/sda rw console=ttyS0"`: root使用sda，要rw否则会只读；console设置输出到当前控制台
+
+```shell
+qemu-system-x86_64 -enable-kvm -m 4G -smp 1 -kernel /home/wangyubo/work/src/local/archlinux-soft/linux/trunk/src/archlinux-linux/arch/x86_64/boot/bzImage -hda rootfs.img -hdb share.img -append "root=/dev/sda rw console=ttyS0" -nographic -s
+```
+
+- 配置网络，因为没有设置网卡，所以使用的是qemu自己模拟的用户态网络，配置网络dhcp获取即可
+
+```shell
+# 查看连接
+=> nmcli conn show
+NAME    UUID                                  TYPE      DEVICE
+enp0s3  9a364675-b60a-479a-8d4a-754bab3dfe01  ethernet  enp0s3
+# 配置dhcp获取ip
+=> nmcli conn add type ethernet con-name enp0s3-dhcp ifname enp0s3 ipv4.method auto
+# 删除连接
+=> nmcli conn delete enp0s3
+# 查看连接
+=> nmcli conn show
+NAME          UUID                                  TYPE      DEVICE
+enp0s3-dhcp   9a364675-b60a-479a-8d4a-754bab3dfe01  ethernet  --
+# 启用连接
+=> nmcli conn up enp0s3-dhcp
+# 查看连接
+=> nmcli conn show
+NAME          UUID                                  TYPE      DEVICE
+enp0s3-dhcp   9a364675-b60a-479a-8d4a-754bab3dfe01  ethernet  enp0s3
+```
+
+- 共享磁盘在`/dev/sdb`，自己看着挂载就好了
+
+## 4. gdb调试
+
+### 4.1. 命令行调试
+
+- 到linux内核编译的目录下
+
+```shell
+=> gdb vmlinux
+...
+(gdb) target remote localhost:1234
+Remote debugging using localhost:1234
+```
+
+### vscode调试
+
+- vscode打开源码目录
+- 配置`launch.json`
+
+```json
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/vmlinux",
+            "MIMode": "gdb",
+            "miDebuggerServerAddress": "127.0.0.1:1234",
+            "cwd": "${workspaceFolder}",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}
+```

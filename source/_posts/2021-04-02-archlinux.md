@@ -151,6 +151,37 @@ sudo pacman -S wqy-microhei
 
 - 需要安装`iwd`包
 
+## 8. NetworkManager配置
+
+- networkmanager使用nmcli配置
+
+### 8.1. nmcli基本使用
+
+```shell
+
+```shell
+# 查看连接
+=> nmcli conn show
+NAME    UUID                                  TYPE      DEVICE
+enp0s3  9a364675-b60a-479a-8d4a-754bab3dfe01  ethernet  enp0s3
+# 配置dhcp获取ip
+=> nmcli conn add type ethernet con-name enp0s3-dhcp ifname enp0s3 ipv4.method auto ipv4.dns 114.114.114.114,8.8.8.8
+# 删除连接
+=> nmcli conn delete enp0s3
+# 查看连接
+=> nmcli conn show
+NAME          UUID                                  TYPE      DEVICE
+enp0s3-dhcp   9a364675-b60a-479a-8d4a-754bab3dfe01  ethernet  --
+# 启用连接
+=> nmcli conn up enp0s3-dhcp
+# 查看连接
+=> nmcli conn show
+NAME          UUID                                  TYPE      DEVICE
+enp0s3-dhcp   9a364675-b60a-479a-8d4a-754bab3dfe01  ethernet  enp0s3
+# 修改配置
+=> nmcli conn modify enp0s3-dhcp ipv4.dns 114.114.114.114
+```
+
 # 二、日常操作
 
 ## 1. 常用命令
