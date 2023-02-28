@@ -479,6 +479,26 @@ C:\Users\User>netsh interface ip add dns "以太网 2" 114.114.114.114
 C:\Users\User>netsh interface ip set dns "以太网 2" source=dhcp
 ```
 
+#### 3) 跃点数（优先级）
+
+```bat
+:: 查看跃点数
+C:\Users\User>netsh interface ip show Interface
+
+Idx     Met         MTU          状态                名称
+---  ----------  ----------  ------------  ---------------------------
+  1          75  4294967295  connected     Loopback Pseudo-Interface 1
+ 17           1        1400  connected     本地连接
+ 15          25        1500  connected     以太网 5
+
+:: 设置某个网卡跃点数为特定值
+C:\Users\User>netsh interface ip set interface "本地连接" metric=100
+:: 也可以用idx
+C:\Users\User>netsh interface ip set interface 17 metric=100
+:: 设置为自动跃点
+C:\Users\User>netsh interface ip set interface 17 metric=auto
+```
+
 ### 14.4. 防火墙
 
 #### 1) `advfirewall firewall`
@@ -762,6 +782,13 @@ powerpnt -Microsoft PowerPoint
 msaccess -Microsoft Access
 Outlook -Microsoft Outlook
 ois -Microsoft Picture Manager
+
+## 29. timeout 等待
+
+```bat
+:: 等待5秒后继续操作
+timeout /t 5
+```
 
 ## 小技巧和踩坑记
 
