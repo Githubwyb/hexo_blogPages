@@ -876,7 +876,7 @@ int main() {
 
 ## 3. bfs 广度优先遍历
 
-#### 1) 二叉树的广度优先遍历
+### 3.1. 二叉树的广度优先遍历
 
 ```go
 type TreeNode struct {
@@ -902,7 +902,7 @@ func bfs(root *TreeNode) {
 }
 ```
 
-#### 2) 方格中找两点最短路径
+### 3.2. 方格中找两点最短路径
 
 - 两格之间步数为1，`#`作为墙不可走
 
@@ -1066,10 +1066,10 @@ func permutation(str []byte, index int, f func(str []byte)) {
 - 每个价值的方案数因为一个元素的加入可以列出状态转移方程
 
 $$
-count[价值] = count[不包含这个元素时已有的方案数] + f[加上这个元素可以达到价值对应的方案数]
+count(价值) = count(不包含这个元素时已有的方案数) + f(加上这个元素可以达到价值对应的方案数)
 $$
 
-- 典型题目: [无平方子集](https://leetcode.cn/problems/count-the-number-of-square-free-subsets/)，对应[讲解](/bookPages/docs/leetcode/)
+- 典型题目: [无平方子集](https://leetcode.cn/problems/count-the-number-of-square-free-subsets/)，对应[讲解](/bookPages/docs/leetcode/medium/leetcode2572/)
 
 ## 6. gcd 最大公约数算法
 
