@@ -493,6 +493,7 @@ xxx | sort -V
 - `-v`: 排除
 - `-E`: 衍生为正则表达式（用|代表或等）
 - `-o`: 正则只输出PATTERN部分
+- `--include="*.c"`: 包含某个后缀的文件，可以多次设置`--include`
 
 ### 7.1. 内容匹配
 
@@ -2101,6 +2102,13 @@ virbr0          8000.66c563b8e2bc       yes             eno1
 ```shell
 sox rec.au rec.wav
 ```
+
+## 30. nslookup 解析域名
+
+### 30.1. 选项
+
+- `-q=A`: 查询A记录
+- `-vc`: 使用tcp查询
 
 # 四、小技巧
 

@@ -499,6 +499,9 @@ C:\Users\User>netsh interface ip set interface 17 metric=100
 C:\Users\User>netsh interface ip set interface 17 metric=auto
 ```
 
+#### 4) ip地址配置
+
+
 ### 14.4. 防火墙
 
 #### 1) `advfirewall firewall`
