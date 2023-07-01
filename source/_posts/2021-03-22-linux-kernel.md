@@ -131,7 +131,35 @@ SYSCALL_DEFINE3(bind, int, fd, struct sockaddr __user *, umyaddr, int, addrlen)
 
 - 在linux的2.6.x已经解决，底层仅会唤起一个进程进行处理
 
-# 六、调试内核
+# 六、编译内核
+
+## 1. 编译过程
+
+### 1.1. 配置
+
+### 1.2. 编译
+
+### 1.3. 安装
+
+#### 1) 安装
+
+#### 2) 安装模块
+
+```shell
+# INSTALL_MOD_PATH指定安装的根目录位置，会自动安装到此目录下的lib/modules/<arch>下
+make modules_install INSTALL_MOD_PATH=/home/wangyubo/vmware/linux-5.19/fs
+```
+
+## 2. 选项解释
+
+### 2.1. 基础知识
+
+#### 1) 模块编译选项
+
+- 内核编译选项中，前面是`<*>`代表编译进内核
+- `<M>`代表编译成模块
+
+# 七、调试内核
 
 参考 [QEMU调试Linux内核环境搭建](https://zhuanlan.zhihu.com/p/499637419)
 
@@ -165,6 +193,19 @@ Processor type and features ---->
 
 ```shell
 make -j 20
+```
+
+### 1.1. 想要某个函数不优化
+
+- 给单个函数添加`__attribute__((optimize("O0")))`
+- 如，不优化`static int ip_rcv_finish(struct net *net, struct sock *sk, struct sk_buff *skb)`就写成下面这样
+
+```cpp
+static int ip_rcv_finish(struct net *net, struct sock *sk, struct sk_buff *skb) __attribute__((optimize("O0")));
+
+int ip_rcv_finish(struct net *net, struct sock *sk, struct sk_buff *skb) {
+    ...
+}
 ```
 
 ## 2. 构建根文件系统
@@ -210,22 +251,14 @@ sudo umount ./fs/dev
 sudo umount ./fs
 ```
 
-## 3. 创建共享磁盘镜像文件，主机和虚拟机共享文件
-
-```shell
-# 创建10G根镜像文件
-fallocate -l 10G rootfs.img
-# 格式化为ext4
-mkfs.ext4 rootfs.img
-```
-
 ## 3. 起系统
 
 - `-s`: 相当于`-gdb tcp::1234`，在1234启用gdb调试
 - `-append "root=/dev/sda rw console=ttyS0"`: root使用sda，要rw否则会只读；console设置输出到当前控制台
+- 使用`spice://127.0.0.1:5900`可以看到画面
 
 ```shell
-qemu-system-x86_64 -enable-kvm -m 4G -smp 1 -kernel /home/wangyubo/work/src/local/archlinux-soft/linux/trunk/src/archlinux-linux/arch/x86_64/boot/bzImage -hda rootfs.img -hdb share.img -append "root=/dev/sda rw console=ttyS0" -nographic -s
+qemu-system-x86_64 -enable-kvm -m 4G -smp 1 -kernel /path/to/kernel/source/arch/x86_64/boot/bzImage -hda rootfs.img -drive format=raw -append "root=/dev/sda rw console=ttyS0" -nographic -s -spice port=5900,disable-ticketing=on
 ```
 
 - 配置网络，因为没有设置网卡，所以使用的是qemu自己模拟的用户态网络，配置网络dhcp获取即可
@@ -266,7 +299,7 @@ enp0s3-dhcp   9a364675-b60a-479a-8d4a-754bab3dfe01  ethernet  enp0s3
 Remote debugging using localhost:1234
 ```
 
-### vscode调试
+### 4.2. vscode调试
 
 - vscode打开源码目录
 - 配置`launch.json`

@@ -76,8 +76,6 @@ testFactory .up.> testImpl1
 testFactory .up.> testImpl2
 @enduml
 ```
-<img src="2021-11-18-01.png"/>
-
 
 ```go
 // 定义接口Product，定义接口存在方法Use
@@ -470,6 +468,38 @@ func main() {
 ### 6. 适配器模式
 
 - 关键在于兼容，将原有接口兼容当前使用
+- 兼容了当前框架的操作
+
+```go
+type module struct {
+	a int
+}
+
+func (m *module) start() {
+	m.a = 1
+}
+
+func (m *module) stop() {
+	m.a = 0
+}
+
+type moduleAdapter struct {
+	module
+}
+
+func (m *moduleAdapter) init() {
+	m.start()
+}
+func (m *moduleAdapter) uninit() {
+	m.stop()
+}
+
+func main() {
+	m := moduleAdapter{}
+	m.init()
+	m.uninit()
+}
+```
 
 ### 7. 组合（部分-整体）模式
 

@@ -3,7 +3,6 @@ title: shell学习笔记
 date: 2018-09-16 13:23:55
 tags: [Linux]
 categories: [Program, Shell]
-top: 99
 ---
 
 # 一、语法相关
@@ -384,6 +383,21 @@ find ./ -type f -mtime -0.5
 find ./ -type f -name "*.php"
 ```
 
+### 1.3. 统计代码行数
+
+```shell
+# 统计所有go文件，排除单测文件的代码行数，去除空行
+=> find /path/to/xxx -type f \( -name "*.go" -a -not -name "*_test.go" \) -exec grep -v '^$' {} \; | wc -l
+1374
+=> find /path/to/xxx -type f \( -name "*.go" -a -not -name "*_test.go" \)
+/path/to/xxx/aaa.go
+/path/to/xxx/bbb.go
+/path/to/xxx/ccc.go
+# 统计所有单测文件的代码行数，去除空行
+=> find /path/to/xxx -type f \( -name "*_test.go" \) -exec grep -v '^$' {} \; | wc -l
+1795
+```
+
 ## 2. file
 
 ### 2.1. 实例
@@ -476,7 +490,13 @@ tail -f sys.log | perl -pe 's/(关键词1)|(关键词2)|(关键词3)/\e[1;颜色
 
 ## 6. sort 排序
 
-### 6.1. 一些基本操作
+### 6.1. 选项解释
+
+- `-u`: 排序后去重
+- `-V`: 版本号类型排序，如`2.1.10`
+- `-n`: 数字排序而非字典序
+
+### 6.2. 一些基本操作
 
 ```shell
 # 将test.txt中排序并去重，但是只输出到控制台，可以用>写到文件
@@ -493,6 +513,7 @@ xxx | sort -V
 - `-v`: 排除
 - `-E`: 衍生为正则表达式（用|代表或等）
 - `-o`: 正则只输出PATTERN部分
+- `-c`: 统计行数
 - `--include="*.c"`: 包含某个后缀的文件，可以多次设置`--include`
 
 ### 7.1. 内容匹配
@@ -501,11 +522,11 @@ xxx | sort -V
 
 ```shell
 # 匹配ab开头的字符串
-cat test.txt | grep "^ab"
+grep "^ab" test.txt
 # 匹配bc结束的字符串
-cat test.txt | grep "ab$"
+grep "ab$" test.txt
 # 全匹配abc
-cat test.txt | grep "^abc$"
+grep "^abc$" test.txt
 ```
 
 ### 7.2. 查找进程排除grep
@@ -520,7 +541,7 @@ ps -aux | grep xxx | grep -v grep
 
 ```shell
 # 相当于 cat test.txt | grep "test" | wc -l
-grep -c "test" < test.txt
+grep -c "test" test.txt
 ```
 
 ### 7.4. 查找目录下所有文件匹配对应字符串
@@ -628,15 +649,34 @@ iptables -I INPUT -i eth0 -p udp --dport 53 -j LOG --log-prefix "input dns: " --
 iptables -t raw -A PREROUTING -i eth0 -p udp --dport 53 -j LOG --log-prefix "prerouting dns: " --log-level 7
 
 ########## 查询规则 ##########
-iptables -L INPUT --line-numbers
+iptables -t filter -vL INPUT --line-numbers
 
 ########## 删除规则 ##########
 # line_number是上面查出来的
 # 这种方式可以删除filter表
-iptables -D INPUT [line_number]
-# nat表可以用下面进行全清
-iptables -F INPUT
+iptables -t filter -D INPUT [line_number]
+# INPUT的nat表可以用下面进行全清
+iptables -t nat -F INPUT
 ```
+
+### 踩坑记
+
+#### 1) iptables报错`iptables v1.8.4 (nf_tables): Could not fetch rule set generation id: Invalid argument`
+
+- 是iptables使用了nft模式，修改为legacy就好了，执行命令
+
+```shell
+=> update-alternatives --config iptables
+There are 2 choices for the alternative iptables (providing /usr/sbin/iptables).
+
+  Selection    Path                       Priority   Status
+------------------------------------------------------------
+  0            /usr/sbin/iptables-nft      20        auto mode
+* 1            /usr/sbin/iptables-legacy   10        manual mode
+  2            /usr/sbin/iptables-nft      20        manual mode
+```
+
+- 选择legacy即可
 
 ## 14. ls 列举目录
 
@@ -1262,6 +1302,61 @@ total kB            6804    4276     228
 
 - 可以打开url、文件等
 
+## 41. uniq 处理重复行
+
+### 41.1. 选项解释
+
+- `-c`: 在前面显示重复行数量
+- `-u`: 只打印不同的行
+- `-d`: 只打印只出现过一次的行
+
+### 41.2. 基本用法
+
+```shell
+# 统计重复行数量，uniq只能对相邻行处理，所以需要先排序
+=> cat xxx.log | sort | uniq -c
+   2427 0x0381
+    493 0x0585
+   3297 0x4116
+    493 0x41af
+    493 0x65cb
+    493 0x682f
+    221 0x74c4
+    492 0x78e1
+    477 0x7ca0
+   3444 0x82dc
+     36 0x8f1c
+     41 0x9a5a
+    477 0xa026
+    478 0xaa25
+    477 0xb6d2
+    477 0xd593
+    492 0xf2d3
+    477 0xf89b
+# 只打印有重复的行
+=> cat xxx.log | sort | uniq -d
+0x0381
+0x0585
+0x4116
+0x41af
+0x65cb
+0x682f
+0x74c4
+0x78e1
+0x7ca0
+0x82dc
+0x8f1c
+0x9a5a
+0xa026
+0xaa25
+0xb6d2
+0xd593
+0xf2d3
+0xf89b
+# 只打印只出现过一次的行，此文件没有所以没输出
+=> cat xxx.log | sort | uniq -d
+```
+
 # 三、工具命令
 
 ## 1. 文件夹目录大小 du
@@ -1788,6 +1883,26 @@ alias phptags='ctags --langmap=php:.engine.inc.module.theme.php  --php-kinds=cdf
 ...
 ```
 
+### 17.3. 单函数优化级别设定
+
+- 全局优化级别设定后，可以在编译时指定单个函数的优化级别
+
+```cpp
+static int ip_rcv_finish(struct net *net, struct sock *sk, struct sk_buff *skb) __attribute__((optimize("O0")));
+int ip_rcv_finish(struct net *net, struct sock *sk, struct sk_buff *skb) {
+    ...
+}
+```
+
+- 或者指定一批，`pragma`后面的函数都会应用此优化
+
+```cpp
+#pragma GCC optimize("O0")
+static int ip_rcv_finish(struct net *net, struct sock *sk, struct sk_buff *skb) {
+    ...
+}
+```
+
 ## 18. firewalld 防火墙
 
 ### 18.1. 选项解释
@@ -1936,7 +2051,7 @@ convert -resize 1800x -density 150 -quality 100 pdf_name.pdf image_name.jpg
 
 ```shell
 ########## 增加延迟 ##########
-tc qdisc add dev  eth0 root netem delay 100ms 10ms
+tc qdisc add dev eth0 root netem delay 100ms
 ########## 删除规则 ##########
 tc qdisc del dev eth0 root
 ########## 查询规则 ##########
@@ -2003,6 +2118,34 @@ tc -s qdisc ls dev eth0
 
 ## 25. nc 网络链接工具
 
+### 25.1. 选项详解
+
+- `-l`: 监听
+- `-p [port]`: 本地端口，监听状态就绑定这个端口，非监听状态就是使用此端口发送
+- `-v`: 显示输出，会打印一些连接过程和错误信息
+- `-u`: udp模式，默认是tcp
+- `-n`: 不翻译ip到hostname
+- `-s`: 监听地址，默认监听所有地址
+- `-w [second]`: 连接超时时间，单位秒
+- `-z`: 测试模式，用于扫描，连接成功就断开，加上`-v`会显示结果
+
+### 25.2. 基本用法
+
+```shell
+########## tcp ##########
+# 服务端
+# 监听0.0.0.0:1234，只处理一个连接，客户端连上后关闭就退出
+nc -l -p 1234
+
+# 客户端
+# 测试监听的端口
+nc -vz 127.0.0.1 1234
+# 扫描ip是否有端口开放，无超时时间，如果服务端不给回包就一直发
+nc -vz 127.0.0.1 1-1024
+# 扫描ip是否有端口开放，每个连接超时1s
+nc -vz -w 1 127.0.0.1 1-1024
+```
+
 ## 26. curl 网络请求工具
 
 参考: https://blog.csdn.net/angle_chen123/article/details/120675472
@@ -2066,7 +2209,7 @@ curl -X GET http://10.240.17.101/api -b cookie.txt
 ### 27.1. 查看预定义宏
 
 ```shell
-=> clang -dM -E -x c /dev/null | head -n 10
+=> clang -dM -E -x c /dev/null
 #define _LP64 1
 #define __ATOMIC_ACQUIRE 2
 #define __ATOMIC_ACQ_REL 4
@@ -2109,6 +2252,23 @@ sox rec.au rec.wav
 
 - `-q=A`: 查询A记录
 - `-vc`: 使用tcp查询
+
+## 31. wget
+
+### 31.1. 选项
+
+- `-r`: 表示递归下载。
+- `-np`: 表示不要进入父级目录。
+- `-nH`: 表示不要在本地创建主机名目录。
+- `--cut-dirs=2`: 表示从第二级目录开始下载。
+- `-R index.html`: 表示不下载 index.html 文件。
+
+### 31.2. 示例
+
+```shell
+# 递归下载此链接下所有文件，不进入父级目录，下载完看到es5目录（前两级裁剪掉了）
+wget -r -np -nH --cut-dirs=2 -R index.html https://cdn.mathjax.org/mathjax/es5/
+```
 
 # 四、小技巧
 

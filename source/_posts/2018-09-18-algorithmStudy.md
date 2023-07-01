@@ -3,8 +3,12 @@ title: 算法与数据结构学习
 date: 2018-09-18 15:07:21
 tags: [算法]
 categories: [Knowledge, Study]
-top: 19
+top: 99
 ---
+
+# 前言
+
+- 算法讲解汇总的网站 [OI wiki](https://oi-wiki.org/)
 
 # 一、数学知识复习
 
@@ -482,35 +486,61 @@ $$
 - 由于查找要用递归，想要减少递归深度，每次查找，整条链上的所有节点的父级都要指向最终点，这样下次只有一级查找
 
 ```go
-type unionFind struct {
-	parent []int
-}
+// 函数外模板
+type unionFind []int
 
 func initUnionFind(n int) unionFind {
-	u := unionFind{}
-	u.parent = make([]int, n)
-	for i := range u.parent {
-		u.parent[i] = i
+	u := make(unionFind, n)
+	for i := range u {
+		u[i] = i
 	}
 	return u
 }
 
 func (u unionFind) find(a int) int {
-	ap := u.parent[a]
+	ap := u[a]
 	// 找到最终节点
-	for ap != u.parent[ap] {
-		ap = u.parent[ap]
+	for ap != u[ap] {
+		ap = u[ap]
 	}
 	// 沿途都赋值最终节点
 	for a != ap {
-		u.parent[a], a = ap, u.parent[a]
+		u[a], a = ap, u[a]
 	}
 	return ap
 }
 
+// 把a的子集合并到b上，如果b是树根节点，a的所有子节点查找都会查找到b
 func (u unionFind) merge(a, b int) {
-	// b的父节点等于a的父节点，就是将两个点合并
-	u.parent[u.find(b)] = u.find(a)
+	u[u.find(b)] = u.find(a)
+}
+```
+
+- 函数内并查集模板
+
+```go
+func test() {
+	// 并查集模板
+	uf := make([]int, n)
+	for i := range uf {
+		uf[i] = i
+	}
+	find := func(x int) int {
+		ap := uf[x]
+		// 找到最终节点
+		for ap != uf[ap] {
+			ap = uf[ap]
+		}
+		// 沿途都赋值最终节点
+		for x != ap {
+			uf[x], x = ap, uf[x]
+		}
+		return ap
+	}
+	// 把a的子集合并到b上，如果b是树根节点，a的所有子节点查找都会查找到b
+	merge := func(a, b int) {
+		uf[find(a)] = find(b)
+	}
 }
 ```
 
@@ -521,6 +551,11 @@ func (u unionFind) merge(a, b int) {
 ### 时间复杂度总结
 
 <img src = "2018_09_26_01.jpg" width = "80%" />
+
+#### 定理
+
+- $N$个互异数的数组的平均逆序数是 $N(N-1)/4$ 。
+- 通过交换相邻元素进行排序的任何算法平均需要 $\Omega(N^2)$ 时间。
 
 ### 1.1. 插入排序
 
@@ -550,11 +585,6 @@ func (u unionFind) merge(a, b int) {
         }
     }
 ```
-
-#### 定理
-
-- $N$个互异数的数组的平均逆序数是 $N(N-1)/4$ 。
-- 通过交换相邻元素进行排序的任何算法平均需要 $\Omega(N^2)$ 时间。
 
 ### 1.2. 希尔排序
 
@@ -874,7 +904,9 @@ int main() {
 }
 ```
 
-## 3. bfs 广度优先遍历
+## 3. bfs （Breadth-First Search）广度优先遍历
+
+- 广度优先算法比较适合带环的图的最短路径，需要使用seen标记某个点是否被访问过
 
 ### 3.1. 二叉树的广度优先遍历
 
@@ -1025,7 +1057,76 @@ func main() {
 }
 ```
 
-## 4. 全排列算法（回溯法）
+## 4. dfs （Depth-First Search）深度优先遍历
+
+- dfs一般需要使用递归，可以用于无环图的最短路径查找，可以使用上一步走过的节点来防止重入
+
+### 4.1. 获取无环图的两个节点之间的路径
+
+```go
+// 起点、终点、上一个点，关系
+// cb调用的是所有路上的节点，调用顺序是从e到s，因为dfs从最深处返回
+func dfs(s, e, last int, rel [][]int, cb func(n int)) bool {
+	if s == e {
+		cb(e)
+		return true
+	}
+	// 从起点出发，所有能走的点走一遍
+	for _, v := range rel[s] {
+		// 上一次就是这个点，不能回去
+		// 或此路不通，继续
+		if v == last || !dfs(v, e, s, rel, cb) {
+			continue
+		}
+		// 此路可以到达，将当前点输出出去
+		cb(s)
+		return true
+	}
+	// 都到不了
+	return false
+}
+
+func main() {
+	/*
+				 1
+			   /   \
+			  2     3
+			 /\    / \
+			4  5  0   6
+			  / \
+			 7   8
+			/
+		   9
+	*/
+	// 关系图，代表某个点和哪个点连接
+	rel := [][]int{
+		{3},       // 0
+		{2, 3},    // 1
+		{1, 4, 5}, // 2
+		{0, 1, 6}, // 3
+		{2},       // 4
+		{2, 7, 8}, // 5
+		{3},       // 6
+		{5, 9},    // 7
+		{5},       // 8
+		{7},       // 9
+	}
+
+	road := make([]int, 0, 10)
+	dfs(4, 6, -1, rel, func(n int) { road = append(road, n) })
+	fmt.Println(road) // 6 3 1 2 4
+
+	road = road[:0]
+	dfs(4, 4, -1, rel, func(n int) { road = append(road, n) })
+	fmt.Println(road) // 4
+
+	road = road[:0]
+	dfs(9, 8, -1, rel, func(n int) { road = append(road, n) })
+	fmt.Println(road) // 8 5 7 9
+}
+```
+
+## 5. 全排列算法（回溯法）
 
 <img src = "2020_04_29_01.png">
 
@@ -1051,12 +1152,12 @@ func permutation(str []byte, index int, f func(str []byte)) {
 }
 ```
 
-## 5. 动态规划
+## 6. 动态规划
 
 - 动态规划一般是推导真实场景的某一状态和下一状态之间的关系
 - 根据两个状态的关系列出方程，然后从第一个状态不断向状态n靠近
 
-### 5.1. 背包算法
+### 6.1. 背包算法
 
 #### 1) 01背包
 
@@ -1071,7 +1172,137 @@ $$
 
 - 典型题目: [无平方子集](https://leetcode.cn/problems/count-the-number-of-square-free-subsets/)，对应[讲解](/bookPages/docs/leetcode/medium/leetcode2572/)
 
-## 6. gcd 最大公约数算法
+### 6.2. 数位dp
+
+- 主要求某个上线以下满足某个条件的数的数量
+- 一般上界很大，暴力会超时
+- 主要思想是记忆化搜索，从最高位开始，向低位遍历每一位能取到的值，记忆一个状态下去
+
+#### 1) 记忆化搜索模板
+
+- 在小于上界范围内，如果数可以从0到最大的n个9，同一个状态下，数量是一样的，记录下来不用重复统计
+- 不可以取到最大n个9的单独计算
+
+```go
+// 数位dp模板
+func NumDP() {
+	var mod int = 1e9 + 7
+	max_sum := 10
+
+	stateNum := max_sum
+	// 返回小于s的满足条件的数量
+	getCount := func(s string) int {
+		// 状态记忆数组，第一维是位数，第二维是状态（状态根据具体情况来），value是从这一位向后满足状态的数量
+		memo := make([][]int, len(s))
+		for i := range memo {
+			memo[i] = make([]int, stateNum+1)
+			for j := range memo[i] {
+				memo[i][j] = -1
+			}
+		}
+
+		// p为当前要枚举的位，0是最高位，len(s)-1是最低位
+		// sum是前面位数的和
+		// limitUp代表前面的数位是否都到达上界
+		var dfs func(p, sum int, limitUp bool) (res int)
+		dfs = func(p, sum int, limitUp bool) (res int) {
+			// 处理一些限制条件
+			// TODO
+			if p == len(s) {
+				// 到最后一位了，满足条件返回1，不满足返回0
+				// TODO
+				if true {
+					return 1
+				}
+				return
+			}
+
+			if !limitUp {
+				// 没到上界才能取状态下的值，否则状态是假的
+				tmp := memo[p][sum]
+				if tmp >= 0 {
+					return tmp
+				}
+				defer func() { memo[p][sum] = res }()
+			}
+			up := 9
+			if limitUp {
+				up = int(s[p] - '0')
+			}
+			for d := 0; d <= up; d++ {
+				res = (res + dfs(p+1, sum+d, limitUp && d == int(s[p]-'0'))) % mod
+			}
+			return
+		}
+		return dfs(0, 0, true)
+	}
+	getCount("1234")
+}
+```
+
+#### 2) 示例
+
+##### (1) 求不大于给定数字s，所有位数相加小于n的数量，答案对1000000007取模
+
+- 直接套用模板，限定条件带入，状态定义好
+
+```go
+// 数位dp模板
+func count(s string, n int) int {
+	var mod int = 1e9 + 7
+
+	stateNum := n
+	// 状态记忆数组，第一维是位数，第二维是状态（状态为前面位加在一起的和），value是从这一位向后满足状态的数量
+	memo := make([][]int, len(s))
+	for i := range memo {
+		memo[i] = make([]int, stateNum+1)
+		for j := range memo[i] {
+			memo[i][j] = -1
+		}
+	}
+
+	// p为当前要枚举的位，0是最高位，len(s)-1是最低位
+	// sum是前面位数的和
+	// limitUp代表前面的数位是否都到达上界
+	var dfs func(p, sum int, limitUp bool) (res int)
+	dfs = func(p, sum int, limitUp bool) (res int) {
+		// 处理一些限制条件
+		// 和不能大于n
+		if sum > n {
+			return 0
+		}
+		if p == len(s) {
+			return 1
+		}
+
+		if !limitUp {
+			// 没到上界才能取状态下的值，否则状态是假的
+			tmp := memo[p][sum]
+			if tmp >= 0 {
+				return tmp
+			}
+			defer func() { memo[p][sum] = res }()
+		}
+		up := 9
+		if limitUp {
+			up = int(s[p] - '0')
+		}
+		for d := 0; d <= up; d++ {
+			res = (res + dfs(p+1, sum+d, limitUp && d == int(s[p]-'0'))) % mod
+		}
+		return
+	}
+	return dfs(0, 0, true)
+}
+
+func main() {
+	fmt.Println(count("12", 8))	// 12
+	fmt.Println(count("13", 8))	// 13
+	fmt.Println(count("19", 8))	// 17
+}
+```
+
+## 7. gcd 最大公约数算法
 
 - 利用欧几里得算法，即辗转相除法
 
@@ -1096,24 +1327,15 @@ func gcd(a int, b int) int {
 }
 ```
 
-## 7. 向上向下取整算法（不使用除法和余数运算）
-
-### 7.1. 2的幂次取整
-
-#### 向下取整
-
-- 直接二进制上与要取整的数减一取反就好了，如要对8也就是`0b1000`取整，就是与上`0b11111000`
-
-#### 向上取整
-
-- 由于需要有多余位就加一个，防止判断可以使用加上取整的数减一然后再对其取反相与
-- 如要对8向上取整就是`(i + 0b00000111) & 0b11111000`
-
 ## 8. 选取中位数
 
 - 可以使用两个堆，一个大根堆一个小根堆，中间的就是中位数
 
-## 9. 按位从低到高找第一个1
+## 9. 位运算的骚操作
+
+### 9.1. 取反
+
+#### 1) 从低到高找第一个1
 
 - 取反加1，再和原来数字与一下
 
@@ -1125,3 +1347,178 @@ func getFirst(i int) int {
 ```
 
 - 举个例子，`0b00110010`，取反`0b11001101`，加一`0b11001110`，与一下原来的数`0b00000010`
+
+### 9.2. 异或
+
+#### 1) 0和1的互转
+
+```go
+func main() {
+	a := 1
+	fmt.Println(a) // 1
+	a ^= 1
+	fmt.Println(a) // 0
+	a ^= 1
+	fmt.Println(a) // 1
+}
+```
+
+### 9.3. 与运算
+
+#### 1) 2的幂次取整
+
+##### 向下取整
+
+- 直接二进制上与要取整的数减一取反就好了，如要对8也就是`0b1000`取整，就是与上`0b11111000`
+
+##### 向上取整
+
+- 由于需要有多余位就加一个，防止判断可以使用加上取整的数减一然后再对其取反相与
+- 如要对8向上取整就是`(i + 0b00000111) & 0b11111000`
+
+## 10. LCA （Lowest Common Ancestor）最近公共祖先算法
+
+- 主要处理无环图的两个点的公共祖先，一般用于求两个点之间的路径
+
+### 10.1. Tarjan算法处理LCA
+
+- 一次遍历把所有询问解决完
+- 有个通俗的解释，十分清晰说明这个算法，参考 [如何理解 Tarjan 的 LCA 算法？](https://www.zhihu.com/question/68753603/answer/267513879)
+
+```
+一个熊孩子Link从一棵有根树的最左边最底下的结点灌岩浆，Link表示很讨厌这种倒着长的树。岩浆会不断的注入，直到注满整个树…如果岩浆灌满了一棵子树，Link发现树的另一边有一棵更深的子树，Link会先去将那棵子树灌满。岩浆只有在迫不得已的情况下才会向上升高，找到一个新的子树继续注入。机(yu)智(chun)的Link发现了找LCA的好方法，即如果两个结点都被岩浆烧掉时，他们的LCA即为那棵子树上岩浆最高的位置。
+```
+
+- 所以我们可以从根节点开始，向下走，当两个点都走到了，当前子树的根节点就是最近公共祖先，用并查集处理当前子树的根节点
+
+```go
+func main() {
+	/*
+				 0
+			   /   \
+			  2     3
+			 /\    / \
+			4  5  1   6
+			  / \
+			 7   8
+			/
+		   9
+	*/
+	// 关系图，代表某个点和哪个点连接
+	rel := [][]int{
+		{2, 3},    // 0
+		{3},       // 1
+		{0, 4, 5}, // 2
+		{0, 1, 6}, // 3
+		{2},       // 4
+		{2, 7, 8}, // 5
+		{3},       // 6
+		{5, 9},    // 7
+		{5},       // 8
+		{7},       // 9
+	}
+	n := 10
+
+	trips := [][]int{
+		{4, 9}, // 2
+		{5, 6}, // 0
+		{1, 6}, // 3
+		{9, 0}, // 0
+		{7, 8}, // 5
+	}
+	qs := map[int][]int{}
+	for _, v := range trips {
+		x, y := v[0], v[1]
+		qs[x] = append(qs[x], y)
+		if x != y {
+			// 这里防止自己走到自己多算一遍
+			qs[y] = append(qs[y], x)
+		}
+	}
+
+	// 并查集模板
+	uf := make([]int, n)
+	for i := range uf {
+		uf[i] = i
+	}
+	find := func(x int) int {
+		ap := uf[x]
+		// 找到最终节点
+		for ap != uf[ap] {
+			ap = uf[ap]
+		}
+		// 沿途都赋值最终节点
+		for x != ap {
+			uf[x], x = ap, uf[x]
+		}
+		return ap
+	}
+	// 把a的子集合并到b上，如果b是树根节点，a的所有子节点查找都会查找到b
+	merge := func(a, b int) {
+		uf[find(a)] = find(b)
+	}
+
+	color := make([]bool, n)
+	var tarjan func(a, fa int, cb func(a, b, lca int))
+	tarjan = func(a, fa int, cb func(a, b, lca int)) {
+		for _, v := range rel[a] {
+			if v == fa {
+				continue
+			}
+			tarjan(v, a, cb)
+			// 进去出来后，将v为根节点的子树设置公共祖先为a
+			merge(v, a)
+		}
+
+		// 查一下有没有要求的LCA
+		for _, v := range qs[a] {
+			if v != a && !color[v] {
+				// 自己走到自己是可以计算的，要判断
+				// v还没走到，继续
+				continue
+			}
+			cb(a, v, find(v))
+		}
+		color[a] = true // a被灌了岩浆，也就是a的子树走完了，要向上走了
+	}
+	// 从0向下走
+	tarjan(0, -1, func(a, b, lca int) {
+		fmt.Println(a, b, lca)
+	})
+}
+```
+
+## 11. 差分
+
+### 11.1. 数组差分
+
+| 原数组       | 9   | 4   | 7   | 5   | 9   |
+| ------------ | --- | --- | --- | --- | --- |
+| 前缀和       | 9   | 13  | 20  | 25  | 34  |
+| 差分         | 9   | -5  | 3   | -2  | 4   |
+| 前缀和的差分 | 9   | 4   | 7   | 5   | 9   |
+| 差分的前缀和 | 9   | 4   | 7   | 5   | 9   |
+
+### 11.2. 树上差分
+
+- 对下面的一棵树
+
+<img src="2023-04-19-01.png" />
+
+- 如果想要从一个点到另一个点中间经过的所有点都加一，通常做法是dfs遍历，经过的点都加一
+- 单独一次请求时间复杂度为 $O(n)$ ，如果q次请求，时间复杂度就是 $O(nq)$
+- 使用差分只需要设置两个点和他们的公共祖先和祖先的父级就可以标记，标记的时间复杂度为 $O(n + q)$ ，因为LCA使用Tarjan算法就可以实现一次遍历全部查询出来
+- LCA和Tarjan就不多叙述，见上文，这里说明一下差分如何推出原始数组
+- 上图的树，假设从节点8到节点6，差分标记8和6都为1，节点3为拐点或称公共祖先，标记-1，3的父节点0标记-1
+
+<img src="2023-04-19-02.png" />
+
+- 那么一次dfs的处理就是，到根节点，将cnt加上当前值，返回给上一个节点，那么8和6到达3之前的都会设置为1，其他非路径的子树设置为0
+
+<img src="2023-04-19-03.png" />
+
+- 父节点的树等于两个子节点的和加上当前的差分，节点3就是`1 + 1 - 1 = 1`，节点0就是`1 + 0 - 1 = 0`
+
+<img src="2023-04-19-04.png" />
+
+- 可以发现一次dfs处理后，所有节点都设置完了，而对应走过的路都被标记了1，很完美

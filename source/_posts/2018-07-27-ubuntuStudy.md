@@ -201,6 +201,7 @@ $TTL    604800
 ; www.proxy.com
 @       IN  NS  www
 www     IN  A   199.200.2.170
+www     IN  A   199.200.2.183
 ; test.proxy.com
 @       IN  NS  test
 test    IN  A   199.200.2.170

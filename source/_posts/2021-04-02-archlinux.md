@@ -342,6 +342,7 @@ makepkg
 ### 6.1. 常用选项
 
 - `-s`: 安装编译依赖
+- `-d`: 跳过依赖检查
 - `-o`: 只下载源码并解压，不编译
 - `-r`: 在安装完成后移除安装依赖
 - `--skippgpcheck`: 不检查PGP签名
@@ -542,6 +543,46 @@ sudo systemctl start vmware-usbarbitrator.service
 ### 4.1. 有线无线网络管理
 
 - 需要安装`network-manager-applet`
+
+# 四、makepkg
+
+## 1. 编译内核
+
+### 1.1. 目录结构
+
+- 内核代码拉下来后，可以看到目录如下
+
+```shell
+=> tree -L 2
+.
+├── repos
+│   ├── core-i686
+│   ├── core-x86_64
+│   └── testing-x86_64
+└── trunk
+    ├── archlinux-linux
+    ├── config
+    ├── keys
+    ├── pkg
+    ├── PKGBUILD
+    └── src
+
+```
+
+### 1.2. 编译技巧
+
+- 内核配置在`trunk/config`，代码在`trunk/archlinux-linux`，实际编译的代码目录`trunk/src/archlinux-linux`
+- 可以在代码目录下修改config之后保存在外层的config下
+- PKGBUILD中会将config拷贝到`trunk/src/archlinux-linux`目录下的`.config`进行编译
+- 修改`PKGBUILD`，找到`make htmldocs all`，这个是编译命令，可以添加`-j 16`加速编译
+- 编译直接在`trunk`目录下执行下面的命令
+
+```shell
+# -s 安装依赖
+# -f 覆盖编译
+# --skipinteg 跳过完整性检查，因为改了config这个会不过，所以要跳过
+makepkg -sf --skipinteg
+```
 
 # 踩坑记和小技巧
 

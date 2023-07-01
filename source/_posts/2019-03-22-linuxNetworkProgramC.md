@@ -894,6 +894,246 @@ int recvFd(int clientFd) {
 }
 ```
 
+## 4. 原始socket发包
+
+### 4.1. 使用原始socket实现一个tcp syn扫描器
+
+**带ip头的处理**
+
+```cpp
+#define MAX_PACKET_SIZE 65536
+#define TH_SYN 0x02
+#define TH_RST 0x04
+#define TH_ACK 0x10
+
+struct pseudo_header {
+    u_int32_t source_address;
+    u_int32_t dest_address;
+    u_int8_t placeholder;
+    u_int8_t protocol;
+    u_int16_t tcp_length;
+    struct tcphdr tcp;
+};
+
+unsigned short csum(unsigned short *ptr, int nbytes) {
+    register long sum;
+    unsigned short oddbyte;
+    register short answer;
+
+    sum = 0;
+    while (nbytes > 1) {
+        sum += *ptr++;
+        nbytes -= 2;
+    }
+    if (nbytes == 1) {
+        oddbyte = 0;
+        *((u_char *) &oddbyte) = *(u_char *) ptr;
+        sum += oddbyte;
+    }
+
+    sum = (sum >> 16) + (sum & 0xffff);
+    sum = sum + (sum >> 16);
+    answer = (short) ~sum;
+
+    return (answer);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 4) {
+        cout << "Usage: " << argv[0] << " <source IP> <target IP> <target port>" << endl;
+        return 1;
+    }
+
+    char *src_ip = argv[1];
+    char *dst_ip = argv[2];
+    int dst_port = atoi(argv[3]);
+
+    int sock_raw = socket(AF_INET, SOCK_RAW, IPPROTO_TCP);
+    if (sock_raw < 0) {
+        cout << "Error creating socket: " << strerror(errno) << endl;
+        return 1;
+    }
+    // 发的包里面有ip头部
+    int on = 1;
+    if (setsockopt(sock_raw, IPPROTO_IP, IP_HDRINCL, &on, sizeof(on)) < 0) {
+        cout << "Error setting socket options: " << strerror(errno) << endl;
+        return 1;
+    }
+
+    char packet[MAX_PACKET_SIZE];
+    memset(packet, 0, MAX_PACKET_SIZE);
+
+    struct iphdr *ip = (struct iphdr *) packet;
+    struct tcphdr *tcp = (struct tcphdr *) (packet + sizeof(struct iphdr));
+    struct sockaddr_in sin;
+
+    sin.sin_family = AF_INET;
+    sin.sin_port = htons(dst_port);
+    sin.sin_addr.s_addr = inet_addr(dst_ip);
+
+    ip->ihl = 5;
+    ip->version = 4;
+    ip->tos = 0;
+    ip->tot_len = sizeof(struct iphdr) + sizeof(struct tcphdr);
+    ip->id = htons(54321);
+    ip->frag_off = 0;
+    ip->ttl = 255;
+    ip->protocol = IPPROTO_TCP;
+    ip->check = 0;  // 这里留空，系统会帮忙计算
+    ip->saddr = inet_addr(src_ip);
+    ip->daddr = sin.sin_addr.s_addr;
+
+    tcp->source = htons(1234);
+    tcp->dest = htons(dst_port);
+    tcp->seq = htonl(1105024978);
+    tcp->ack_seq = 0;
+    tcp->doff = 5;
+    tcp->fin = 0;
+    tcp->syn = 1;
+    tcp->rst = 0;
+    tcp->psh = 0;
+    tcp->ack = 0;
+    tcp->urg = 0;
+    tcp->window = htons(14600);
+    tcp->urg_ptr = 0;
+
+    struct pseudo_header psh;
+    psh.source_address = inet_addr(src_ip);
+    psh.dest_address = sin.sin_addr.s_addr;
+    psh.placeholder = 0;
+    psh.protocol = IPPROTO_TCP;
+    psh.tcp_length = htons(sizeof(struct tcphdr));
+
+    memcpy(&psh.tcp, tcp, sizeof(struct tcphdr));
+    // 计算checksum需要携带目的地址和源地址，否则发出去对面不认就不会回包
+    tcp->check = csum((unsigned short *) &psh, sizeof(struct pseudo_header));
+
+    int sent = sendto(sock_raw, packet, ip->tot_len, 0, (struct sockaddr *) &sin, sizeof(sin));
+    if (sent < 0) {
+        cout << "Error sending packet: " << strerror(errno) << endl;
+        return 1;
+    }
+
+    char buffer[MAX_PACKET_SIZE];
+    struct sockaddr_in saddr;
+    int saddr_size = sizeof(saddr);
+    int recv_len = 0;
+
+    while (recv_len == 0) {
+        recv_len = recvfrom(sock_raw, buffer, MAX_PACKET_SIZE, 0, (struct sockaddr *) &saddr, (socklen_t *) &saddr_size);
+        if (recv_len < 0) {
+            cout << "Error receiving packet: " << strerror(errno) << endl;
+            return 1;
+        }
+
+        struct iphdr *ip = (struct iphdr *) buffer;
+        if (ip->protocol == IPPROTO_TCP) {
+            struct tcphdr *tcp = (struct tcphdr *) (buffer + ip->ihl * 4);
+            if (tcp->source == htons(dst_port) && tcp->rst == 1) {
+                cout << "Port " << dst_port << " is closed" << endl;
+            } else if (tcp->source == htons(dst_port) && tcp->syn == 1 && tcp->ack == 1) {
+                cout << "Port " << dst_port << " is open" << endl;
+            }
+        }
+    }
+
+    close(sock_raw);
+
+    return 0;
+}
+```
+
+**不带ip头的处理**
+
+```cpp
+int main(int argc, char *argv[]) {
+    if (argc < 4) {
+        cout << "Usage: " << argv[0] << " <source IP> <target IP> <target port>" << endl;
+        return 1;
+    }
+
+    char *src_ip = argv[1];
+    char *dst_ip = argv[2];
+    int dst_port = atoi(argv[3]);
+
+    int sock_raw = socket(AF_INET, SOCK_RAW, IPPROTO_TCP);
+    if (sock_raw < 0) {
+        cout << "Error creating socket: " << strerror(errno) << endl;
+        return 1;
+    }
+
+    char packet[MAX_PACKET_SIZE];
+    memset(packet, 0, MAX_PACKET_SIZE);
+
+    struct tcphdr *tcp = (struct tcphdr *)packet;
+    struct sockaddr_in sin;
+
+    sin.sin_family = AF_INET;
+    sin.sin_port = htons(dst_port);
+    sin.sin_addr.s_addr = inet_addr(dst_ip);
+
+    tcp->source = htons(1234);
+    tcp->dest = htons(dst_port);
+    tcp->seq = htonl(1105024978);
+    tcp->ack_seq = 0;
+    tcp->doff = 5;
+    tcp->fin = 0;
+    tcp->syn = 1;
+    tcp->rst = 0;
+    tcp->psh = 0;
+    tcp->ack = 0;
+    tcp->urg = 0;
+    tcp->window = htons(14600);
+    tcp->check = 0;
+    tcp->urg_ptr = 0;
+
+    struct pseudo_header psh;
+    psh.source_address = inet_addr(src_ip);
+    psh.dest_address = sin.sin_addr.s_addr;
+    psh.placeholder = 0;
+    psh.protocol = IPPROTO_TCP;
+    psh.tcp_length = htons(sizeof(struct tcphdr));
+
+    memcpy(&psh.tcp, tcp, sizeof(struct tcphdr));
+    // 计算checksum需要携带目的地址和源地址，否则发出去对面不认就不会回包
+    tcp->check = csum((unsigned short *)&psh, sizeof(struct pseudo_header));
+
+    // 直接发送携带tcp头的数据即可，操作系统会自动拼接ip头，但是tcp的checksum必须对应上，不然对面不认
+    int sent = sendto(sock_raw, tcp, sizeof(struct tcphdr), 0, (struct sockaddr *)&sin, sizeof(sin));
+    if (sent < 0) {
+        cout << "Error sending packet: " << strerror(errno) << endl;
+        return 1;
+    }
+
+    char buffer[MAX_PACKET_SIZE];
+    struct sockaddr_in saddr;
+    int saddr_size = sizeof(saddr);
+    int recv_len = 0;
+
+    while (recv_len == 0) {
+        recv_len = recvfrom(sock_raw, buffer, MAX_PACKET_SIZE, 0, (struct sockaddr *)&saddr, (socklen_t *)&saddr_size);
+        if (recv_len < 0) {
+            cout << "Error receiving packet: " << strerror(errno) << endl;
+            return 1;
+        }
+
+        struct iphdr *ip = (struct iphdr *)buffer;
+        if (ip->protocol == IPPROTO_TCP) {
+            struct tcphdr *tcp = (struct tcphdr *)(buffer + ip->ihl * 4);
+            if (tcp->source == htons(dst_port) && tcp->rst == 1) {
+                cout << "Port " << dst_port << " is closed" << endl;
+            } else if (tcp->source == htons(dst_port) && tcp->syn == 1 && tcp->ack == 1) {
+                cout << "Port " << dst_port << " is open" << endl;
+            }
+        }
+    }
+
+    close(sock_raw);
+
+    return 0;
+}
+```
+
 # 踩坑记
 
 ## 1. TCP连接后，一方断电，另一方是无法检测到对方断电的

@@ -810,7 +810,12 @@ There are too many connections from your internet address
 
 - 基本同上，但是超时时间为1s
 
-### 3.2. SOA和NS
+### 3.2. tcp和udp
+
+- tcpdns和udpdns相比在前两个字节多了一个长度（单位字节，不带长度所占的两个字节的大小），也就是dns请求和响应包最大不超过65535
+- udp的dns如果超过512字节，就会使用tcp传输
+
+### 3.3. SOA和NS
 
 参考 [SOA记录和NS记录的通俗解释](https://www.cnblogs.com/bighammerdata/p/12776830.html)
 

@@ -35,7 +35,20 @@ sudo npm install --ignore-scripts
 sudo npm audit fix
 ```
 
-# 二、插件和操作
+# 二、配置
+
+## 1. 自定义css样式
+
+- 修改主题的配置文件`themes/next/source/css/main.styl`
+- 在下面语句后面加css样式即可，如下面把代码块的tab宽度改成4个空格
+
+```html
+// Custom Layer
+// --------------------------------------------------
+pre {tab-size: 4;}
+```
+
+# 三、插件和操作
 
 ## 1. 博客置顶
 
