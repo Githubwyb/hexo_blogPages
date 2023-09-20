@@ -115,9 +115,9 @@ reg add HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\arch-work /v Colou
 vmware-vdiskmanager -r Windows\ 10-0-000004.vmdk -t 0 merged.vmdk
 ```
 
-## 九、Visual Studio Community
+# 九、Visual Studio Community
 
-### 1. 增加评估时间
+## 1. 增加评估时间
 
 参考 [https://github.com/beatcracker/VSCELicense](https://github.com/beatcracker/VSCELicense)
 
@@ -133,4 +133,19 @@ Import-Module -Name .\VSCELicense.psd1
 Get-VSCELicenseExpirationDate -Version 2015
 @REM 基于当前时间增加评估时间，多次执行效果一样，不会多增加时间，而且最大31
 Set-VSCELicenseExpirationDate -Version 2015 -AddDays 31
+```
+
+# 十、Remmina
+
+## 1. 远程连接到windows中文输入法无法使用
+
+- 在`Remmina->Preferences->RDP->Use client keyboard mapping`把前面的勾去掉即可
+
+# 十一、shadowsocks
+
+## 1. windows上配置shadowsocks需要git bash使用需要单独配置
+
+```shell
+export http_proxy=socks5://127.0.0.1:1080
+export https_proxy=socks5://127.0.0.1:1080
 ```

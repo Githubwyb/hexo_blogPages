@@ -83,3 +83,23 @@ func main() {
 	select {}
 }
 ```
+
+# 三、系统api调用
+
+## 1. 当前用户sid获取
+
+- uid就是sid
+
+```go
+import (
+	"os/user"
+)
+
+func GetCurrentUserSid() (sid string, err error) {
+	u, err := user.Current()
+	if err != nil {
+		return
+	}
+	return u.Uid, nil
+}
+```

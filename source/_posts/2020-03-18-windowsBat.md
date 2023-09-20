@@ -893,6 +893,31 @@ ifIndex InterfaceAlias                  AddressFamily NlMtu(Bytes) InterfaceMetr
 PS> Set-NetIPInterface -InterfaceIndex 59 -InterfaceMetric 50
 ```
 
+## 3. 软件安装
+
+### 3.1. 内置安装器
+
+#### 1) 安装msixbundle
+
+```bat
+PS> Add-AppxPackage xxx.msixbundle
+```
+
+### 3.2. winget
+
+#### 1) 安装winget
+
+- github仓库: https://github.com/microsoft/winget-cli
+- 到上面的release下载一个msixbundle安装包
+- 使用powershell执行`Add-AppxPackage xxx.msixbundle`就可用了
+
+#### 2) install 安装软件
+
+##### 选项
+
+- `--location [dir]`: 指定路径，部分软件不支持
+- `--scope <user/machine>`: 指定安装范围，部分软件不支持，用户安装到用户的AppData下，电脑则安装到`C:\Program Files`下
+
 # 小技巧
 
 ## 1. powershell 使用 utf-8 编码

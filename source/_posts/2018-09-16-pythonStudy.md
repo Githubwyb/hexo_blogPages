@@ -83,10 +83,7 @@ plt.rcParams["figure.figsize"] = (15.0, 12.0)
 
 # 二、语法相关
 
-参考文档: [W3Cschool][1]、[Runoob][2]
-
-[1]: https://www.w3cschool.cn/uqmpir/
-[2]: http://www.runoob.com/python/python-tutorial.html
+参考文档: [W3Cschool](https://www.w3cschool.cn/uqmpir/)、[Runoob](http://www.runoob.com/python/python-tutorial.html)
 
 ## 1. 风格和编码
 

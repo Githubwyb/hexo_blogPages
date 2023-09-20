@@ -5,10 +5,15 @@ tags: [Linux]
 categories: [Program, Shell]
 ---
 
-# 回收站的位置
+# 一、特殊目录
 
-Deepin回收站的位置在
+## 1. 回收站的位置
 
-```shell
-    ~/.local/share/Trash/files
-```
+Deepin回收站的位置在`~/.local/share/Trash/files`
+
+# 二、特殊操作
+
+## 1. 添加开机自启动
+
+- 针对桌面版软件，在启动器中找到软件图标
+- 右键添加到开机启动即可

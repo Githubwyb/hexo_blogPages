@@ -158,8 +158,6 @@ sudo pacman -S wqy-microhei
 ### 8.1. nmcli基本使用
 
 ```shell
-
-```shell
 # 查看连接
 => nmcli conn show
 NAME    UUID                                  TYPE      DEVICE
@@ -477,6 +475,21 @@ depth=32
 ```shell
 sudo systemctl restart lightdm
 ```
+
+**vnc连上后总是提示`system policy prevents control of network connections`**
+
+- 编辑系统策略配置文件`/etc/polkit-1/localauthority/50-local.d/universal.pkla`
+
+```ini
+[Allow VNC for all users]
+Identity=unix-user:*
+Action=*
+ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
+```
+
+- 重启服务即可`sudo systemctl restart polkit.service`
 
 ## 2. 命令行工具
 
