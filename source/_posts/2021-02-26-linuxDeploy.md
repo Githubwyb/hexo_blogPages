@@ -30,7 +30,7 @@ linux deploy是在android手机上使用chroot搭建的linux环境，可以在�
 
 - 要获取root权限
 - 小米或其他手机可能将`/system`分区锁定了，需要先解锁
-- 默认安装位置`/system/xbin`
+- 默认安装位置`/system/xbin`，建议换到`/data/busybox/xbin`目录下，自己使用adb新建这个目录再安装
 - 解锁并有root权限安装会很顺利
 - 安装完成记得留意cpu架构，后面有用
 
@@ -44,7 +44,7 @@ linux deploy是在android手机上使用chroot搭建的linux环境，可以在�
     - 大部分手机可能锁屏会自动休眠降低功耗，会导致linux运行很慢
     - 看情况勾选
 2. 锁定wifi和cpu唤醒勾选
-3. PATH变量，设置为`/system/xbin`，设置完要点击更新环境将path应用
+3. PATH变量，设置为`/data/busybox/xbin`，设置完要点击更新环境将path应用
 4. 其他看着配置就可以了
 
 **针对linux的配置**
@@ -128,7 +128,7 @@ sudo pacman -S fakeroot --overwrite "*"
 sudo pacman -Rnsuc fakeroot
 
 # 安装一个debian版本的，这个是为了让fakeroot-tcp能编译通过
-wget http://ftp.debian.org/debian/pool/main/f/fakeroot/fakeroot_1.29.orig.tar.gz
+wget http://ftp.debian.org/debian/pool/main/f/fakeroot/fakeroot_1.32.1.orig.tar.gz
 tar -xzvf fakeroot_1.29.orig.tar.gz
 cd fakeroot_1.29
 ./bootstrap

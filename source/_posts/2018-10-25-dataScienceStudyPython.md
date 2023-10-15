@@ -154,6 +154,12 @@ test_df.to_csv('xxx.csv')
 test_df.to_csv('xxx.csv', index=False, header=False)
 ```
 
+只写其中一列，保留索引，去除表头
+
+```python
+test_df['label'].to_csv('xxx.csv', header=False)
+```
+
 ### 1.2. dataframe相关操作
 
 - dataframe本质上多个相同索引的series组成的数据结构
@@ -166,7 +172,8 @@ import pandas as pd
 
 df = pd.DataFrame(xxxxx)
 df.describe()       # 显示数据的各种统计数据包（中位数、平均数、标准差、最值等）
-df.shape()          # 行列数
+df.shape            # 行列数，注意这里没有括号，shape不是一个函数
+df.size             # 行数，同样不是一个函数
 isnull_df = df.isnull()     # 得到一个同纬度的true和false组成的dataframe
 isNull_df.any()             # 显示各列的情况是否含有true，相当于各列取或
 ```
@@ -313,7 +320,84 @@ d = pd.concat([b, c], ignore_index=True)
 print(d)
 ```
 
-#### 4) 其他
+#### 4) 改
+
+##### (1) 打乱其中的行
+
+- 使用sample方法进行打乱
+
+```python
+# frac是指抽取比例，为1就是全部抽取，抽取时是随机的，所以可以打乱数据
+train_data = train_data.sample(frac=1)
+```
+
+##### (2) 修改某个值
+
+```python
+# 查找到index行，column列改成5
+df.at["index", "column"] = 5
+```
+
+##### (3) 修改列名
+
+```python
+# 修改列名
+df.rename(columns={'test':'aaa'}, inplace=True)     # 将test改为aaa
+```
+
+##### (4) 排序
+
+```python
+## by为依据columns或index，需要指定axis，0是行排，1是列排，默认为0
+## ascending，True升序，False降序
+## inplace是否改变原数据
+## na_position，缺失值所在位置，last或first
+df.sort_values(by=["status"], ascending=[False], inplace=True)  # 依据status列进行行排序，降序，替换原数据
+```
+
+##### (5) 只取几列
+
+```python
+# 取多列返回的是dataframe
+X = train_data[['len_scale', 'shan_scale', 'yuan_ratio']]
+# 取一列返回的是Series
+Y = train_data['label']
+```
+
+##### (6) 某一列修改类型
+
+**字符串转int**
+
+- 字符串的`0`转数字`0`，不是`\0`转`0`
+
+```python
+data = pd.DataFrame({
+    'label': ['0', '1', '0', '1']
+})
+print(data['label'])
+data['label'] = data['label'].astype(int)
+print(data['label'])
+```
+
+```
+0    0
+1    1
+2    0
+3    1
+Name: label, dtype: object
+0    0
+1    1
+2    0
+3    1
+Name: label, dtype: object
+0    0
+1    1
+2    0
+3    1
+Name: label, dtype: int64
+```
+
+#### 其他
 
 ```python
 #################### 删 #######################
@@ -362,18 +446,6 @@ columns_value = df.columns.values   # 返回list格式
 # 筛选出符合条件的行
 ## 删选test列为1的所有数据
 tmp = df[df['test'].isin([1])]
-
-#################### 改 ######################
-# 修改某个值，查到就能改，用上面查找的方法直接改
-df.at["index", "columns"] = 5
-# 修改列名
-df.rename(columns={'test':'aaa'}, inplace=True)     # 将test改为aaa
-# 排序
-## by为依据columns或index，需要指定axis，0是行排，1是列排，默认为0
-## ascending，True升序，False降序
-## inplace是否改变原数据
-## na_position，缺失值所在位置，last或first
-df.sort_values(by=["status"], ascending=[False], inplace=True)  # 依据status列进行行排序，降序，替换原数据
 ```
 
 - 遍历
@@ -625,11 +697,29 @@ plt.imshow(img)
 plt.show()
 ```
 
+#### 6) hist 直方图
+
+- `bins`: 分几组，越大直方图越细节
+- `label`: 多标签的时候的图例，需要x传入数组，label和data的size一致
+- 需要调用legend才能显示图例，否则不会显示图例
+
+```python
+plt.hist(x=[train_data[train_data['label']==0]['shan'], train_data[train_data['label']==1]['shan']], bins=50, label=['0', '1'])
+plt.legend(['0', '1'])
+```
+
+![](2023-09-23-02.png)
+
 ## 4. seaborn
 
 ### 4.1. 画图统计向量中值的出现次数 countplot
 
+- `x`: 要统计数量的标签
+- `hue`: 不同颜色表示的不同的标签，分别进行统计
+
 #### 1) dataframe
+
+##### (1) 针对单标签画图
 
 ```python
 import pandas as pd
@@ -656,6 +746,14 @@ sns.countplot(d, x='a')
 效果图
 
 <img src = "2018_11_29_03.png">
+
+##### (2) 对两个标签进行统计画图
+
+```python
+sns.countplot(train_data, x='length', hue='label')
+```
+
+![](2023-09-23-01.png)
 
 ### 4.2. scatterplot 散点图
 

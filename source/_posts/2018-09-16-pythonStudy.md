@@ -719,6 +719,13 @@ dict2 = {"a": 2, "c": 3}
 dict3 = {**dict1, **dict2}  # 用dict2更新dict1
 ```
 
+### 2) 遍历
+
+```python
+for key, value in dict1.items():
+    # do something
+```
+
 # 三、系统内置module介绍
 
 ## 1. 操作系统组件 os
