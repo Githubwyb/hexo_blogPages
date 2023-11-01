@@ -661,7 +661,38 @@ ax = plt.gca()  # 获取坐标轴对象
 ax.xaxis.set_major_locator(MultipleLocator(100))    # 设置x轴刻度间隔为100
 ax.yaxis.set_major_locator(MultipleLocator(50))     # 设置y轴刻度间隔为50
 ax.xaxis.set_ticks_position('top')                  # 设置x轴刻度在上方显示，默认是下方
+plt.grid(True) # 显示网格
 plt.show()
+```
+
+##### (1) 图例右上角展示
+
+```python
+# 不加这句不显示图例
+plt.legend(loc='upper right')
+```
+
+##### (2) x轴斜着显示
+
+```python
+plt.xticks(x, rotation=45, ha='right')
+```
+
+##### (3) x轴只显示整数
+
+```python
+plt.plot(x, y)
+# 设置xticks的x为要显示的值即可，画图就会只显示这些值
+plt.xticks([a for a in x if abs(a-round(a)) < 0.000001])
+```
+
+##### (4) y轴修改小数为百分比字符串
+
+```python
+plt.plot(x, y)
+ax = plt.gca()
+# 设置y轴标签为百分比字符串
+ax.set_yticklabels(['{:.0%}'.format(i) for i in ax.get_yticks()])
 ```
 
 #### 4) stem 散点图
@@ -710,6 +741,60 @@ plt.legend(['0', '1'])
 
 ![](2023-09-23-02.png)
 
+#### 7) 绘制折线图
+
+```python
+import matplotlib.pyplot as plt
+
+plt.plot(time_series, zeros_data, label="0")
+plt.plot(time_series, one_two_data, label="1~2")
+plt.plot(time_series, upper_two_data, label="3~")
+plt.xticks(time_series, rotation=45, ha='right') # x轴斜着展示
+plt.legend(loc='upper right') # 图例右上角
+plt.title("随时间变化曲线")
+```
+
+![](2023-10-20-02.png)
+
+### 踩坑记
+
+#### 1) 字体设置
+
+- 默认的字体可能会导致中文显示不正常，需要设置字体
+
+**打印当前支持设置的字体**
+
+```python
+# 打印当前支持设置的字体
+import matplotlib.font_manager as fm
+
+# 获取可用字体族
+font_families = sorted(set([f.name for f in fm.fontManager.ttflist]))
+
+# 打印所有可用字体族
+for font_family in font_families:
+    print(font_family)
+```
+
+**打印当前默认字体**
+
+```python
+import matplotlib.pyplot as plt
+print(plt.rcParams["font.family"])
+print(plt.rcParams['font.sans-serif'])
+```
+
+```
+['sans-serif']
+['DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', 'sans-serif']
+```
+
+**设置字体**
+
+```python
+plt.rcParams['font.sans-serif'] = ['WenQuanYi Micro Hei', 'Consolas']
+```
+
 ## 4. seaborn
 
 ### 4.1. 画图统计向量中值的出现次数 countplot
@@ -754,6 +839,22 @@ sns.countplot(train_data, x='length', hue='label')
 ```
 
 ![](2023-09-23-01.png)
+
+#### 2) list
+
+```python
+import seaborn as sns
+import random
+data = []
+
+for i in  range(1000):
+    data.append(random.randint(0, 10))
+
+print(data)
+sns.countplot(x=data)
+```
+
+![](2023-10-20-01.png)
 
 ### 4.2. scatterplot 散点图
 

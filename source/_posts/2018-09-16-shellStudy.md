@@ -1494,6 +1494,23 @@ if [[ -n "$SSH_CONNECTION" ]] ; then
 fi
 ```
 
+### 4.5. 忽略`known_hosts`错误
+
+- 配置到`~/.ssh/config`中
+
+```conf
+# 对单个服务器
+Host test-server
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+    ...
+
+# 对所有服务器
+Host *
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+```
+
 ### 踩坑记
 
 #### (1) 低版本ssh连接失败
@@ -1501,9 +1518,21 @@ fi
 ```
 ```
 
-- 修改`/etc/ssh/ssh_config`，添加下面字段即可
+- 修改`/etc/ssh/ssh_config`或`~/.ssh/config`，添加下面字段即可
 
 ```conf
+# 对单个服务器
+Host test-server
+    # no matching host key type found. Their offer: ssh-rsa,ssh-dss
+    HostkeyAlgorithms +ssh-rsa
+    PubkeyAcceptedAlgorithms +ssh-rsa
+    # no matching key exchange method found. Their offer: diffie-hellman-group1-sha1,diffie-hellman-group14-sha1
+    KexAlgorithms +diffie-hellman-group1-sha1
+    # no matching cipher found. Their offer: aes128-cbc,3des-cbc,blowfish-cbc,aes192-cbc,aes256-cbc,rijndael128-cbc,rijndael192-cbc,rijndael256-cbc,rijndael-cbc@lysator.liu.se
+    Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-cbc,3des-cbc
+    ...
+
+# 对所有服务器
 Host *
     # no matching host key type found. Their offer: ssh-rsa,ssh-dss
     HostkeyAlgorithms +ssh-rsa
@@ -2065,6 +2094,35 @@ convert pdf_name.pdf image_name.jpg
 convert -resize 1800x -density 150 -quality 100 pdf_name.pdf image_name.jpg
 ```
 
+### 21.3. gif和图片转换
+
+```shell
+# gif转jpg
+=> convert test.gif test.jpg
+=> ls
+test-0.jpg   test-11.jpg  test-13.jpg  test-15.jpg  test-17.jpg  test-2.jpg  test-4.jpg  test-6.jpg  test-8.jpg  test.gif
+test-10.jpg  test-12.jpg  test-14.jpg  test-16.jpg  test-1.jpg   test-3.jpg  test-5.jpg  test-7.jpg  test-9.jpg
+
+# jpg转gif
+=> convert test-*.jpg aaa.gif
+```
+
+### 21.4. 图片信息查看
+
+```shell
+=> identify -verbose misc2.jpg
+Image:
+  Filename: misc2.jpg
+  Permissions: rw-r--r--
+  Format: JPEG (Joint Photographic Experts Group JFIF format)
+  Mime type: image/jpeg
+  Class: DirectClass
+  Geometry: 1366x768+0+0
+  Resolution: 96x96
+  Print size: 14.2292x8
+...
+```
+
 ## 22. 模拟网络延迟 tc
 
 - 局限就是只能对某一个网卡设置，不能设定规则来指针对ip和端口
@@ -2290,6 +2348,54 @@ sox rec.au rec.wav
 ```shell
 # 递归下载此链接下所有文件，不进入父级目录，下载完看到es5目录（前两级裁剪掉了）
 wget -r -np -nH --cut-dirs=2 -R index.html https://cdn.mathjax.org/mathjax/es5/
+```
+
+## 32. hexdump
+
+### 32.1. 选项
+
+- `-C`: 显示ascii和hex对应的格式
+- `-n <length>`: 指定显示几个字节
+
+### 32.2. 示例
+
+```shell
+=> hexdump 隐藏的钥匙.jpg | head -n 3
+0000000 d8ff e0ff 1000 464a 4649 0100 0001 0100
+0000010 0100 0000 feff 3b00 5243 4145 4f54 3a52
+0000020 6720 2d64 706a 6765 7620 2e31 2030 7528
+=> hexdump -C 隐藏的钥匙.jpg | head -n 3
+00000000  ff d8 ff e0 00 10 4a 46  49 46 00 01 01 00 00 01  |......JFIF......|
+00000010  00 01 00 00 ff fe 00 3b  43 52 45 41 54 4f 52 3a  |.......;CREATOR:|
+00000020  20 67 64 2d 6a 70 65 67  20 76 31 2e 30 20 28 75  | gd-jpeg v1.0 (u|
+=> hexdump -C -n 100 隐藏的钥匙.jpg
+00000000  ff d8 ff e0 00 10 4a 46  49 46 00 01 01 00 00 01  |......JFIF......|
+00000010  00 01 00 00 ff fe 00 3b  43 52 45 41 54 4f 52 3a  |.......;CREATOR:|
+00000020  20 67 64 2d 6a 70 65 67  20 76 31 2e 30 20 28 75  | gd-jpeg v1.0 (u|
+00000030  73 69 6e 67 20 49 4a 47  20 4a 50 45 47 20 76 36  |sing IJG JPEG v6|
+00000040  32 29 2c 20 71 75 61 6c  69 74 79 20 3d 20 39 30  |2), quality = 90|
+00000050  0a ff db 00 43 00 03 02  02 03 02 02 03 03 03 03  |....C...........|
+00000060  04 03 03 04                                       |....|
+00000064
+```
+
+## 33. base64
+
+### 33.1. 选项
+
+- `-d`: 解密
+
+### 33.2. 示例
+
+- base64一般是对文件，如果需要字符串则要使用管道
+
+```shell
+# 解密
+=> echo -n "Mzc3Y2JhZGRhMWVjYTJmMmY3M2QzNjI3Nzc4MWYwMGE=" | base64 -d
+377cbadda1eca2f2f73d36277781f00a%
+# 加密
+=> echo -n "377cbadda1eca2f2f73d36277781f00a" | base64
+Mzc3Y2JhZGRhMWVjYTJmMmY3M2QzNjI3Nzc4MWYwMGE=
 ```
 
 # 四、小技巧

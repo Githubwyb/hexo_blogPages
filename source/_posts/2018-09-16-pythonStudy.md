@@ -726,6 +726,27 @@ for key, value in dict1.items():
     # do something
 ```
 
+## 14. bytes 字节序列
+
+### 14.1. 和str相互转化
+
+```python
+with open('base64data.txt', 'rb') as f:
+    data = f.read()
+
+print(data)
+str_data = data.decode('utf-8')
+print(str_data)
+bytes_data = str_data.encode('utf-8')
+print(bytes_data)
+```
+
+```
+b'1234'
+1234
+b'1234'
+```
+
 # 三、系统内置module介绍
 
 ## 1. 操作系统组件 os
@@ -961,6 +982,25 @@ print(hash_value)
 >>> result = functools.reduce(lambda x, y: x + y, a)
 >>> print(result)
 21
+```
+
+## 9. base64 库
+
+### 9.1. base64编码解码
+
+```python
+import base64
+
+with open('test.jpg', 'rb') as f:
+    # 使用base64加密，得到的是bytes类型的数据
+    base64EncData = base64.b64encode(f.read())
+with open('base64data.txt', 'wb') as f:
+    # 由于是bytes数据，需要使用二进制保存，但是存进去后打开是可读的字符串
+    f.write(base64EncData)
+
+with open('test1.jpg', 'wb') as f:
+    # 解码后存到文件中
+    f.write(base64.b64decode(base64EncData))
 ```
 
 # 四、好用的module推荐
