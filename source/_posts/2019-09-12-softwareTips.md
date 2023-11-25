@@ -38,9 +38,19 @@ categories: [Software Usage]
 
 - 加速github下载的插件
 
+### (2) SwitchyOmega 代理切换
+
+https://github.com/FelisCatus/SwitchyOmega
+
 ## 4. chrome处理json时preview中文乱码
 
 - 需要服务端将响应头的`Content-Type`设置为`application/json; charset=utf-8`即可
+
+## 4. 离线安装crx插件
+
+1. 先将crx插件重命名为zip进行解压
+2. chrome打开插件管理器，启用开发者模式，点击load unpacked
+3. 选择解压的目录即可
 
 # 三、vscode
 
@@ -148,4 +158,22 @@ Set-VSCELicenseExpirationDate -Version 2015 -AddDays 31
 ```shell
 export http_proxy=socks5://127.0.0.1:1080
 export https_proxy=socks5://127.0.0.1:1080
+```
+
+# 十二、wps
+
+## 1. linux上wps字体加粗出现乱码
+
+- 原因是wps版本`11.1.0.11708-1`及之前版本和freetype2的`2.13.1`版本不兼容，需要降级freetype2软件包到`2.13.0`版本即可
+
+### archlinux
+
+```shell
+sudo pacman -U https://arch-archive.tuna.tsinghua.edu.cn/2023/06-26/extra/os/x86_64/freetype2-2.13.0-1-x86_64.pkg.tar.zst
+```
+
+- 然后在`/etc/pacman.conf`中配置下面字段忽略freetype2的更新检查即可
+
+```conf
+IgnorePkg = freetype2
 ```

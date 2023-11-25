@@ -702,48 +702,19 @@ There are 2 choices for the alternative iptables (providing /usr/sbin/iptables).
 usage: netstat [-vWeenNcCF] [<Af>] -r         netstat {-V|--version|-h|--help}
        netstat [-vWnNcaeol] [<Socket> ...]
        netstat { [-vWeenNac] -i | [-cnNe] -M | -s [-6tuw] }
-
-        -r, --route              display routing table
-        -i, --interfaces         display interface table
-        -g, --groups             display multicast group memberships
-        -s, --statistics         display networking statistics (like SNMP)
-        -M, --masquerade         display masqueraded connections
-
-        -v, --verbose            be verbose
-        -W, --wide               don't truncate IP addresses
-        -n, --numeric            don't resolve names
-        --numeric-hosts          don't resolve host names
-        --numeric-ports          don't resolve port names
-        --numeric-users          don't resolve user names
-        -N, --symbolic           resolve hardware names
-        -e, --extend             display other/more information
-        -p, --programs           display PID/Program name for sockets
-        -o, --timers             display timers
-        -c, --continuous         continuous listing
-
-        -l, --listening          display listening server sockets
-        -a, --all                display all sockets (default: connected)
-        -F, --fib                display Forwarding Information Base (default)
-        -C, --cache              display routing cache instead of FIB
-        -Z, --context            display SELinux security context for sockets
-
-  <Socket>={-t|--tcp} {-u|--udp} {-U|--udplite} {-S|--sctp} {-w|--raw}
-           {-x|--unix} --ax25 --ipx --netrom
-  <AF>=Use '-6|-4' or '-A <af>' or '--<af>'; default: inet
-  List of possible address families (which support routing):
-    inet (DARPA Internet) inet6 (IPv6) ax25 (AMPR AX.25)
-    netrom (AMPR NET/ROM) ipx (Novell IPX) ddp (Appletalk DDP)
-    x25 (CCITT X.25)
 ```
 
 - `-a`: 显示所有连接，包括正在连接的
 - `-l`: 显示监听的连接，只显示被监听的端口和套接字文件
 - `-p`: 显示进程名
 - `-n`: 不把端口自动推测成服务，显示原始端口
+- `-t`: tcp
+- `-u`: udp
 
 ### 实例
 
 ```shell
+# 显示所有tcp监听的端口，显示对应进程，按照数字显示端口
 netstat -tnlp | grep 1234
 ```
 
@@ -1033,6 +1004,32 @@ ip route add 192.168.0.0/24 dev ens18
 ip route add default via 192.168.0.254 dev ens18
 # 静态路由
 ip route add 192.168.0.101/32 via 192.168.0.254 dev enp0s3
+```
+
+#### 1) 策略路由
+
+- 一般的策略路由配置是设置mark到数据包，然后通过mark将数据包匹配对应的路由表
+
+```shell
+########## 查看所有的策略路由规则 ##########
+# 下面的fwmark就是在数据包上的mark匹配走200这个表
+=> ip rule show
+0:      from all lookup local
+50:     from all fwmark 0x1 lookup 200
+32766:  from all lookup main
+32767:  from all lookup default
+
+########## 查看某个路由表的规则 ##########
+=> ip route show table 200
+local default dev lo scope host
+
+########## 设置规则 ##########
+# 策略路由添加mark为1000的给到1000路由表，fwmark匹配的是sk_buff的mark
+=> ip rule add fwmark 1000 table 1000
+
+########## 设置路由表的默认路由 ##########
+# 1000的路由表直接把所有流量路由到tun0上去
+=> ip route add default dev tun0 table 1000
 ```
 
 ### 30.2. 查看网卡ip
@@ -1356,6 +1353,8 @@ total kB            6804    4276     228
 # 只打印只出现过一次的行，此文件没有所以没输出
 => cat xxx.log | sort | uniq -d
 ```
+
+## 42. ipset 给iptables使用的ip列表
 
 # 三、工具命令
 
@@ -1791,10 +1790,39 @@ gdb --args /path/to/run a b
 gdbserver 0.0.0.0:6666 --attach 14614
 ```
 
-- 本地gdb连接即可
+- vscode配置文件
 
-```shell
+```json
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach remote server",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/nginx-1.21.4/objs/nginx",
+            "miDebuggerServerAddress": "x.x.x.x:6666",
+            "cwd": "${workspaceFolder}",
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        }
 
+    ]
+}
 ```
 
 ### 13.6. gdb忽略某个信号不打断

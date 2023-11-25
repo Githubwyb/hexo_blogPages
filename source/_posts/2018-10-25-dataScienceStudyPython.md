@@ -678,7 +678,7 @@ plt.legend(loc='upper right')
 plt.xticks(x, rotation=45, ha='right')
 ```
 
-##### (3) x轴只显示整数
+##### (3) x轴的数值只显示部分
 
 ```python
 plt.plot(x, y)
@@ -693,6 +693,13 @@ plt.plot(x, y)
 ax = plt.gca()
 # 设置y轴标签为百分比字符串
 ax.set_yticklabels(['{:.0%}'.format(i) for i in ax.get_yticks()])
+```
+
+##### (5) 设置x和y的范围
+
+```python
+plt.xlim(0, 1)
+plt.ylim(0, 1)
 ```
 
 #### 4) stem 散点图

@@ -44,6 +44,13 @@ pip freeze > requirements.txt
 python -m ensurepip
 ```
 
+### 1.5. pip命令用法
+
+```shell
+# 安装指定版本软件
+pip install torch==1.10.0
+```
+
 ## 2. jupyter notebook
 
 ### 2.1. 安装
@@ -243,6 +250,16 @@ str = """CREATE TABLE `emm_data` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `emm_data_path` (`path`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin"""
+```
+
+### 3.6. 字符串转数字
+
+```python
+num = int('123')
+print(num)  # 输出 123
+
+num = float('3.14')
+print(num)  # 输出 3.14
 ```
 
 ## 4. list操作

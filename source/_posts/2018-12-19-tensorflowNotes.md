@@ -27,6 +27,6 @@ keras是tensorflow的上层api，可以使用keras方便的实现神经网络的
 将标签转化成容易输出的类型，如10个数字作为输出，可转成[1, 0, ..., 0]表示0这种形式
 
 ```python
-    import tensorflow as tf
-    tmp = tf.keras.utils.to_categorical(Y_train, num_classes = 10)
+import tensorflow as tf
+tmp = tf.keras.utils.to_categorical(Y_train, num_classes = 10)
 ```

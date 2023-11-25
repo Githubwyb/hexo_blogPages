@@ -102,7 +102,7 @@ General options:
 {
     "server": "10.242.8.24",
     "server_port": 8889,
-    "password": "Mylinux123"
+    "password": "test"
 }
 ```
 
