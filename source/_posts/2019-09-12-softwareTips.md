@@ -46,7 +46,7 @@ https://github.com/FelisCatus/SwitchyOmega
 
 - 需要服务端将响应头的`Content-Type`设置为`application/json; charset=utf-8`即可
 
-## 4. 离线安装crx插件
+## 5. 离线安装crx插件
 
 1. 先将crx插件重命名为zip进行解压
 2. chrome打开插件管理器，启用开发者模式，点击load unpacked

@@ -16,7 +16,7 @@ categories: [Program, C/C++]
 threadPool.hpp
 ```C++
 /*
- * @Author WangYubo
+ * @Author Test
  * @Date 09/17/2018
  * @Description 线程池实现的头文件
  */
@@ -84,7 +84,7 @@ class threadPool {
 threadPool.cpp
 ```cpp
 /*
- * @Author WangYubo
+ * @Author Test
  * @Date 09/17/2018
  * @Description 线程池实现的cpp文件
  */
@@ -154,7 +154,7 @@ void threadPool::run() {
 main.cpp
 ```cpp
 /*
- * @Author WangYubo
+ * @Author Test
  * @Date 09/17/2018
  * @Description
  */

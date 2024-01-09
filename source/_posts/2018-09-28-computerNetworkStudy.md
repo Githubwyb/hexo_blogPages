@@ -52,7 +52,11 @@ top: 94
 - 应用层需要关心应用程序的逻辑细节，而不是数据在网络中的传输活动。应用层其下三层则处理真正的通信细节。在 Internet 整个发展过程中的所有思想和着重点都以一种称为 RFC（Request For Comments）的文档格式存在。针对每一种特定的 TCP/IP 应用，有相应的 RFC [3]  文档。
 - 一些典型的 TCP/IP 应用有 FTP、Telnet、SMTP、SNTP、REXEC、TFTP、LPD、SNMP、NFS、INETD 等。RFC 使一些基本相同的 TCP/IP 应用程序实现了标准化，从而使得不同厂家开发的应用程序可以互相通信
 
-# 二、网络层
+# 二、物理层
+
+# 三、数据链路层
+
+# 四、网络层
 
 ## 1. ip地址分类
 
@@ -192,7 +196,7 @@ struct ip6_hdr
 - `ip6_src`: 64bit源地址
 - `ip6_dst`: 64bit目的地址
 
-# 三、传输层
+# 五、传输层
 
 - tcp和udp都是ip包的数据段，分片包协议属于ip网络层协议，非传输层
 
@@ -317,6 +321,35 @@ struct tcphdr
 };
 ```
 
+### 1.4. tcp校验和的计算
+
+- 硬件有checksum offload能力时，协议栈只需要计算一个伪头部校验和，放到tcp->check中，然后设置好csum_start（硬件需要计算checksum的起始位置即tcp头部起始位置），csum_offset（计算完成后存放的位置），硬件就会自动计算
+- 协议栈里面处理tcp校验和的代码
+
+```cpp
+// net/ipv4/tcp_ipv4.c
+void __tcp_v4_send_check(struct sk_buff *skb, __be32 saddr, __be32 daddr)
+{
+	struct tcphdr *th = tcp_hdr(skb);
+
+  // 伪头部校验和包括tcp包整个长度，源ip和目的ip
+	th->check = ~tcp_v4_check(skb->len, saddr, daddr, 0);
+	skb->csum_start = skb_transport_header(skb) - skb->head;  // tcp头部起始位置，基于head的偏移
+	skb->csum_offset = offsetof(struct tcphdr, check);  // check基于tcp头部起始位置的偏移
+}
+
+/* This routine computes an IPv4 TCP checksum. */
+void tcp_v4_send_check(struct sock *sk, struct sk_buff *skb)
+{
+	const struct inet_sock *inet = inet_sk(sk);
+
+	__tcp_v4_send_check(skb, inet->inet_saddr, inet->inet_daddr);
+}
+EXPORT_SYMBOL(tcp_v4_send_check);
+```
+
+- 伪头部包含源ip和目的ip以及tcp整个包长度，目的是让接收端进行校验，确定tcp构造头部时的源地址和目的地址和数据包是一致的
+
 ## 2. UDP
 
 ### 2.1. UDP头部分析
@@ -358,7 +391,7 @@ struct udphdr
 };
 ```
 
-# 四、应用层
+# 六、应用层
 
 ## 1. tls握手流程
 
@@ -827,6 +860,24 @@ SOA记录表明了DNS服务器之间的关系。SOA记录表明了谁是这个�
 NS记录实际上也是在DNS服务器之间，表明谁对某个区域有解释权，即权威DNS。大家都知道电信和网通都有很多的DNS服务器。这些服务器为我们上公网做域名解析提供了很多方便。但是这些DNS服务器有一个有意思的地方是这些DNS不存放任何区域，看上去更像是一个DNS CLIENT，它们被称为唯缓存DNS服务器。它们会缓存大量的解析地址，这样就会让你解析的时候选择它们会觉得很快。它们在查询的时候就会查询NS记录，通过这个记录就知道谁在负责比如51CTO.COM这个地域的管理工作。还有一种情况来说明NS记录的作用。比如你先在万网申请了一个域名ABC.COM。一般情况是万网的域名服务器替你来解析如WWW.ABC.COM这样的主机记录。如果你想自己架设一个DNS服务器，让这台服务器从今往后替代万网的DNS服务器解析，那么你就需要在你的DNS上设置NS记录，然后将万网域名管理系统中的NS记录改成你的DNSIP。这样以后就是你自己的DNS服务器负责提供解析了。即使万网的DNS服务器出现故障，别人仍然可以找到你。
 
 另外值得一说的是，相对你DNS的CLIENT，你设置的DNS服务器地址就是你的权威DNS。通过NSLOOKUP工具可以看到。而那个非权威应答，恰恰是那个区域真正的NS。
+
+# 七、网络设备
+
+| 名称   | 工作层        | 作用                                                       | 备注                                             |
+| ------ | ------------- | ---------------------------------------------------------- | ------------------------------------------------ |
+| 中继器 | 物理层        | 将一个网络信号放大发送                                     |                                                  |
+| 集线器 | 物理层        | 将一个端口的网络信号放大发送到其他端口                     | 多端口中继器                                     |
+| 网桥   | 数据链路层    | 将一个端口的数据发送给另一个端口，需要mac地址对应          |                                                  |
+| 交换机 | 数据链路层    | 学习端口mac地址，将一个端口的数据查询mac地址发送给对应端口 | 相当于多个网桥                                   |
+| 路由器 | 网络层        | 根据目的ip和路由规则决定转发到哪个端口                     |                                                  |
+| 网关   | 网络层/应用层 | 连接两个不同的网络区域                                     | 网关只是概念<br>路由器和三层交换机都可以算作网关 |
+
+- 工作在网络层及以上的设备有自己的mac地址，所以目的mac地址是此设备才能到，设备发出去的包源mac一般为自己
+
+## 1. 家用路由器和计算机网络中的路由器的区分
+
+- 家用路由器可以算作pppoe拨号客户端 + DHCP服务器 + NAT转换 + DNS代理，有路由的功能
+- 计算机网络中的路由器仅是路由这个功能，主要是根据路由表进行ip数据包转发
 
 # 问题
 

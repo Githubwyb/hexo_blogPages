@@ -631,7 +631,7 @@ watch -n 1 free -h
 
 ### 13.1. 知识填充
 
-查看 [iptables原理和源码分析](/bookPages/docs/linux-kernel/net/iptables/)
+查看 [iptables原理和源码分析](/bookPages/docs/linux/linux-kernel/net/iptables/)
 
 ### 13.2. 实例
 
@@ -1305,7 +1305,7 @@ total kB            6804    4276     228
 
 - `-c`: 在前面显示重复行数量
 - `-u`: 只打印不同的行
-- `-d`: 只打印只出现过一次的行
+- `-d`: 只打印出现过多次的行
 
 ### 41.2. 基本用法
 
@@ -1350,8 +1350,6 @@ total kB            6804    4276     228
 0xd593
 0xf2d3
 0xf89b
-# 只打印只出现过一次的行，此文件没有所以没输出
-=> cat xxx.log | sort | uniq -d
 ```
 
 ## 42. ipset 给iptables使用的ip列表
@@ -1419,7 +1417,7 @@ ssh-keygen -t rsa -C "xxx@xxx.com"
 
 ```shell
 # socks5代理
-ssh -o "ProxyCommand=nc -x 127.0.0.1:1080 %h %p" wangyubo@172.22.2.108
+ssh -o "ProxyCommand=nc -x 127.0.0.1:1080 %h %p" test@172.22.2.108
 ```
 
 ### 4.3. 端口转发
@@ -1724,7 +1722,7 @@ cmake --build build/ --target clean -j 4
 
 ## 13. gdb c/c++单步调试工具
 
-### 13.1 基本使用命令
+### 13.1 gdb内部基本使用命令
 
 ```shell
 start                       # 开始调试,停在第一行代码处,(gdb)start
@@ -1831,6 +1829,12 @@ gdbserver 0.0.0.0:6666 --attach 14614
 
 ```shell
 gdb> handle SIGINT nostop
+```
+
+### 13.7. gdb挂载进程调试
+
+```shell
+gdb /path/to/exec pid
 ```
 
 ## 14. <span id = "tmux">tmux</span>
@@ -1980,6 +1984,14 @@ int ip_rcv_finish(struct net *net, struct sock *sk, struct sk_buff *skb) {
 static int ip_rcv_finish(struct net *net, struct sock *sk, struct sk_buff *skb) {
     ...
 }
+```
+
+### 17.4. 实例
+
+#### 1) 编译动态库
+
+```shell
+gcc -shared -fPIC main.cpp -o main.so
 ```
 
 ## 18. firewalld 防火墙

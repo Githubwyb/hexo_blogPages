@@ -38,6 +38,14 @@ Linux 6.3.1-arch1-1 (arch-work-pc)      05/25/2023      _x86_64_        (16 CPU)
 - `VSZ`: 虚拟大小（Virtual Size），整个任务的虚拟内存使用情况，单位为KByte。
 - `RSS`: 常驻集大小（Resident Set Size），任务使用的未交换的物理内存，单位为KByte。
 
+#### RSS/PSS/VSZ
+
+一个进程有500K的代码并且链接了2500K的共享库，然后有200K的堆栈分配。其中有400K自身的代码、1000K的共享库以100K的堆栈内存被加载在实际内存（RAM）中，并且系统中一共有两个进程用了同样的共享库。那么：
+
+VSZ：500K + 2500K + 200K = 3200K
+RSS：400K + 1000K + 100K = 1500K
+PSS：400K + (1000K / 2) + 100K = 1000K
+
 ## 2. top 类似任务管理器
 
 ### 2.1. 选项解释
@@ -91,3 +99,18 @@ GiB Swap:     12.0 total,     12.0 free,      0.0 used.     12.6 avail Mem
 - `s`: 进程的领导者（在它之下有子进程）
 - `l`: ismulti-threaded (using CLONE_THREAD, like NPTL pthreads do)
 - `+`: 位于后台的进程组
+
+# 二、内核追踪调试技术
+
+
+
+## 2. trace-cmd
+
+### 2.1. 常用的用法
+
+```shell
+# 查看可以追踪什么点
+trace-cmd list
+# 查看可以使用什么追踪器
+trace-cmd list -t
+```

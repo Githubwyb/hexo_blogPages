@@ -196,7 +196,7 @@ mkdir opencv/build
 cd opencv/build
 # 用cmake进行配置，注意修改里面的每个路径的值到真实的路径
 # cmake过程报的错自己解决
-cmake -D BUILD_opencv_python3=YES -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/home/wangyubo/miniforge3/opencv4.5.2 -D OPENCV_EXTRA_MODULES=../../opencv_contrib/modules -D PYTHON3_LIBRARIES=/home/wangyubo/miniforge3/lib/libpython3.9.so -D PYTHON3_EXECUTABLE=/home/wangyubo/miniforge3/bin/python -D PYTHON3_NUMPY_INCLUDE_DIRS=/home/wangyubo/miniforge3/lib/python3.9/site-packages/numpy/core/include/ -D PYTHON3_PACKAGES_PATH=/home/wangyubo/miniforge3/lib/python3.9/site-packages ..
+cmake -D BUILD_opencv_python3=YES -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/home/test/miniforge3/opencv4.5.2 -D OPENCV_EXTRA_MODULES=../../opencv_contrib/modules -D PYTHON3_LIBRARIES=/home/test/miniforge3/lib/libpython3.9.so -D PYTHON3_EXECUTABLE=/home/test/miniforge3/bin/python -D PYTHON3_NUMPY_INCLUDE_DIRS=/home/test/miniforge3/lib/python3.9/site-packages/numpy/core/include/ -D PYTHON3_PACKAGES_PATH=/home/test/miniforge3/lib/python3.9/site-packages ..
 # 编译安装
 make -j4
 make install

@@ -147,7 +147,7 @@ SYSCALL_DEFINE3(bind, int, fd, struct sockaddr __user *, umyaddr, int, addrlen)
 
 ```shell
 # INSTALL_MOD_PATH指定安装的根目录位置，会自动安装到此目录下的lib/modules/<arch>下
-make modules_install INSTALL_MOD_PATH=/home/wangyubo/vmware/linux-5.19/fs
+make modules_install INSTALL_MOD_PATH=/home/test/vmware/linux-5.19/fs
 ```
 
 ## 2. 选项解释

@@ -763,6 +763,61 @@ plt.title("随时间变化曲线")
 
 ![](2023-10-20-02.png)
 
+#### 8) 双y轴画图
+
+```python
+import matplotlib.pyplot as plt
+
+RSS_data = []
+VSZ_data = []
+date = []
+
+with open(filename, "r") as f:
+    line = f.readline()
+    while line:
+        if line.find("test") != -1 and line.find("Average") == -1:
+            data = line.split()
+            date.append(data[0])
+            VSZ_data.append(int(data[5]))
+            RSS_data.append(int(data[6]))
+        line = f.readline()
+
+
+hourly_time_series = [time for time in date if time[-2:-1] == '0']
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+ax1.plot(date, RSS_data, label="RSS", color="green")
+ax1.set_ylim(50000, 100000)
+ax1.set_ylabel("RSS")
+ax1.set_xlabel("时间")
+ax1.legend(loc='upper left') # 图例右上角
+
+# 关键函数，将ax1的x轴进行复制
+ax2 = ax1.twinx()
+ax2.plot(date, VSZ_data, label="VSZ", color="red")
+ax2.set_ylim(400000, 500000)
+ax2.set_ylabel("VSZ")
+ax2.legend(loc='upper right') # 图例左上角
+
+ax1.set_xticks(hourly_time_series)
+# 下面设置倾斜x轴数据显示没有效果，使用ax1的set_xticks也没有效果，不清楚为什么
+# plt.xticks(rotation=45, ha='right')
+# 使用这种方式设置有效果
+ax1.set_xticklabels(hourly_time_series, rotation=45, ha='right')
+
+plt.grid(True)
+plt.title(title)
+```
+
+#### 9) 画直线或横线
+
+```python
+# 画竖线
+plt.axvline(x=10, color='r', linestyle='--', label="开始工作")
+# 画横线
+plt.axhline(y=10, color='r', linestyle='--', label="开始工作")
+```
+
 ### 踩坑记
 
 #### 1) 字体设置

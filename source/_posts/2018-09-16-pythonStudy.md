@@ -69,7 +69,7 @@ Writing default config to: /home/you/.jupyter/jupyter_notebook_config.py
 ~|⇒ jupyter notebook password               # 设置远程访问密码
 Enter password:
 Verify password:
-[NotebookPasswordApp] Wrote hashed password to /home/wangyubo/.jupyter/jupyter_notebook_config.json
+[NotebookPasswordApp] Wrote hashed password to /home/test/.jupyter/jupyter_notebook_config.json
 ```
 
 编辑`jupyter_notebook_config.py`，找到以下配置，改成这样
@@ -1201,6 +1201,25 @@ except Exception as e:
     mysql_conn.rollback()
 ```
 
+## 12. pyotp 谷歌totp令牌
+
+```python
+import pyotp
+
+secret = 'IAZDARCEHAZEAQCCIBBDAQBWGA2EAMBZHA2EAOBWGAYEANCFGAZA'
+totp = pyotp.TOTP(secret)
+token = totp.now()
+```
+
+# 五、jupyter notebook
+
+## 1. 清空当前输出
+
+```python
+from IPython.display import clear_output
+
+clear_output(wait=True)
+```
 
 # 小技巧和踩坑记
 

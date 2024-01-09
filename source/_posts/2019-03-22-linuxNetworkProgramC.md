@@ -224,9 +224,9 @@ enum sock_shutdown_cmd {
 
 [使用epoll时需要将socket设为非阻塞吗？](https://blog.csdn.net/boiled_water123/article/details/104161471)
 
-1. 监听的服务端fd，最好使用水平触发模式，边沿触发可能导致部分客户端连接不上
-2. 客户端fd，使用水平触发时，阻塞非阻塞都可以，建议设置非阻塞
-3. 客户端fd，使用边沿触发时，必须使用非阻塞io，否则会卡在读取调用上。但是要求必须一次读完所有数据，否则可能存在数据没有处理。
+1. 服务端用于监听的fd，最好使用水平触发模式，边沿触发可能导致部分客户端连接不上
+2. 和客户端交互的fd，使用水平触发时，阻塞非阻塞都可以，建议设置非阻塞
+3. 和客户端交互fd，使用边沿触发时，必须使用非阻塞io，否则会卡在读取调用上。但是要求必须一次读完所有数据，否则可能存在数据没有处理。
 
 # 五、网络编程
 
@@ -508,6 +508,25 @@ err:
     close(fd);
     return 1;
 }
+```
+
+## 7. 使用非本机ip发送数据包
+
+- 主要使用的是socket的一个选项，`IP_TRANSPARENT`
+
+```cpp
+int value = 1;
+setsockopt(fd, SOL_IP, IP_TRANSPARENT, &value, sizeof(value));
+```
+
+- 发送数据包后，此socket会监听一个非本机ip的地址，而linux本身会在反向路由里面发现非本机地址的数据包会直接丢弃，所以还需要添加策略路由来允许本机接收数据包
+
+```shell
+# 对此ip回包添加mark来匹配策略路由，这样防止发出去的包也被路由处理了
+=> iptables -I PREROUTING -t mangle -d 80.0.0.0/8 -j MARK --set-mark 4567
+# 对此mark的数据包匹配策略路由，默认到lo本地网卡
+=> ip rule add fwmark 4567 lookup 4567
+=> ip route add local 0.0.0.0/0 dev lo table 4567
 ```
 
 # 六、实战示例
