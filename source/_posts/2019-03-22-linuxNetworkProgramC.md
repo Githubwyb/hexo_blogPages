@@ -515,8 +515,15 @@ err:
 - 主要使用的是socket的一个选项，`IP_TRANSPARENT`
 
 ```cpp
+// 设置fd选项为允许透明转发
 int value = 1;
 setsockopt(fd, SOL_IP, IP_TRANSPARENT, &value, sizeof(value));
+
+// 绑定一个非本机ip
+struct sockaddr_in addr;
+addr.sin_family = AF_INET;
+addr.sin_addr.s_addr = inet_addr("2.0.1.1");
+int ret = bind(fd, &addr, sizeof(addr));
 ```
 
 - 发送数据包后，此socket会监听一个非本机ip的地址，而linux本身会在反向路由里面发现非本机地址的数据包会直接丢弃，所以还需要添加策略路由来允许本机接收数据包
@@ -526,6 +533,7 @@ setsockopt(fd, SOL_IP, IP_TRANSPARENT, &value, sizeof(value));
 => iptables -I PREROUTING -t mangle -d 80.0.0.0/8 -j MARK --set-mark 4567
 # 对此mark的数据包匹配策略路由，默认到lo本地网卡
 => ip rule add fwmark 4567 lookup 4567
+# 必须要加local，代表包是走本机处理，默认的unicast是不走本机处理的
 => ip route add local 0.0.0.0/0 dev lo table 4567
 ```
 

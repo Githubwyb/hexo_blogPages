@@ -362,6 +362,24 @@ i=$[$i+1];      # 分号不能少
 i=$(($i+1))     # 中间可以加空格
 ```
 
+## 10. shift 参数左移
+
+- 一般用于shell脚本中，将传入的参数删除n个（不加就是1个），剩余的左移
+
+```shell
+#!/bin/bash
+
+echo "$#: $@"
+shift
+echo "$#: $@"
+```
+
+```shell
+=> bash test.sh a b c
+3: a b c
+2: b c
+```
+
 # 二、系统命令详解
 
 ## 1. find 文件查找
@@ -585,6 +603,20 @@ main
 
 ## 10. date 时间工具
 
+### 10.1. 用法
+
+```
+Usage: date [OPTION]... [+FORMAT]
+  or:  date [-u|--utc|--universal] [MMDDhhmm[[CC]YY][.ss]]
+Display date and time in the given FORMAT.
+With -s, or with [MMDDhhmm[[CC]YY][.ss]], set the date and time.
+```
+
+- `-d DATE_STRING`: 展示使用字符串描述的时间，不设置就是显示当前时间，`DATE_STRING`使用`@`加上时间戳也可以表示
+- `-s DATE_STRING`: 使用字符串描述的时间设置到系统时间上
+
+### 10.2. 一些实例
+
 ```shell
 ########## 时间计算 ##########
 # 时间戳转正常时间格式
@@ -602,6 +634,9 @@ main
 # 当前时间戳
 => date +'%s'
 1644981572
+# 显示当前时间的纳秒，可以用作随机数
+=> date +%N
+911552178
 
 ########## 设置当前时间 ##########
 => date -s @1587536520
@@ -920,6 +955,7 @@ udevadm control --log-priority=debug
 ## 25. lsblk 树型查看硬盘分区信息
 
 - `-d`: 只显示硬盘，不显示分区
+- `-f`: 显示分区文件系统类型
 - `-o xxx,xxx`: 指定显示列
   - `name`: 名字
   - `rota`: 是否是转动磁盘，也就是机械硬盘。1为机械硬盘；0为固态硬盘
@@ -934,12 +970,25 @@ sda      8:0    0 298.1G  0 disk
 ├─sda6   8:6    0  11.2G  0 part [SWAP]
 ├─sda7   8:7    0  46.6G  0 part /
 └─sda8   8:8    0  41.3G  0 part /opt
+# 只显示硬盘不显示分区
 => lsblk -d
 NAME MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
 sda    8:0    0 298.1G  0 disk
+# 查看磁盘类型
 => lsblk -d -o name,rota
 NAME ROTA
 sda     1
+# 显示分区类型
+=> lsblk -f
+NAME        FSTYPE FSVER LABEL UUID                                 FSAVAIL FSUSE% MOUNTPOINTS
+sda
+├─sda1
+├─sda2      ntfs               4E8CEE018CEDE385
+├─sda3      ntfs               0DEF58322D6D56AD
+├─sda4      ext4   1.0         62441d56-2c6a-4767-8184-f78cd60b79a1
+├─sda5      ntfs               065A00D1601779D9                      125.7G    75% /home
+├─sda6      ext4   1.0         297fb264-ef82-456b-8ab6-c2722c5afd45   93.6G    74% /
+└─sda7      ext4   1.0         773df249-8192-49d6-89e0-526caf0b74d9   15.3G    79% /opt
 ```
 
 ## 26. blkid 查看已挂载的硬盘的uuid信息
@@ -1353,6 +1402,61 @@ total kB            6804    4276     228
 ```
 
 ## 42. ipset 给iptables使用的ip列表
+
+## 43. who
+
+### 43.1. 基本使用
+
+```shell
+# 查看所有登陆到设备的信息，包括ssh的
+=> who -a
+           system boot  Mar 24 17:57
+LOGIN      tty1         Mar 24 18:02              5143 id=tty1
+           run-level 3  Mar 24 18:01
+           pts/2        Feb 27 22:11             18090 id=ts/2  term=0 exit=0
+admin    + pts/1        Feb 21 17:17   .         26585 (172.22.27.203)
+           pts/6        Feb 27 17:18              1755 id=ts/6  term=0 exit=0
+           pts/5        Feb 27 19:59              1329 id=ts/5  term=0 exit=0
+```
+
+## 44. df
+
+- `-T`: 显示文件系统类型
+
+```shell
+=> df -h
+Filesystem        Size  Used Avail Use% Mounted on
+dev                16G     0   16G   0% /dev
+run                16G  2.1M   16G   1% /run
+efivarfs          192K   83K  105K  44% /sys/firmware/efi/efivars
+/dev/nvme0n1p3     59G   42G   15G  74% /
+tmpfs              16G  220M   16G   2% /dev/shm
+tmpfs              16G  165M   16G   2% /tmp
+/dev/nvme0n1p5     46G   35G  8.1G  82% /home
+/dev/nvme0n1p1   1022M   30M  993M   3% /boot/efi
+/dev/sda7          98G   78G   16G  84% /home/test/expand
+/dev/sda6         455G  338G   94G  79% /home/test/work
+/dev/sda5         500G  375G  126G  75% /home/test/vmware
+//172.22.72.45/D  400G  248G  153G  62% /home/test/D
+tmpfs             3.1G  132K  3.1G   1% /run/user/1000
+
+# 显示文件系统类型
+=> df -Th
+Filesystem       Type      Size  Used Avail Use% Mounted on
+dev              devtmpfs   16G     0   16G   0% /dev
+run              tmpfs      16G  2.1M   16G   1% /run
+efivarfs         efivarfs  192K   83K  105K  44% /sys/firmware/efi/efivars
+/dev/nvme0n1p3   ext4       59G   42G   15G  74% /
+tmpfs            tmpfs      16G  228M   16G   2% /dev/shm
+tmpfs            tmpfs      16G  165M   16G   2% /tmp
+/dev/nvme0n1p5   ext4       46G   35G  8.1G  82% /home
+/dev/nvme0n1p1   vfat     1022M   30M  993M   3% /boot/efi
+/dev/sda7        ext4       98G   78G   16G  84% /home/test/expand
+/dev/sda6        ext4      455G  338G   94G  79% /home/test/work
+/dev/sda5        fuseblk   500G  375G  126G  75% /home/test/vmware
+//172.22.72.45/D cifs      400G  248G  153G  62% /home/test/D
+tmpfs            tmpfs     3.1G  132K  3.1G   1% /run/user/1000
+```
 
 # 三、工具命令
 
@@ -1955,6 +2059,42 @@ alias phptags='ctags --langmap=php:.engine.inc.module.theme.php  --php-kinds=cdf
 - `-fsanitize=address`: 监听内存泄漏，需要同时加上`-lasan`并且保证已经安装libasan
 - `-fno-omit-frame-pointer`
 - `-Werror`: 所有warning当作error处理
+- `-nostdinc`: 不搜索默认路径头文件，一般是嵌入式或内核开发使用
+- `-Os`: 类似于`-O2.5`但是不缩减代码尺寸
+- `-fpie`: 编译选项，pie功能看后面解释，给可执行文件使用，e代表`executable`
+- `-fpic`: 编译选项，和pie类似，给链接库使用，c代表code
+- `-fno-pie`: 编译选项，关闭pie功能
+- `-pie`: 链接选项，需要和`-fpie`一起使用，不过不加好像是默认看编译选项
+- `-no-pie`: 链接选项，关闭pie，同样需要和`-fno-pie`一起使用，不过不加好像是默认看编译选项
+
+#### 1) PIE技术
+
+PIE（position-independent executable）是一种生成地址无关可执行程序的技术。编译器在生成代码时，会添加特殊指令，让内部跳转时不关心内存在哪里加载，也就可以将二进制在内存中随即地址加载
+
+一般技术为添加`__x86.get_pc_thunk.ax`函数，使用当前的地址加上偏移计算出对应调用地址
+
+```assembly
+00280000 <start_kernel>:
+  ...
+  280004:	e8 eb 02 00 00       	call   2802f4 <__x86.get_pc_thunk.bx>
+  280009:	81 c3 7b 06 00 00    	add    $0x67b,%ebx
+  ...
+
+Disassembly of section .text.__x86.get_pc_thunk.bx:
+
+002802f4 <__x86.get_pc_thunk.bx>:
+  2802f4:	8b 1c 24             	mov    (%esp),%ebx
+  2802f7:	c3                   	ret
+
+00280684 <_GLOBAL_OFFSET_TABLE_>:
+	...
+```
+
+`__x86.get_pc_thunk.bx`实现是将esp内存的地址赋值给ebx，esp存的地址是下一条指令所在的地址，也就是上面的`280009:	81 c3 7b 06 00 00    	add    $0x67b,%ebx`的地址`0x280009`。对这个地址添加`0x67b`得到`0x280684`也就是`_GLOBAL_OFFSET_TABLE_`的地址。这段汇编就是将全局偏移表的地址存到ebx中，后面进行使用。
+
+使用当前地址加偏移的方式就可以让二进制在加载内存时不用在特定地址加载。
+
+此方式只需要给全局变量和静态变量使用，因为函数地址本身就是偏移得来的，
 
 ### 17.2. 查看预定义宏
 
@@ -2436,6 +2576,185 @@ wget -r -np -nH --cut-dirs=2 -R index.html https://cdn.mathjax.org/mathjax/es5/
 # 加密
 => echo -n "377cbadda1eca2f2f73d36277781f00a" | base64
 Mzc3Y2JhZGRhMWVjYTJmMmY3M2QzNjI3Nzc4MWYwMGE=
+```
+
+## 34. nmcli
+
+networkmanager的命令行工具
+
+### 34.1. 基本使用
+
+```shell
+########## connection 连接相关 ##########
+# 查看连接
+=> nmcli conn show
+NAME    UUID                                  TYPE      DEVICE
+enp0s3  9a364675-b60a-479a-8d4a-754bab3dfe01  ethernet  enp0s3
+# 添加连接，绑定网卡enp0s3
+=> nmcli conn add type ethernet con-name enp0s3-dhcp ifname enp0s3 ipv4.method auto ipv4.dns 114.114.114.114,8.8.8.8
+# 修改为静态ip地址
+=> nmcli conn modify enp0s3-dhcp ipv4.method manual ipv4.addresses 192.168.0.100 ipv4.dns 114.114.114.114
+# 修改为dhcp获取ip地址
+=> nmcli conn modify enp0s3-dhcp ipv4.method auto ipv4.dns 114.114.114.114,8.8.8.8
+# 删除连接
+=> nmcli conn delete enp0s3
+# 启用连接
+=> nmcli conn up enp0s3-dhcp
+# 禁用连接
+=> nmcli conn down enp0s3-dhcp
+# 重载
+=> nmcli conn reload
+```
+
+## 35. split 大文件分割
+
+### 35.1. 选项
+
+- `-l 100`: 指定行数分割
+- `-b 500m`: 指定大小分割文件
+
+### 36.2. 使用示例
+
+#### 1) 按大小分割文件
+
+```shell
+=> ls -lh blackbox.tar.gz
+-rw-r--r-- 1 test test 59M Feb 26 09:39 blackbox.tar.gz
+# 25m为大小分割文件
+=> split -b 25m blackbox.tar.gz black
+=> ls -lh black*
+-rw-r--r-- 1 test test  25M Mar  1 15:28 blackaa
+-rw-r--r-- 1 test test  25M Mar  1 15:28 blackab
+-rw-r--r-- 1 test test 8.5M Mar  1 15:28 blackac
+-rw-r--r-- 1 test test  59M Feb 26 09:39 blackbox.tar.gz
+# 合并文件
+=> cat blacka* > aaa.tar.gz
+=> ls -lh aaa.tar.gz
+-rw-r--r-- 1 test test 59M Mar  1 15:29 aaa.tar.gz
+=> md5sum aaa.tar.gz
+460760c4ed358916251956d46106d272  aaa.tar.gz
+=> md5sum blackbox.tar.gz
+460760c4ed358916251956d46106d272  blackbox.tar.gz
+```
+
+## 36. blktrace 磁盘跟踪命令
+
+### 36.1. blktrace命令
+
+- `-d <dev>`: 指定设备
+- `-a <event>`: 指定采集事件，可以多次使用此选项代表指定多个
+    - barrier: barrier attribute
+    - complete: completed by driver
+    - discard: discard / trim traces
+    - fs: requests
+    - issue: issued to driver
+    - pc: packet command events
+    - queue: queue operations
+    - read: read traces
+    - requeue: requeue operations
+    - sync: synchronous attribute
+    - write: write traces
+    - notify: trace messages
+    - drv_data: additional driver specific trace
+- `-w <seconds>`: 采集时间，默认一直采集直到`Ctrl+c`
+
+#### 1) 实例
+
+- 采集`/dev/vda`的issue和compelte事件，采集10s，输出默认是`vda.blktrace.n`，几个cpu几个文件
+
+```shell
+=> blktrace -d /dev/vda -a issue -a complete -w 10
+=== vda ===
+  CPU  0:                   11 events,        1 KiB data
+  CPU  1:                  180 events,        9 KiB data
+  CPU  2:                  167 events,        8 KiB data
+  CPU  3:                   10 events,        1 KiB data
+  CPU  4:                    0 events,        0 KiB data
+  CPU  5:                   50 events,        3 KiB data
+  CPU  6:                   33 events,        2 KiB data
+  CPU  7:                   29 events,        2 KiB data
+  CPU  8:                    1 events,        1 KiB data
+  CPU  9:                    0 events,        0 KiB data
+  CPU 10:                   10 events,        1 KiB data
+  CPU 11:                   24 events,        2 KiB data
+  CPU 12:                   37 events,        2 KiB data
+  CPU 13:                   19 events,        1 KiB data
+  CPU 14:                    8 events,        1 KiB data
+  CPU 15:                   17 events,        1 KiB data
+  Total:                   596 events (dropped 0),       29 KiB data
+=> ls
+vda.blktrace.0  vda.blktrace.10  vda.blktrace.12  vda.blktrace.14  vda.blktrace.2  vda.blktrace.4  vda.blktrace.6  vda.blktrace.8
+vda.blktrace.1  vda.blktrace.11  vda.blktrace.13  vda.blktrace.15  vda.blktrace.3  vda.blktrace.5  vda.blktrace.7  vda.blktrace.9
+```
+
+### 36.2. blkiomon
+
+- `-h <file>`: 输出可读文件，`-`代表输出到stdout
+- `-I <interval>`: 输出间隔，配合blktrace就是多少秒输出一次统计
+
+#### 1) 实例
+
+- 统计一段时间内的写入大小，一般用于磁盘写入模型分析
+
+```shell
+=> blktrace -d /dev/vda -a write -w 10 -o - | blkiomon -I 5 -h -
+
+time: Thu May 16 11:47:56 2024
+device: 252,0
+sizes read (bytes): num 0, min -1, max 0, sum 0, squ 0, avg 0.0, var 0.0
+sizes write (bytes): num 31, min 512, max 65536, sum 295424, squ 7064518656, avg 9529.8, var 137070487.6
+d2c read (usec): num 0, min -1, max 0, sum 0, squ 0, avg 0.0, var 0.0
+d2c write (usec): num 31, min 2419, max 45980, sum 519668, squ 13595208536, avg 16763.5, var 157540722.6
+throughput read (bytes/msec): num 0, min -1, max 0, sum 0, squ 0, avg 0.0, var 0.0
+throughput write (bytes/msec): num 31, min 37, max 3087, sum 26881, squ 47194707, avg 867.1, var 770497.1
+sizes histogram (bytes):
+            0:     0         1024:     5         2048:     2         4096:     9
+         8192:     2        16384:    12        32768:     0        65536:     1
+       131072:     0       262144:     0       524288:     0      1048576:     0
+      2097152:     0      4194304:     0      8388608:     0    > 8388608:     0
+d2c histogram (usec):
+            0:     0            8:     0           16:     0           32:     0
+           64:     0          128:     0          256:     0          512:     0
+         1024:     0         2048:     0         4096:     3         8192:     8
+        16384:     8        32768:     8        65536:     4       131072:     0
+       262144:     0       524288:     0      1048576:     0      2097152:     0
+      4194304:     0      8388608:     0     16777216:     0     33554432:     0
+    >33554432:     0
+bidirectional requests: 0
+
+time: Thu May 16 11:48:01 2024
+device: 252,0
+sizes read (bytes): num 0, min -1, max 0, sum 0, squ 0, avg 0.0, var 0.0
+sizes write (bytes): num 56, min 512, max 81920, sum 614912, squ 18157928448, avg 10980.6, var 203675773.4
+d2c read (usec): num 0, min -1, max 0, sum 0, squ 0, avg 0.0, var 0.0
+d2c write (usec): num 56, min 1188, max 69309, sum 871518, squ 26326653252, avg 15562.8, var 227917397.3
+throughput read (bytes/msec): num 0, min -1, max 0, sum 0, squ 0, avg 0.0, var 0.0
+throughput write (bytes/msec): num 56, min 25, max 10227, sum 98317, squ 494203003, avg 1755.7, var 5742709.1
+sizes histogram (bytes):
+            0:     0         1024:     7         2048:     3         4096:    21
+         8192:     3        16384:    17        32768:     3        65536:     1
+       131072:     1       262144:     0       524288:     0      1048576:     0
+      2097152:     0      4194304:     0      8388608:     0    > 8388608:     0
+d2c histogram (usec):
+            0:     0            8:     0           16:     0           32:     0
+           64:     0          128:     0          256:     0          512:     0
+         1024:     0         2048:     3         4096:    12         8192:    11
+        16384:     8        32768:    14        65536:     7       131072:     1
+       262144:     0       524288:     0      1048576:     0      2097152:     0
+      4194304:     0      8388608:     0     16777216:     0     33554432:     0
+    >33554432:     0
+bidirectional requests: 0
+```
+
+### 36.3. blkparse
+
+- `-i <dev>`: 分析blktrace输出的`dev.blktrace.cpu`文件，指定dev会自动找当前目录的文件
+- `-o <file>`: 输出text到文件，默认到stdout
+
+#### 1) 实例
+
+```shell
+=> blkparse -i vda -o vda.txt
 ```
 
 # 四、小技巧

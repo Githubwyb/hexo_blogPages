@@ -9,10 +9,8 @@ categories: [Program, C/C++]
 
 本文为研究linux kernel源码所记录的一些笔记
 
-源码下载路径
-```
-https://mirrors.edge.kernel.org/pub/linux/kernel/
-```
+- 源码下载路径: https://mirrors.edge.kernel.org/pub/linux/kernel/
+- 源码git路径: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
 
 由于篇幅问题，后续更新放在 [linux内核源码分析记录](/bookPages/docs/linux-kernel/)
 
@@ -158,6 +156,15 @@ make modules_install INSTALL_MOD_PATH=/home/test/vmware/linux-5.19/fs
 
 - 内核编译选项中，前面是`<*>`代表编译进内核
 - `<M>`代表编译成模块
+
+#### 2) 部分配置解释
+
+```conf
+# 内核开启kasan选项，有内存异常检测到会写到dmesg中
+CONFIG_KASAN=y
+# 编译出/usr/lib/modules/$(uname -r)/kernel/lib/test_kasan.ko，insmod后会在dmesg中打印出来结果说明kasan生效
+CONFIG_TEST_KASAN=y
+```
 
 # 七、调试内核
 
@@ -334,4 +341,273 @@ Remote debugging using localhost:1234
         }
     ]
 }
+```
+
+# 八、crash调试vmcore排查宕机问题
+
+[宕机问题排查记录](/bookPages/docs/linux/kernel-troubleshooting/crash/)
+
+## 1. crash命令使用
+
+### 1.1. 查看系统信息
+
+**系统信息**
+
+```shell
+crash> sys
+      KERNEL: vmlinux/4.19.181/since-20220607/vmlinux
+    DUMPFILE: /backup/vmcore-check/kdump/127.0.0.1-2024-02-19-18:04:10/vmcore  [PARTIAL DUMP]
+        CPUS: 4
+        DATE: Mon Feb 19 18:02:59 2024
+      UPTIME: 104 days, 01:01:03
+LOAD AVERAGE: 0.11, 0.19, 0.23
+       TASKS: 1192
+    NODENAME: test-kernel
+     RELEASE: 4.19.181
+     VERSION: #6 SMP Thu Jun 16 04:03:14 CST 2022
+     MACHINE: x86_64  (2200 Mhz)
+      MEMORY: 8 GB
+       PANIC: ""
+```
+
+**dmesg**
+
+```shell
+crash> log | tail -n 10
+[2729253.365084] R10: 00007fecfc95fb80 R11: 0000000000000293 R12: 0000000000000040
+[2729253.365085] R13: 00007fecbbb56970 R14: 00007fecbbb56968 R15: 00007fecfc95fa30
+[2729253.365087] Modules linked in: ip_vs_wrr ip_vs xt_TEE nf_dup_ipv6 nf_dup_ipv4 xt_TPROXY nf_tproxy_ipv6 nf_tproxy_ipv4 xt_mark xt_socket nf_socket_ipv4 nf_socket_ipv6 veth ipt_MASQUERADE nf_conntrack_netlink xt_addrtype br_netfilter bridge stp llc rfkill overlay xt_connmark xt_nat xt_comment xt_iprange ip6t_REJECT nf_reject_ipv6 ip6t_rpfilter ipt_REJECT nf_reject_ipv4 xt_conntrack nft_counter nft_chain_nat_ipv6 nf_nat_ipv6 nft_chain_route_ipv6 nft_chain_nat_ipv4 nf_nat_ipv4 nf_nat nft_chain_route_ipv4 nfnetlink_queue nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 ip6_tables nft_compat ip_set_hash_ipport ip_set_hash_ip ip_set nf_tables nfnetlink dm_crypt loop intel_rapl ext4 mbcache jbd2 x86_pkg_temp_thermal intel_powerclamp coretemp kvm_intel kvm irqbypass crct10dif_pclmul crc32_pclmul
+[2729253.388462] traps: test_proxy[3608] trap invalid opcode ip:7f83806ab82e sp:7fff360d16e8 error:0 in libc-2.28.so[7f838064a000+1ba000]
+[2729253.575710] traps: testfwd[27992] trap invalid opcode ip:7fe56ab0c82e sp:7ffda76b06f8 error:0 in libc-2.28.so[7fe56aaab000+1ba000]
+[2729253.593401] traps: test_proxy[3609] trap invalid opcode ip:7f83806ab82e sp:7fff360d16e8 error:0 in libc-2.28.so[7f838064a000+1ba000]
+[2729253.600250] test-console[16276]: segfault at 99193855eb8 ip 0000000000f7d670 sp 00007ffe7dbac1e8 error 4 in test-console[400000+26b6000]
+[2729253.600264] Code: 74 35 4d 89 cb 89 c7 44 29 c7 89 fa c1 ea 1f 01 fa d1 fa 44 01 c2 44 8d 6a 01 43 8d 7c 2d 02 c1 e7 03 48 63 ff 49 8b 7c 3b ff <44> 39 57 07 72 ca 89 d0 44 39 c0 75 cb 39 d8 7f 67 8d 50 02 c1 e2
+[2729253.656410]  ghash_clmulni_intel intel_cstate intel_rapl_perf sg pcspkr wdat_wdt i2c_i801 i2c_ismt ip_tables xfs libcrc32c sd_mod ahci libahci qat_c3xxx(OE) ixgbe(O) crc32c_intel libata igb i2c_algo_bit dca intel_qat(OE) uio dm_mirror dm_region_hash dm_log dm_mod fuse
+[2729253.656425] CR2: 0000000000100218
+```
+
+**内存情况**
+
+```shell
+crash> kmem -i
+                 PAGES        TOTAL      PERCENTAGE
+    TOTAL MEM  4054860      15.5 GB         ----
+         FREE   599514       2.3 GB   14% of TOTAL MEM
+         USED  3455346      13.2 GB   85% of TOTAL MEM
+       SHARED   204346     798.2 MB    5% of TOTAL MEM
+      BUFFERS     1262       4.9 MB    0% of TOTAL MEM
+       CACHED  1573638         6 GB   38% of TOTAL MEM
+         SLAB   148297     579.3 MB    3% of TOTAL MEM
+
+   TOTAL HUGE        0            0         ----
+    HUGE FREE        0            0    0% of TOTAL HUGE
+
+   TOTAL SWAP  1048575         4 GB         ----
+    SWAP USED    11968      46.8 MB    1% of TOTAL SWAP
+    SWAP FREE  1036607         4 GB   98% of TOTAL SWAP
+
+ COMMIT LIMIT  3076005      11.7 GB         ----
+    COMMITTED  4663520      17.8 GB  151% of TOTAL LIMIT
+```
+
+**runq 查看各个cpu正在运行的线程和时间**
+
+```shell
+crash> runq -m
+ CPU 0: [31 14:07:33.656]  PID: 0      TASK: ffffffff93a12740  COMMAND: "swapper/0"
+ CPU 1: [ 0 00:00:00.000]  PID: 3608   TASK: ffff8f6ba749ad00  COMMAND: "proxy"
+ CPU 2: [ 0 00:00:00.063]  PID: 3609   TASK: ffff8f6ba749da00  COMMAND: "proxy"
+ CPU 3: [ 0 00:00:00.875]  PID: 5102   TASK: ffff8f6cd27b0000  COMMAND: "mysqld"
+```
+
+**中断状态**
+
+```shell
+crash> irq -s
+           CPU0       CPU1       CPU2       CPU3
+  0:         27          0          0          0  IO-APIC-edge     timer
+  4:       2251          0      15122        454  IO-APIC-edge     ttyS0
+  8:          0          1          0          0  IO-APIC-edge     rtc0
+  9:          0          0          0          0  IO-APIC-fasteoi  acpi
+ 23:          0          0          0          0  IO-APIC-fasteoi  i801_smbus
+ 24:          0          0          0          0  PCI-MSI-edge     PCIe PME,aerdrv
+ 25:          0          0          0          0  PCI-MSI-edge     PCIe PME,aerdrv,pcie-dpc
+ 26:          0          0          0          0  PCI-MSI-edge     PCIe PME,aerdrv,pcie-dpc
+ 27:          0          0          0          0  PCI-MSI-edge     PCIe PME,aerdrv,pcie-dpc
+ 28:          0          0          0          0  PCI-MSI-edge     PCIe PME,aerdrv,pcie-dpc
+ 29:          0          0          0          0  PCI-MSI-edge     PCIe PME,aerdrv,pcie-dpc
+ 30:          0          0          0          0  PCI-MSI-edge     PCIe PME,aerdrv,pcie-dpc
+ 31:          0          0          0          0  PCI-MSI-edge     PCIe PME,aerdrv,pcie-dpc
+ 32:          0          0          0          0  PCI-MSI-edge     PCIe PME,aerdrv
+ 33:          0          0          0          0  PCI-MSI-edge     PCIe PME,aerdrv
+ 34:          0          0          0          0  PCI-MSI-edge     xhci_hcd
+ 35:          0          0          0          0  PCI-MSI-edge     eth4
+ 36:     214426     285544     479106     385420  PCI-MSI-edge     eth4-rx-0
+ 37:     211977     287662     478597     386260  PCI-MSI-edge     eth4-rx-1
+ 38:     225305     282160     482065     374966  PCI-MSI-edge     eth4-tx-0
+ 39:     225282     282674     480828     375712  PCI-MSI-edge     eth4-tx-1
+ ...
+```
+
+### 1.2. bt 查看堆栈
+
+- `-a`: 展示每个cpu的正在运行的进程的堆栈
+- `-c cpu`: 展示特定cpu的堆栈，示例 "3"、"1,8,9"、"1-23"或"1,8,9-14"
+- `-l`: 显示对应的代码所在文件和行
+- `pid`: 直接跟pid可以查看对应进程的栈
+
+### 1.3. struct 查看结构体
+
+- `-o`: 展示结构体偏移
+
+```shell
+# 对照地址查看结构体对应的值
+crash> struct rq
+struct rq {
+    raw_spinlock_t lock;
+    unsigned int nr_running;
+    unsigned int nr_numa_running;
+    unsigned int nr_preferred_running;
+    unsigned int numa_migrate_on;
+    unsigned long cpu_load[5];
+    unsigned long last_load_update_tick;
+    unsigned long last_blocked_load_update_tick;
+    unsigned int has_blocked_load;
+    unsigned int nohz_tick_stopped;
+    atomic_t nohz_flags;
+...
+
+# 指定地址查看结构体的值
+crash> struct rq ffff9ca577aa1ec0
+struct rq {
+  lock = {
+    raw_lock = {
+      {
+        val = {
+          counter = 524545
+        },
+        {
+          locked = 1 '\001',
+          pending = 1 '\001'
+        },
+        {
+          locked_pending = 257,
+          tail = 8
+        }
+      }
+    }
+  },
+  nr_running = 0,
+  nr_numa_running = 0,
+  nr_preferred_running = 0,
+  numa_migrate_on = 0,
+...
+
+# 展示结构体变量偏移
+crash> struct -o rq
+struct rq {
+     [0] raw_spinlock_t lock;
+     [4] unsigned int nr_running;
+     [8] unsigned int nr_numa_running;
+    [12] unsigned int nr_preferred_running;
+    [16] unsigned int numa_migrate_on;
+    [24] unsigned long cpu_load[5];
+    [64] unsigned long last_load_update_tick;
+    [72] unsigned long last_blocked_load_update_tick;
+    [80] unsigned int has_blocked_load;
+    [84] unsigned int nohz_tick_stopped;
+    [88] atomic_t nohz_flags;
+    [96] struct load_weight load;
+   [112] unsigned long nr_load_updates;
+   [120] u64 nr_switches;
+   [128] struct cfs_rq cfs;
+...
+```
+
+#### 1) 查看特定地址的结构体的某些成员变量的值
+
+```shell
+crash> struct rq.lock,nr_running,cpu_load ffff8f6d6faa1ec0
+  lock = {
+    raw_lock = {
+      {
+        val = {
+          counter = 0
+        },
+        {
+          locked = 0 '\000',
+          pending = 0 '\000'
+        },
+        {
+          locked_pending = 0,
+          tail = 0
+        }
+      }
+    }
+  }
+  nr_running = 1
+  cpu_load = {36, 35, 129, 618, 1370}
+```
+
+#### 2) 几个常见的全局变量
+
+**struct rq 每个cpu一个**
+
+```shell
+crash> struct rq.lock runqueues:0,1
+[0]: ffff8f6d6fa21ec0
+  lock = {
+    raw_lock = {
+      {
+        val = {
+          counter = 1
+        },
+        {
+          locked = 1 '\001',
+          pending = 0 '\000'
+        },
+        {
+          locked_pending = 1,
+          tail = 0
+        }
+      }
+    }
+  }
+[1]: ffff8f6d6faa1ec0
+  lock = {
+    raw_lock = {
+      {
+        val = {
+          counter = 0
+        },
+        {
+          locked = 0 '\000',
+          pending = 0 '\000'
+        },
+        {
+          locked_pending = 0,
+          tail = 0
+        }
+      }
+    }
+  }
+```
+
+### 1.4. set 设置进程上下文
+
+- `-p`: 设置context到panic的task
+
+```shell
+crash> set -p
+    PID: 5102
+COMMAND: "mysqld"
+   TASK: ffff8f6cd27b0000  [THREAD_INFO: ffff8f6cd27b0000]   # 此地址是task_struct的地址
+    CPU: 3
+  STATE:  (PANIC)
+```
+
+### 1.5. task 查看进程的task_struct和thread_info信息
+
+```shell
+crash> task [pid]
 ```

@@ -58,7 +58,7 @@ pip install torch==1.10.0
 使用pip安装没有找到怎么命令行调用，使用apt可以直接命令行调用
 
 ```shell
-sudo apt install jupyter-notebook
+pip install notebook
 ```
 
 ### 2.2. 配置远程访问
@@ -277,7 +277,7 @@ print(num)  # 输出 3.14
 >>> print(arr)
 [3, 2, 1]
 
-# 处理dict类型
+# 按照特定规则排序
 >>> arr = [{"name": "c"}, {"name": "b"}, {"name": "a"}]
 >>> arr.sort(key=lambda item: item["name"])
 >>> print(arr)
@@ -1020,6 +1020,20 @@ with open('test1.jpg', 'wb') as f:
     f.write(base64.b64decode(base64EncData))
 ```
 
+## 10. shutil
+
+### 10.1. 拷贝文件
+
+```python
+shutil.copy('./aaa.txt', './aaa_copy.txt')
+```
+
+### 10.2. 重命名/移动
+
+```python
+shutil.move('./aaa.txt', './aaa_move.txt')
+```
+
 # 四、好用的module推荐
 
 ## module对应pack
@@ -1209,6 +1223,33 @@ import pyotp
 secret = 'IAZDARCEHAZEAQCCIBBDAQBWGA2EAMBZHA2EAOBWGAYEANCFGAZA'
 totp = pyotp.TOTP(secret)
 token = totp.now()
+```
+
+## 13. PIL 图片处理库
+
+### 13.1. 按照像素修改颜色
+
+```python
+from PIL import Image
+
+target_color = (66, 142, 218)
+precision = 30
+for img_name in img_names:
+    img = Image.open(f'{img_src}/{img_name}')
+    # 获取像素数组
+    data = img.getdata()
+
+    new_data = []
+    for item in data:
+        # 按照像素对颜色精度在误差内的进行替换
+        if abs(item[0] - target_color[0]) < precision and abs(item[1] - target_color[1]) < precision and abs(item[2] - target_color[2]) < precision:
+            new_data.append((255, 255, 255))
+        else:
+            new_data.append(item)
+    # 将新的颜色数组放入img对象中
+    img.putdata(new_data)
+    # 保存到新的文件
+    img.save(f'{img_dst}/{img_name}')
 ```
 
 # 五、jupyter notebook

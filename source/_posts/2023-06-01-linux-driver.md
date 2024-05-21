@@ -9,7 +9,7 @@ categories: [Program, C/C++]
 
 # 一、环境搭建
 
-# 二、开发注意事项
+# 二、开发指导
 
 ## 1. 基本模板
 
@@ -84,6 +84,36 @@ module_exit(hello_exit);
 - 上面这样的结构，需要用`module_init`和`module_exit`定义insmod和rmmod对应的时间点的操作
 - 打印只能使用`printk`，会输出到`dmesg`命令的输出中
 - `MODULE_LICENSE`定义开源协议
+
+## 2. 传参
+
+- 源文件中这样写可以传参
+
+```cpp
+static int mode = 0;                    // 这里定义默认值
+module_param(mode, int, S_IRUGO);       // 第三个参数是权限，定义在include/linux/stat.h，这里是0444
+```
+
+**传参示例**
+
+```shell
+# 驱动传参必须指定参数名称
+insmod ./aaa.ko mode=1
+```
+
+**权限的作用**
+
+- 所有挂载的驱动，在`/sys/module/<mod_name>/parameters/`下以参数名命名
+
+```shell
+=> ls -l /sys/module/test/parameters/
+total 0
+-r--r--r-- 1 admin root 4096 Mar 26 11:21 mode
+=> cat /sys/module/test/parameters/mode
+1
+```
+
+- 权限设置为可写的话，其实可以使用vi进行修改此选项。但是内核没有方式通知驱动此参数值发生了变化，所以要么自己写机制保障，要么就权限设置为只读
 
 # 三、小工具代码
 

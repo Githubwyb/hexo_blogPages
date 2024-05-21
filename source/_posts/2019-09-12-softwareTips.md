@@ -52,6 +52,10 @@ https://github.com/FelisCatus/SwitchyOmega
 2. chrome打开插件管理器，启用开发者模式，点击load unpacked
 3. 选择解压的目录即可
 
+## 6. chromedriver
+
+下载链接: https://chromedriver.chromium.org/downloads
+
 # 三、vscode
 
 [vscode使用技巧记录](/blogs/2022-02-15-vscode)
@@ -177,3 +181,28 @@ sudo pacman -U https://arch-archive.tuna.tsinghua.edu.cn/2023/06-26/extra/os/x86
 ```conf
 IgnorePkg = freetype2
 ```
+
+# 十三、windows上git bash
+
+## 1. 删除键闪屏
+
+```bash
+echo "set bell-style none" >> ~/.inputrc
+```
+
+## 2. vim闪屏
+
+在vimrc中添加
+
+```vim
+set vb t_vb=
+```
+
+## 3. ssh连上后执行命令ctrl+c直接中断了ssh连接
+
+- 不使用git安装openssh，使用windows的openssh即可，git安装时注意配置
+
+## 4. 使用sshpass出现`sshpass: Failed to run command: No such file or directory`
+
+- `ssh.exe`等命令在git bash会转换，但是这个处理在sshpass中不生效
+- 将`ssh.exe`使用`ln -sf  /c/Windows/System32/OpenSSH/ssh.exe /usr/local/bin/`，然后将`/usr/local/bin`加到`~/.bashrc`中的`$PATH`中即可

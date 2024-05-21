@@ -10,21 +10,27 @@ categories: [Knowledge, Study]
 - 启动区: (bootsector) 软盘第一个的扇区称为启动区。那么什么是扇区呢？计算机读写软盘的时候，并不是一个字节一个字节地读写的，而是以512字节为一个单位进行读写。因此，软盘的512字节就称为一个扇区。一张软盘的空间共有1440KB, 也就是1474560字节，除以512得2880, 这也就是说一张软盘共有2880个扇区。那为什么第一个扇区称为启动区呢？那是因为计算机首先从最初一个扇区开始读软盘，然后去检查这个扇区最后2个字节的内容。
 - IPL: （initial program loader）启动程序加载器。启动区只有区区512字节，实际的操作系统不像hello-os这么小，根本装不进去。所以几乎所有的操作系统，都是把加载操作系统本身的程序放在启动区里的。有鉴于此，有时也将启动区称为IPL。但hello-os没有加载程序的功能，所以HELLOIPL这个名字不太顺理成章。如果有人正义感特别强，觉得“这是撒谎造假，万万不能容忍！＂，那也可以改成其他的名字。但是必须起一个8字节的名字，如果名字长度不到8字节的话，常要在最后补上空格。
 
-# 第1天
+# 第1天 从计算机结构到汇编程序入门
 
 1. 环境windows
 2. 二进制编辑器 notepad++安装hexeditor插件
 3. 汇编编辑器 vscode安装x86 and x86_64 Assembly
 4. 编译需要使用光盘中的nask编译器
 
-## 1.1. vmware启动img
+## 1. vmware启动img
 
 - 创建系统选择other/other
 - 创建好需要添加硬件，选择软盘，然后使用文件，选择img即可启动
 
-# 第2天
+## 2. qemu启动img
 
-## 2.1. 标准FAT12软盘格式
+```shell
+qemu-system-x86_64 -enable-kvm -m 4G -smp 1 -fda common/haribote.img
+```
+
+# 第2天 汇编语言学习与Makefile入门
+
+## 1. 标准FAT12软盘格式
 
 ```assembly
 ; 以下的记述用于标准FAT12格式的软盘
@@ -50,7 +56,7 @@ categories: [Knowledge, Study]
     RESB    18              ; 先空出18字节
 ```
 
-## 2.2. 汇编代表性寄存器介绍
+## 2. 汇编代表性寄存器介绍
 
 ### 16位寄存器
 
@@ -96,7 +102,7 @@ FS ---- segment part 2      没有名称
 GS ---- segment part 3      没有名称
 ```
 
-## 2.3. CPU和内存
+## 3. CPU和内存
 
 - CPU寄存器很少，32位也只有44个字节的空间，所以需要内存当**外部储存器**
 - 内存和CPU使用管脚连接，速度虽然光速，但是比起来内部寄存器还是慢很多
@@ -104,9 +110,34 @@ GS ---- segment part 3      没有名称
 - `0xf0000`附近存在bios本身
 - 启动区内容的装载地址为`0x00007c00 -- 0x00007dff`，为IBM和intel规定的。所以ORG指令选择此处为起始地址，也仅有512字节
 
-# 第3天
+## 4. Makefile编写
 
-## 3.1. 软盘构成
+- `ipl.S`是启动时最先执行的代码，需要编译到软盘镜像的第一个分区
+
+```makefile
+all: img
+
+boot:
+	nasm -w-zeroing -o bootloader ipl.S
+
+# 生成img文件
+#   将ipl.S的512B内容写入到软盘镜像的C0-H0-S1的位置，用于启动扇区
+#   剩余需要将软盘扩容到2880个扇区，也就是1440KB
+img: boot
+	dd if=bootloader of=haribote.img count=1 bs=512
+	dd if=/dev/zero of=haribote.img bs=512 seek=1 skip=1 count=2879
+
+run :
+	qemu-system-x86_64 -enable-kvm -m 4G -smp 1 -fda haribote.img
+
+clean :
+	rm -f bootloader haribote.img
+
+```
+
+# 第3天 进入32位模式并导入C语言
+
+## 1. 软盘构成
 
 <img src = "2019_06_14_01.bmp" width = 60%>
 
@@ -120,41 +151,57 @@ GS ---- segment part 3      没有名称
 
 ### (1) 软盘保存文件
 
-- 文件名写在`0x0002600`的地方
-- 文件内容写在`0x004200`的地方
-- 编译生成的第三阶段启动程序代码在0x004200位置
+参考 [制作FAT12软盘以查看软盘的根目录条目+文件属性+文件内容](https://www.cnblogs.com/pacoson/p/4816614.html)
 
-## 3.2. 内存寻址
+- 使用命令保存二进制到软盘中
+
+```makefile
+
+```
+
+- 文件名写在`0x0002600`的地方
+
+![](2024-03-02-02.png)
+
+- 文件内容写在`0x004400`的地方，这个和书本上的`0x004200`不太一样，linux上mount后写入文件就在`0x004400`位置
+
+![](2024-03-02-01.png)
+
+- 编译生成的第三阶段启动程序代码在`0x004400`位置
+
+### (2) 当前编译出来的软盘分布
+
+- `C0-H0-S1`: IPL启动区位于此扇区，操作系统启动时会自动装载到`0x7c00-0x7dff`，这个是iIBM和intel规定的默认行为
+- `asmhead.nas + bootpack.hrb`编译出来的`haribote.sys`保存在软盘的`0x004400`
+
+## 2. 内存寻址
 
 - `ES : BX`代表内存寻址的地址，其中BX为0-3位，ES为4-位。如`ES=0x0820，BX=0，代表0x8200地址`。总内存为12位，1M左右。
 - 内存`0x7c00-0x7dff`为启动区使用，`0x7e00-0x9fbff`没有什么用，留给操作系统开发使用
 - 内存寻址需要指定段寄存器DS，不然就会加上其16倍的数据，所以一般DS = 0
 
-## 3.3. 汇编和C语言链接
+## 3. 汇编和C语言链接
 
 - 使用汇编可以编译出`.obj`（`.o`）文件，这个文件和C文件编译出来的是一个效果
 - 可以使用`objdump`来查看c语言生成的汇编指令代码
 - 既然都是原生汇编，按照c语言生成的汇编格式来写汇编，同样可以链接到c语言中
 
 ```assembly
-; naskfunc
-; TAB=4
+.code32
 
-[FORMAT "WCOFF"]    ; 制作目标文件的模式
-[BITS 32]						; 制作32位的机器语言
+# 定义全局符号，这个类似于C语言的export
+.global io_hlt
 
-; 制作目标文件的信息
-[FILE "naskfunc.nas"]   ; 源文件名称
-		GLOBAL	_io_hlt     ; 函数名
+# 指定.text段
+.section .text
 
-; 函数的实现
-[SECTION .text]		; text段，储存程序代码
-_io_hlt:	; void io_hlt(void);
-		HLT
-		RET
+# 函数实现
+io_hlt:
+    hlt
+    ret
 ```
 
-## 3.4. BIOS介绍
+## 4. BIOS介绍
 
 - BIOS是使用16位机器语言，32位模式不能调用BIOS函数
 - VRAM（video RAM）在当前画面模式下是`0xa0000 ~ 0xaffff`，这个是在BIOS文档中`INT 0x10`说明最后写着
@@ -178,7 +225,7 @@ MOV		AH,0x00
 INT		0x10
 ```
 
-## 3.5. cpu介绍
+## 5. cpu介绍
 
 - 为什么写程序使用`i486p`，这个是cpu指令集
 - i486p是给486cpu使用，但是如果只是用16位寄存器，也可以8086用
@@ -190,7 +237,155 @@ INT		0x10
 
 - 到286为止是16位cpu，386之后为32位
 
-# 第4天
+## 6. 内存重新分配
+
+- 引入C语言后，代码编译出的大小越来越大，之前的空间不足。32位模式下可用内存达到4G，重新将磁盘上的代码拷贝到内存新的地址中。
+- 选择0x00100000为软盘拷贝的首地址
+- 选择0x00280000为c语言代码开始位置
+- 选择0x002fffff-0x003fffff为c语言栈的大小，栈设定为1MB。esp从c语言开始赋值为0x003fffff（栈顶是高地址，栈底为低地址）
+
+```assembly
+; header.S文件节选
+# 栈起始位置，共1MB。0x002fffff-0x003fffff
+#define STACK    0x003fffff
+# C语言代码所在内存位置
+#define C_CODE	0x00280000
+# 软盘数据所在内存位置
+#define	DISK_ADDR		0x00100000
+# 软盘数据所在内存位置（真实模式）
+#define DISK_ADDR_REAL	0x00008000
+...
+	# 拷贝c代码到内存中
+	movl	$start_kernel,%esi		# 源地址
+	movl	$C_CODE,%edi			# 目的地址
+	movl	$(512*1024/4),%ecx		# 拷贝512K，注意后面的C语言编译超过512K就要修改这里
+	call	memcpy
+
+	# 拷贝软盘数据到内存对应位置
+	# 拷贝启动扇区
+	movl	$0x00007c00,%esi		# 源地址
+	movl	$DISK_ADDR,%edi			# 目的地址
+	movl	$(512/4),%ecx			# 拷贝512B
+	call	memcpy
+	# 拷贝剩余数据
+	movl	$(DISK_ADDR_REAL+512),%esi		# 源地址
+	movl	$(DISK_ADDR+512),%edi			# 目的地址
+	movb	(CYLS),%cl						# 把cyls地址内的值赋值给cl
+	# 将ecx乘上512*8*2/4，cyls是bootloader读取的软盘中柱面数，一个柱面18个磁道，一个磁道2个扇区，一个扇区512B
+	imul	$(512*18*2/4),%ecx
+	subl	$(512/4),%ecx					# 去除启动扇区
+	call	memcpy
+
+	# 调用c语言第一个指令，位置是第3个段的首地址
+	ljmp	$(3*8),$0x0000
+...
+start_kernel:
+```
+
+- 由于makefile中是直接将`cobjs`加到`hader`后面的，所以在`header.S`后面的`start_kernel`就是c语言的起始位置
+
+## 7. makefile解释
+
+```makefile
+INCLUDE = -I$(TOOLPATH)/haribote/ -I./include/ -I./arch/x86/include/ -I./arch/x86/include/uapi/ -I.
+CFLAGS  = -Wall -Werror -Wno-int-to-pointer-cast -Wno-unused
+# -fno-pie 生成位置相关代码，位置无关代码暂时不清楚为什么会运行有问题，访问全局变量失败导致调色板设置有问题
+# -fno-stack-protector gcc默认会添加栈安全检查，但是这个会依赖glibc的库，导致undefined reference to `__stack_chk_fail'的问题
+CFLAGS += -MD -Os -fno-pie -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-omit-frame-pointer -D_SIZE_T -DCONFIG_X86_32 -m32
+LDFLAGS	= -m elf_i386 -no-pie
+
+all: img
+
+bootloader : bootloader.S
+	nasm -w-zeroing -o $@.bin $@.S
+
+#下面四个命令通过模式匹配获取当前目录下的所有C文件
+SRCDIR = ./ ./lib/ ./init/
+
+C_SOURCES = $(foreach d,$(SRCDIR),$(wildcard $(d)*.c))
+C_OBJS = $(patsubst %.c,%.o,$(C_SOURCES))
+C_DEPS = $(patsubst %.c,%.d,$(C_SOURCES))
+
+%.o : %.c
+	gcc $(INCLUDE) $(CFLAGS) -c -o $*.o $*.c
+
+# 生成img文件
+#   将ipl.S的512B内容写入到软盘镜像的C0-H0-S1的位置，用于启动扇区
+#   剩余需要将软盘扩容到2880个扇区，也就是1440KB
+#   将编译出来的二进制放到软盘里面，也就放到了0x4400的位置
+img: bootloader kernel
+	dd if=bootloader.bin of=haribote.img count=1 bs=512 &>/dev/null
+	dd if=/dev/zero of=haribote.img bs=512 seek=1 skip=1 count=2879 &>/dev/null
+	mkdir -p ./floppy
+	mount -o loop haribote.img ./floppy -o fat=12
+	sleep 1
+	cp kernel ./floppy
+	sleep 1
+	umount ./floppy
+	rm -rf ./floppy
+
+kernel: header cobjs
+	cat cobjs >> header
+	cp header kernel
+
+# kernel存在软盘的0x4400，拷贝到0x8000后就是0xc400
+# header.S启动从bootsect_start开始
+# header.S只能保留text段，因为cobjs在header.S最后面，多了段会导致拷贝磁盘出现偏移问题
+header: header.S
+	gcc $(INCLUDE) $(CFLAGS) -c -o $@.bin $<
+	ld $(LDFLAGS) -N -e bootsect_start -Ttext 0xc400 -o $@.out $@.bin
+	objdump -S -D $@.out > $@.asm
+	objcopy -S -O binary -j .text $@.out $@
+
+asmfunc.o: asmfunc.S
+	gcc $(INCLUDE) $(CFLAGS) -c -o $@ $<
+
+# c语言起始函数为start_kernel
+cobjs: $(C_OBJS) asmfunc.o
+	ld $(LDFLAGS) -N -T cobjs.ld -o $@.out $^
+	objdump -S -D $@.out > $@.asm
+	objcopy -S -O binary $@.out $@
+
+run :
+	qemu-system-x86_64 -enable-kvm -m 4G -smp 1 -fda haribote.img
+
+clean:
+	rm -f kernel
+	rm -f cobjs cobjs.out cobjs.asm
+	rm -f header header.bin header.out header.asm
+	rm -f bootloader.bin haribote.img
+	rm -f $(C_OBJS) $(C_DEPS)
+	rm -f *.o *.d *.bin *.asm *.out
+```
+
+- 我们需要让`start_kernel`在cobjs的`.text`段第一个，有两个方案
+    1. 将main.o在链接的时候放到第一个位置
+    2. 使用`.text.first`配合ld链接配置文件实现
+- 这里使用第二个方案
+
+```cpp
+void HariMain();
+
+void __attribute__((section(".text.first"))) start_kernel(void) {
+    HariMain();
+}
+```
+
+- 对应的`cobjs.ld`
+
+```
+ENTRY(start_kernel)
+
+SECTIONS {
+    . = 0x00280000;
+	.text :  {
+		*(.text.first)
+        *(.text)
+	}
+}
+```
+
+# 第4天 C语言与画面显示的练习
 
 ## 1. 图形化界面
 
@@ -228,7 +423,18 @@ void set_palette(int start, int end, unsigned char *rgb) {
 }
 ```
 
-# 第5天
+## 3. 速度问题
+
+运行起来后，要显示有颜色的画面一直是黑屏。等待了几分钟后才显示预期画面，差点以为代码有bug。不过这么慢也是个bug
+
+排查了很久发现，原始makefile编译出来的其实是64位的c程序，运行的时候特别慢，应该是不兼容导致的。修改了makefile的cflags和ldflags后就运行特别快了。之前就算导入了c语言，也只是hlt，看不出效果，所以没有发现
+
+```makefile
+CFLAGS += -m32
+LDFLAGS	= -m elf_i386
+```
+
+# 第5天 结构体、文字显示与GDT/IDT初始化
 
 ## 1. 字符点阵
 
@@ -381,7 +587,7 @@ struct gate_struct {
 - 系统启动时候需要初始化GDT和IDT。LDT和进程相关，并不一定必有
 - TSS: Task-State Segment，任务状态段，保存任务状态信息的系统段
 - TSS只能存在于GDT中
-- Task-Gate Descriptor，任务门描述符，用来间接的宝玉引用任务。可以放到GDT、LDT、IDT中，里面的TSS段选择指向GDT的TSS描述符
+- Task-Gate Descriptor，任务门描述符，用来保存和恢复任务的上下文信息。可以放到GDT、LDT、IDT中，里面的TSS段选择指向GDT的TSS描述符
 - 下图为32位TSS结构
 
 <img src="2022-10-24-03.png" />
@@ -390,7 +596,7 @@ struct gate_struct {
 
 <img src="2022-10-24-02.png" />
 
-# 第六天 中断处理
+# 第6天 中断处理
 
 ## 1. PIC: Programmable interrupt controller
 
@@ -480,7 +686,7 @@ set_gatedesc(idt + 0x2c, (int)asm_inthandler2c, 2 * 8, AR_INTGATE32);
 
 - 中断中尽可能少执行代码，所以将中断数据放到全局变量中，在外部进程上下文中读取变量进行处理
 
-# 第七天 FIFO与鼠标控制
+# 第7天 FIFO与鼠标控制
 
 ## 1. 鼠标键盘数据读取
 
@@ -546,8 +752,31 @@ void enable_mouse() {
 }
 ```
 
-# 第八天 鼠标控制与32位模式切换
+# 第8天 鼠标控制与32位模式切换
 
 ## 1. 鼠标数据解读
 
 - 鼠标使能后会先发送`0xfa`数据，然后会连续三个中断发送三个字节数据
+
+## 2. 当前操作系统内存分布图
+
+```
+0x00000000 - 0x000fffff: 启动中多次使用。（1MB）
+  - 0x00007c00 - 0x00007dff: 启动区装载地址，默认行为（512B）
+  - 0x00008000 - 0x000081ff: 预留磁盘的C0-H0-S1位置，好计算偏移量（512B）
+  - 0x00008200 - 0x00034fff: 磁盘上C0-H0-S2到C9-H1-S18读取位置（180KB）
+    - 0x0000c400 -         : 磁盘的0x4400位置的内容，asmhead.nas
+  - 0x000a0000 - 0x000affff: vram内存地址
+  - 0x000f0000 附近存在bios本身
+0x00100000 - 0x00267fff: 用于保存软盘内容。（1440KB）
+0x00268000 - 0x0026f7ff: 空（30KB）
+0x0026f800 - 0x0026ffff: IDT（2KB）
+0x00270000 - 0x0027ffff: GDT（64KB）
+0x00280000 - 0x002fffff: bookpack.hrb（512KB）
+0x00300000 - 0x003fffff: 栈及其他（1MB）
+0x00400000 -           : 空
+```
+
+# 第9天 内存管理
+
+

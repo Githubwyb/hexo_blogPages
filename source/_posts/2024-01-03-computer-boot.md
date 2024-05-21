@@ -19,3 +19,9 @@ categories:
 ### 小技巧和踩坑记
 
 #### 1) 安装win11需要uefi，u盘的uefi启动需要关闭Secure Boot Mode
+
+# 二、联想
+
+## 1. Thinkpad workspace
+
+- `F12`: 启动菜单

@@ -158,6 +158,8 @@ sudo dpkg-reconfigure locales   # 跟着步骤配一下自己需要的编码
 libdbus-1-dev: /usr/include/dbus-1.0/dbus/dbus.h
 ```
 
+## 6. do-release-upgrade 升级ubuntu大版本
+
 # 四、一些软件的安装配置
 
 ## 1. bind9 搭建dns服务器

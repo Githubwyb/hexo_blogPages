@@ -153,32 +153,7 @@ sudo pacman -S wqy-microhei
 
 ## 8. NetworkManager配置
 
-- networkmanager使用nmcli配置
-
-### 8.1. nmcli基本使用
-
-```shell
-# 查看连接
-=> nmcli conn show
-NAME    UUID                                  TYPE      DEVICE
-enp0s3  9a364675-b60a-479a-8d4a-754bab3dfe01  ethernet  enp0s3
-# 配置dhcp获取ip
-=> nmcli conn add type ethernet con-name enp0s3-dhcp ifname enp0s3 ipv4.method auto ipv4.dns 114.114.114.114,8.8.8.8
-# 删除连接
-=> nmcli conn delete enp0s3
-# 查看连接
-=> nmcli conn show
-NAME          UUID                                  TYPE      DEVICE
-enp0s3-dhcp   9a364675-b60a-479a-8d4a-754bab3dfe01  ethernet  --
-# 启用连接
-=> nmcli conn up enp0s3-dhcp
-# 查看连接
-=> nmcli conn show
-NAME          UUID                                  TYPE      DEVICE
-enp0s3-dhcp   9a364675-b60a-479a-8d4a-754bab3dfe01  ethernet  enp0s3
-# 修改配置
-=> nmcli conn modify enp0s3-dhcp ipv4.dns 114.114.114.114
-```
+- networkmanager使用 [nmcli配置](/blogs/2018-09-16-shellStudy/#34-nmcli)
 
 # 二、日常操作
 
@@ -287,7 +262,7 @@ community/munin-node
 
 ```shell
 # 需要go、fakeroot环境
-sudo pacman -S go fakeroot
+sudo pacman -S go fakeroot debugedit
 # clone仓库
 git clone https://aur.archlinux.org/yay.git
 # 安装
