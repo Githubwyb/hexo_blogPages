@@ -397,18 +397,17 @@ Name: label, dtype: object
 Name: label, dtype: int64
 ```
 
-#### 其他
+##### (7) 重建索引
 
 ```python
-#################### 删 #######################
-# 删除label列，改变原数据
-df.drop(labels = ["label"], axis = 1, inplace=True)
-# 同理删除一行
-df.drop(index = 0, inplace=True)
-# 删除所有含有nan的行
-df.dropna(inplace=True)
+# inplace 替换原有dataframe
+# drop 删除原有索引，否则会新增index列存储原有索引
+test_df.reset_index(drop=True, inplace=True)
+```
 
-################### 查 #######################
+#### 5) 查
+
+```python
 # 提取一列转成Series形式，以下两种都可以
 test_series = df.test
 test_series = df['test']
@@ -439,13 +438,28 @@ tmp = df["columns"]
 tmp = df.test       # 只能用于列选择
 tmp = df[0:3]       # 只能用于行选择
 
+# 筛选出dataframe满足条件的行
+tmp = df[df["a"] == 1]
+# 两个条件筛选只能使用&
+tmp = df[(df["a"] == 1) & (df["b"] == 7)]
+# 取in的列
+tmp = df[df['test'].isin([1])]
+```
+
+#### 其他
+
+```python
+#################### 删 #######################
+# 删除label列，改变原数据
+df.drop(labels = ["label"], axis = 1, inplace=True)
+# 同理删除一行
+df.drop(index = 0, inplace=True)
+# 删除所有含有nan的行
+df.dropna(inplace=True)
+
 # 获取列名
 columns_value = df.columns          # 返回 <class 'pandas.core.indexes.base.Index'> 格式
 columns_value = df.columns.values   # 返回list格式
-
-# 筛选出符合条件的行
-## 删选test列为1的所有数据
-tmp = df[df['test'].isin([1])]
 ```
 
 - 遍历
@@ -480,7 +494,7 @@ test_df = pd.DataFrame(test_list, columns=['a', 'b', 'c'])
 test_ndarray = df.values
 ```
 
-### series相关操作
+### 1.3. series相关操作
 
 类似于python自带的dict类型
 
@@ -490,8 +504,9 @@ test_ndarray = df.values
 import pandas as pd
 
 test_series = pd.Series(xxx)
-test_series.describe()   # 显示数据的各种统计数据包（中位数、平均数、标准差、最值等）
+test_series.describe()      # 显示数据的各种统计数据包（中位数、平均数、标准差、最值等）
 test_series.value_counts()  # 统计各个值出现的次数
+test_series.sum()           # 求和
 ```
 
 #### list操作
@@ -504,7 +519,7 @@ test_series['test']
 test_list = test_series[test_series.index == 'test']
 ```
 
-### 写入excel
+### 1.4. 写入excel
 
 #### 不显示表头和索引
 
@@ -702,7 +717,7 @@ plt.xlim(0, 1)
 plt.ylim(0, 1)
 ```
 
-#### 4) stem 散点图
+#### 4) stem 棒棒糖散点图
 
 ```python
 # coding=utf-8
@@ -737,16 +752,25 @@ plt.show()
 
 #### 6) hist 直方图
 
-- `bins`: 分几组，越大直方图越细节
-- `label`: 多标签的时候的图例，需要x传入数组，label和data的size一致
-- 需要调用legend才能显示图例，否则不会显示图例
-
 ```python
-plt.hist(x=[train_data[train_data['label']==0]['shan'], train_data[train_data['label']==1]['shan']], bins=50, label=['0', '1'])
-plt.legend(['0', '1'])
+x = range(0, 100, 1)
+x1 = [random.random() for i in x]
+x2 = [random.random() for i in x]
+
+plt.figure(figsize=[8, 8])
+plt.subplot(2, 1, 1)
+# bins使用数字代表几个柱形
+plt.hist(x=[x1, x2], bins=50, label=['0', '1'])
+plt.legend(loc="upper right")
+plt.xlim(0)
+plt.subplot(2, 1, 2)
+# bins使用np.arange设置宽度
+plt.hist(x=[x1, x2], bins=np.arange(0, 1.1, 0.2), label=['0', '1'])
+plt.legend(loc="upper right")
+plt.xlim(0)
 ```
 
-![](2023-09-23-02.png)
+<img src="2023-09-23-02.png" />
 
 #### 7) 绘制折线图
 
@@ -761,53 +785,40 @@ plt.legend(loc='upper right') # 图例右上角
 plt.title("随时间变化曲线")
 ```
 
-![](2023-10-20-02.png)
+<img src="2023-10-20-02.png" />
 
 #### 8) 双y轴画图
 
 ```python
-import matplotlib.pyplot as plt
+x = range(0, 101, 1)
+y1 = [random.random() * 10 for i in x]
+y2 = [random.random() * 50 + 50 for i in x]
 
-RSS_data = []
-VSZ_data = []
-date = []
+plt.figure(figsize=[8, 8])
+plt.plot(x, y1, label="y1")
+# 对y的修改仅对左边生效
+plt.ylim(0, 20)
+plt.ylabel("y1")
+plt.yticks(range(0, 21, 2))
+ax = plt.gca()
+ax.set_yticklabels([f'{i} inc' for i in range(0, 21, 2)])
+plt.legend(loc='upper left')
+# 对x的修改全局生效
+plt.xlim(0, 100)
+plt.xlabel('时间 h')
+plt.xticks(range(0, 101, 5), rotation=45, ha="right")
 
-with open(filename, "r") as f:
-    line = f.readline()
-    while line:
-        if line.find("test") != -1 and line.find("Average") == -1:
-            data = line.split()
-            date.append(data[0])
-            VSZ_data.append(int(data[5]))
-            RSS_data.append(int(data[6]))
-        line = f.readline()
-
-
-hourly_time_series = [time for time in date if time[-2:-1] == '0']
-fig = plt.figure()
-ax1 = fig.add_subplot(111)
-ax1.plot(date, RSS_data, label="RSS", color="green")
-ax1.set_ylim(50000, 100000)
-ax1.set_ylabel("RSS")
-ax1.set_xlabel("时间")
-ax1.legend(loc='upper left') # 图例右上角
-
-# 关键函数，将ax1的x轴进行复制
-ax2 = ax1.twinx()
-ax2.plot(date, VSZ_data, label="VSZ", color="red")
-ax2.set_ylim(400000, 500000)
-ax2.set_ylabel("VSZ")
-ax2.legend(loc='upper right') # 图例左上角
-
-ax1.set_xticks(hourly_time_series)
-# 下面设置倾斜x轴数据显示没有效果，使用ax1的set_xticks也没有效果，不清楚为什么
-# plt.xticks(rotation=45, ha='right')
-# 使用这种方式设置有效果
-ax1.set_xticklabels(hourly_time_series, rotation=45, ha='right')
-
-plt.grid(True)
-plt.title(title)
+ax2 = plt.twinx()
+ax2.plot(x, y2, color='r', label="y2")
+# twinx生成的要按照下述方式设置
+ax2.set_ylim(0, 100)            # 设置y坐标范围
+ax2.set_ylabel("y2")
+ax2.set_yticks(range(0, 101, 10))
+ax2.set_yticklabels([f'{i} km' for i in ax2.get_yticks()])
+ax2.legend(loc="upper right")   # 显示图例，显示在右上角
 ```
+
+<img src="2024-06-24-01.png" />
 
 #### 9) 画直线或横线
 
@@ -818,9 +829,52 @@ plt.axvline(x=10, color='r', linestyle='--', label="开始工作")
 plt.axhline(y=10, color='r', linestyle='--', label="开始工作")
 ```
 
+#### 10) scatter 散点图
+
+```python
+x = range(0, 10, 1)
+y = [random.random() * i for i in x]
+
+plt.figure(figsize=[8, 4])
+plt.scatter(x, y)
+```
+
+<img src="2024-06-24-02.png" />
+
+#### 11) pie 饼状图
+
+```python
+labels = ['x', 'y', 'z']
+counts = [10, 20, 30]
+
+plt.figure(figsize=[8, 8])
+plt.pie(counts, labels = labels,
+        shadow = True,              # 显示阴影
+        startangle = 90,            # 起始角度，从右侧逆时针计算，扇形也是逆时针
+        explode=[0.02, 0.05, 0],    # 扇形偏离中心的距离
+        autopct = '%3.2f%%',        # 百分比格式
+        pctdistance=0.5,            # 百分比偏离中心的距离，为None不显示
+        labeldistance = 1.05)       # label离中心的距离
+plt.axis('equal')                   # 保证是个正圆
+plt.legend(loc="upper right")
+```
+
+<img src="2024-06-24-03.png" />
+
+### 3.2. 参数设置
+
+#### 1) 图像大小
+
+```python
+# 全局设置
+plt.rcParams["figure.figsize"] = (35.0, 28.0)
+# 单个图设置
+plt.figure(figsize=[8, 8])
+```
+
 ### 踩坑记
 
-#### 1) 字体设置
+#### 1) 中文显示乱码
 
 - 默认的字体可能会导致中文显示不正常，需要设置字体
 
@@ -900,7 +954,7 @@ sns.countplot(d, x='a')
 sns.countplot(train_data, x='length', hue='label')
 ```
 
-![](2023-09-23-01.png)
+<img src="2023-09-23-01.png" />
 
 #### 2) list
 
@@ -916,7 +970,7 @@ print(data)
 sns.countplot(x=data)
 ```
 
-![](2023-10-20-01.png)
+<img src="2023-10-20-01.png" />
 
 ### 4.2. scatterplot 散点图
 
@@ -929,7 +983,7 @@ palette = sns.color_palette("bright", 10)
 sns.scatterplot(x='x', y='y', data=tsne_df, hue='label', palette=palette)
 ```
 
-![](2023-09-17-01.png)
+<img src="2023-09-17-01.png" />
 
 ## 5. scipy
 
@@ -957,3 +1011,88 @@ y = fft(x) # 得到x的32点fft
 ```shell
 pip install scikit-learn
 ```
+
+# 三、实战示例
+
+## 1. 线性回归
+
+### 1.1. 二维线性回归
+
+- 也就是将一些(x, y)计算一个最拟合的曲线
+
+```python
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+import numpy as np
+
+# 创建并拟合模型
+model = LinearRegression()
+
+# x必须为二维矩阵，xarr[i]对应输入参数数组，i对应每个样本的索引
+xarr = np.array([0, 1, 2, 3, 4, 5])
+xarr = xarr.reshape(-1, 1)
+# y为和len(xarr)一样的一维矩阵
+yarr = np.array([1, 0, 5, 3, 7, 10])
+model.fit(xarr, yarr)
+
+# 打印回归直线的斜率和截距
+print("斜率:", model.coef_[0])
+print("截距:", model.intercept_)
+
+predict_y = model.predict(xarr)
+print(predict_y)
+plt.plot(xarr, predict_y, 'r-')
+plt.scatter(xarr, yarr)
+plt.xlim(0, 6)
+plt.ylim(0, 12)
+```
+
+输出
+
+```
+斜率: 1.8285714285714285
+截距: -0.23809523809523814
+[-0.23809524  1.59047619  3.41904762  5.24761905  7.07619048  8.9047619 ]
+```
+
+<img src="2024-05-28-01.png" />
+
+### 1.2. 任意曲线回归
+
+- 使用scipy包里面的curve_fit可以拟合任意方程式
+
+```python
+from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
+import numpy as np
+
+# x正常一维数组，使用numpy的array是为了后面可以使用func直接计算y
+xarr = np.array([0, 1, 2, 3, 4, 5])
+# y为和len(xarr)一样的一维数组
+yarr = np.array([1, 0, 5, 3, 7, 10])
+
+# 定义拟合曲线函数
+def func(x, a, b):
+    return a * x + b
+# 拟合曲线
+popt, pcov = curve_fit(func, xarr, yarr)
+print("斜率a: ", popt[0])
+print("截距b: ", popt[1])
+
+predict_y = func(xarr, popt[0], popt[1])
+plt.plot(xarr, predict_y, 'r-')
+print(predict_y)
+plt.scatter(xarr, yarr)
+plt.xlim(0, 6)
+plt.ylim(0, 12)
+```
+
+输出
+
+```
+斜率: 1.8285714285714285
+截距: -0.23809523809523814
+[-0.23809524  1.59047619  3.41904762  5.24761905  7.07619048  8.9047619 ]
+```
+
+<img src="2024-05-28-01.png" />

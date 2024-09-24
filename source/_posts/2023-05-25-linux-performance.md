@@ -11,10 +11,22 @@ categories: [Program, Shell]
 
 ### 1.1. 选项解释
 
+**筛选**
+
 - `-p <pid>`: 进程id号，不指定就显示所有的进程
+
+**信息统计**
+
 - `-r`: 显示内存使用情况和页错误
 - `-u`: 显示cpu使用情况
 - `-d`: 显示io使用情况
+- `-s`: 展示栈使用情况，kB为单位，保留和使用的大小
+- `-R`: 展示实时优先级和调度策略信息
+- `-v`: 展示一些内核表的值，线程数和fd分配
+- `-w`: 展示任务调度情况，每秒自愿调度的上下文切换（资源被占用导致阻塞）和非自愿调度上下文切换（在自己时间片内被强制放弃cpu）
+
+**显示相关**
+
 - `-h`: 指定多个统计后，将统计结果显示在一行里面
 - `-H`: 使用时间戳显示时间，默认时间显示的是`03:22:38 PM`
 
@@ -45,6 +57,18 @@ Linux 6.3.1-arch1-1 (arch-work-pc)      05/25/2023      _x86_64_        (16 CPU)
 VSZ：500K + 2500K + 200K = 3200K
 RSS：400K + 1000K + 100K = 1500K
 PSS：400K + (1000K / 2) + 100K = 1000K
+
+### 1.3. 进程io写入情况统计
+
+```shell
+# 统计进程io使用情况，5秒输出一次，一共输出1次
+=> pidstat -p 1687 -d 5 1
+Linux 4.19.181 (centos)         2024年07月03日  _x86_64_        (16 CPU)
+
+10:23:20 AM   UID       PID   kB_rd/s   kB_wr/s kB_ccwr/s iodelay  Command
+10:23:20 AM     0      1687      0.00   1120.00      0.00     498  sftp-server
+Average:        0      1687      0.00   1120.00      0.00     498  sftp-server
+```
 
 ## 2. top 类似任务管理器
 
@@ -99,6 +123,100 @@ GiB Swap:     12.0 total,     12.0 free,      0.0 used.     12.6 avail Mem
 - `s`: 进程的领导者（在它之下有子进程）
 - `l`: ismulti-threaded (using CLONE_THREAD, like NPTL pthreads do)
 - `+`: 位于后台的进程组
+
+## 3. sar 系统活动信息收集
+
+### 3.1. 选项
+
+```shell
+Usage: sar [ options ] [ <interval> [ <count> ] ]
+Main options and reports (report name between square brackets):
+        -B      Paging statistics [A_PAGE]
+        -b      I/O and transfer rate statistics [A_IO]
+        -d      Block devices statistics [A_DISK]
+        -F [ MOUNT ]
+                Filesystems statistics [A_FS]
+        -H      Hugepages utilization statistics [A_HUGE]
+        -I [ SUM | ALL ]
+                Interrupts statistics [A_IRQ]
+        -m { <keyword> [,...] | ALL }
+                Power management statistics [A_PWR_...]
+                Keywords are:
+                BAT     Batteries capacity
+                CPU     CPU instantaneous clock frequency
+                FAN     Fans speed
+                FREQ    CPU average clock frequency
+                IN      Voltage inputs
+                TEMP    Devices temperature
+                USB     USB devices plugged into the system
+        -n { <keyword> [,...] | ALL }
+                Network statistics [A_NET_...]
+                Keywords are:
+                DEV     Network interfaces
+                EDEV    Network interfaces (errors)
+                NFS     NFS client
+                NFSD    NFS server
+                SOCK    Sockets (v4)
+                IP      IP traffic      (v4)
+                EIP     IP traffic      (v4) (errors)
+                ICMP    ICMP traffic    (v4)
+                EICMP   ICMP traffic    (v4) (errors)
+                TCP     TCP traffic     (v4)
+                ETCP    TCP traffic     (v4) (errors)
+                UDP     UDP traffic     (v4)
+                SOCK6   Sockets (v6)
+                IP6     IP traffic      (v6)
+                EIP6    IP traffic      (v6) (errors)
+                ICMP6   ICMP traffic    (v6)
+                EICMP6  ICMP traffic    (v6) (errors)
+                UDP6    UDP traffic     (v6)
+                FC      Fibre channel HBAs
+                SOFT    Software-based network processing
+        -q [ <keyword> [,...] | PSI | ALL ]
+                System load and pressure-stall statistics
+                Keywords are:
+                LOAD    Queue length and load average statistics [A_QUEUE]
+                CPU     Pressure-stall CPU statistics [A_PSI_CPU]
+                IO      Pressure-stall I/O statistics [A_PSI_IO]
+                MEM     Pressure-stall memory statistics [A_PSI_MEM]
+        -r [ ALL ]
+                Memory utilization statistics [A_MEMORY]
+        -S      Swap space utilization statistics [A_MEMORY]
+        -u [ ALL ]
+                CPU utilization statistics [A_CPU]
+        -v      Kernel tables statistics [A_KTABLES]
+        -W      Swapping statistics [A_SWAP]
+        -w      Task creation and system switching statistics [A_PCSW]
+        -y      TTY devices statistics [A_SERIAL]
+```
+
+### 3.2. 网络流速统计
+
+```shell
+# 采集网卡上网络流速，5s输出一次，共输出1次
+=> sar -n DEV 5 1
+Linux 6.6.15-amd64 (centos)   07/03/2024      _x86_64_        (16 CPU)
+
+10:15:49 AM     IFACE   rxpck/s   txpck/s    rxkB/s    txkB/s   rxcmp/s   txcmp/s  rxmcst/s   %ifutil
+10:15:54 AM        lo      3.20      3.20      0.24      0.24      0.00      0.00      0.00      0.00
+10:15:54 AM      eth0    160.00     86.20     24.31   2306.26      0.00      0.00      0.00      0.00
+
+Average:        IFACE   rxpck/s   txpck/s    rxkB/s    txkB/s   rxcmp/s   txcmp/s  rxmcst/s   %ifutil
+Average:           lo      3.20      3.20      0.24      0.24      0.00      0.00      0.00      0.00
+Average:         eth0    160.00     86.20     24.31   2306.26      0.00      0.00      0.00      0.00
+
+# 只采集两个网卡
+=> sar -n DEV --iface=ens18,lo 5 1
+Linux 6.5.0-28-generic (ubuntu-101)     2024年07月08日  _x86_64_        (16 CPU)
+
+10:15:54 AM     IFACE   rxpck/s   txpck/s    rxkB/s    txkB/s   rxcmp/s   txcmp/s  rxmcst/s   %ifutil
+10:15:54 AM        lo      1.60      1.60      0.12      0.12      0.00      0.00      0.00      0.00
+10:15:54 AM     ens18    130.20     31.20     23.31      3.34      0.00      0.00      0.00      0.00
+
+Average:        IFACE   rxpck/s   txpck/s    rxkB/s    txkB/s   rxcmp/s   txcmp/s  rxmcst/s   %ifutil
+Average:           lo      1.60      1.60      0.12      0.12      0.00      0.00      0.00      0.00
+Average:        ens18    130.20     31.20     23.31      3.34      0.00      0.00      0.00      0.00
+```
 
 # 二、内核追踪调试技术
 

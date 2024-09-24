@@ -239,17 +239,33 @@ b'fW0v6MG1C3\n/UrT6bdQ==\n'
 
 ### 3.5. 原始字符串
 
-- 三个双引号可以输出原始字符串，换行符空格都会保留
+- 三个双引号可以保留换行，但是`\`还是会转义
+- 加上r可以不转义`\`
 
 ```python
-str = """CREATE TABLE `emm_data` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `path` varchar(512) COLLATE utf8mb4_bin NOT NULL,
-  `size` int unsigned NOT NULL,
-  `modify` date DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `emm_data_path` (`path`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin"""
+str = """aaa
+    aaa\taaa
+"""
+print(str)
+```
+
+```
+aaa
+    aaa	aaa
+```
+
+- 使用r修饰可以不转义`\`
+
+```python
+str = r"""aaa
+    aaa\taaa
+"""
+print(str)
+```
+
+```
+aaa
+    aaa\taaa
 ```
 
 ### 3.6. 字符串转数字
@@ -379,6 +395,18 @@ IndexError: list index out of range
 # 4开始倒序到0，不包含0
 >>> a[4:0:-1]
 [5, 4, 3, 2]
+```
+
+### 4.5. 过滤
+
+```python
+data = [item for item in data if item > 10]
+```
+
+### 4.6. 处理另一个list的某个值生成新的list
+
+```python
+data = [item["key"] for item in arr]
 ```
 
 ## 4. 类
@@ -936,7 +964,7 @@ time_s = time.strptime("2020-01-02 19:00:00", "%Y-%m-%d %H:%M:%S")
 time_s = time.localtime(1577962800.0)
 
 ########## struct_time转其他 ##########
-# 转时间戳，ms
+# 转时间戳，s
 timestamp_float = time.mktime(time_s)
 timestamp_s = int(timestamp_float)
 # 转时间字符串
@@ -1034,6 +1062,16 @@ shutil.copy('./aaa.txt', './aaa_copy.txt')
 shutil.move('./aaa.txt', './aaa_move.txt')
 ```
 
+### 10.3. 删除文件
+
+```python
+# 删除空目录，非空会报错
+os.rmdir('my_empty_directory')
+# 删除非空目录
+# ignore_errors来防止删除不存在的路径报错
+shutil.rmtree("/path/to/dir", ignore_errors=True)
+```
+
 # 四、好用的module推荐
 
 ## module对应pack
@@ -1050,9 +1088,9 @@ shutil.move('./aaa.txt', './aaa_move.txt')
 
 ## 2. 压缩
 
-### zip格式
+### 2.1. zip格式
 
-创建压缩
+#### 1) 创建压缩
 
 ```python
 import zipfile
@@ -1060,11 +1098,11 @@ import zipfile
 z = zipfile.ZipFile(folderName + '.zip', 'w', zipfile.ZIP_STORED) # 创建文件
 z.write('test.txt')             # 写入一个文件
 z.write('dirName')              # 写入一个空文件夹
-z.write('folderName/fileName')  # 可以在没有上级目录的情况下直接写一个文件
+z.write('folderName/fileName')  # 可以在没有上级目录的情况下直接写一个文件，自动创建目录
 z.close()                       # 关闭文件
 ```
 
-压缩目录下的所有文件
+压缩目录下的所有文件带路径
 
 ```python
 import zipfile
@@ -1081,6 +1119,35 @@ for dirPath, dirNames, fileNames in os.walk('dirName'):
         z.write(dirPath + '/' + dirName)
         print(dirPath + '/' + dirName + '/') # 区别于文件的打印
 z.close()
+```
+
+#### 2) 读取压缩包
+
+```python
+import zipfile
+
+# 打开一个ZIP文件
+with zipfile.ZipFile('example.zip', 'r') as zip_ref:
+    # 获取ZIP文件中的所有项
+    zip_items = zip_ref.infolist()
+
+    # 遍历列表，打印每个项的名称，带路径
+    for item in zip_items:
+        print(item.filename)
+```
+
+#### 3) 解压
+
+```python
+import zipfile
+
+with zipfile.ZipFile("test.zip", 'w', zipfile.ZIP_STORED) as z:
+    z.write("tmp/.gitkeep")
+
+with zipfile.ZipFile("test.zip", 'r') as z:
+    for item in z.infolist():
+        # 会解压到./aaa/tmp/.gitkeep
+        z.extract(member=item, path="./aaa")
 ```
 
 ## 3. 汉字转拼音 xpinyin

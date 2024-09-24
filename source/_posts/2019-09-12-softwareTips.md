@@ -206,3 +206,7 @@ set vb t_vb=
 
 - `ssh.exe`等命令在git bash会转换，但是这个处理在sshpass中不生效
 - 将`ssh.exe`使用`ln -sf  /c/Windows/System32/OpenSSH/ssh.exe /usr/local/bin/`，然后将`/usr/local/bin`加到`~/.bashrc`中的`$PATH`中即可
+
+# 十四、xmind
+
+破解: https://github.com/henryau53/xmind-crack-patch/tree/main

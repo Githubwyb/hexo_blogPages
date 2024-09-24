@@ -5,6 +5,12 @@ tags:
 categories: [Knowledge, Study]
 ---
 
+# 前言
+
+本文是《30天自制操作系统》中的windows翻译为linux上的一些实践，过程中也在逐步迁移linux的源码到里面。本身作为对linux上的汇编、启动、内存管理等的一个学习实践。在30天之前都是将此工程翻译到linux，30天后将变成linux移植过程的笔记
+
+- 参考: https://github.com/cherishsir/ubuntu230os
+
 # 关键词解释
 
 - 启动区: (bootsector) 软盘第一个的扇区称为启动区。那么什么是扇区呢？计算机读写软盘的时候，并不是一个字节一个字节地读写的，而是以512字节为一个单位进行读写。因此，软盘的512字节就称为一个扇区。一张软盘的空间共有1440KB, 也就是1474560字节，除以512得2880, 这也就是说一张软盘共有2880个扇区。那为什么第一个扇区称为启动区呢？那是因为计算机首先从最初一个扇区开始读软盘，然后去检查这个扇区最后2个字节的内容。
@@ -156,23 +162,86 @@ clean :
 - 使用命令保存二进制到软盘中
 
 ```makefile
+# 生成img文件
+#   将ipl.S的512B内容写入到软盘镜像的C0-H0-S1的位置，用于启动扇区
+#   剩余需要将软盘扩容到2880个扇区，也就是1440KB
+#   将编译出来的二进制放到软盘里面，也就放到了0x4400的位置
+img: bootloader kernel
+	dd if=bootloader.bin of=haribote.img count=1 bs=512 &>/dev/null
+	dd if=/dev/zero of=haribote.img bs=512 seek=1 skip=1 count=2879 &>/dev/null
+	mkdir -p ./floppy
+	mount -o loop haribote.img ./floppy -o fat=12
+	sleep 1
+	cp kernel ./floppy
+	sleep 1
+	umount ./floppy
+	rm -rf ./floppy
+```
 
+```shell
+=> hexdump -C haribote.img
+00000000  eb 4e 90 48 45 4c 4c 4f  49 50 4c 00 02 01 01 00  |.N.HELLOIPL.....|
+00000010  02 e0 00 40 0b f0 09 00  12 00 02 00 00 00 00 00  |...@............|
+00000020  40 0b 00 00 00 00 29 ff  ff ff ff 48 41 52 49 42  |@.....)....HARIB|
+00000030  4f 54 45 4f 53 20 46 41  54 31 32 20 20 20 00 00  |OTEOS FAT12   ..|
+00000040  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+00000050  b8 00 00 8e d0 bc 00 7c  8e d8 b8 20 08 8e c0 b5  |.......|... ....|
+00000060  00 b6 00 b1 02 be 00 00  b4 02 b0 01 bb 00 00 b2  |................|
+00000070  00 cd 13 73 10 83 c6 01  83 fe 05 73 32 b4 00 b2  |...s.......s2...|
+00000080  00 cd 13 eb e3 8c c0 83  c0 20 8e c0 80 c1 01 80  |......... ......|
+00000090  f9 12 76 d1 b1 01 80 c6  01 80 fe 02 72 c7 b6 00  |..v.........r...|
+000000a0  80 c5 01 80 fd 0a 72 bd  88 2e f0 0f e9 51 45 be  |......r......QE.|
+000000b0  c7 7c 8a 04 83 c6 01 3c  00 74 09 b4 0e bb 0f 00  |.|.....<.t......|
+000000c0  cd 10 eb ee f4 eb fd 0a  0a 4c 6f 61 64 20 65 72  |.........Load er|
+000000d0  72 6f 72 0a 00 00 00 00  00 00 00 00 00 00 00 00  |ror.............|
+000000e0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+*
+000001f0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 55 aa  |..............U.|
+00000200  00 00 00 00 f0 ff 00 00  00 00 00 00 00 00 00 00  |................|
+00000210  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+*
+00001400  00 00 00 00 f0 ff 00 00  00 00 00 00 00 00 00 00  |................|
+00001410  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+*
+00002600  41 6b 00 65 00 72 00 6e  00 65 00 0f 00 0f 6c 00  |Ak.e.r.n.e....l.|
+00002610  00 00 ff ff ff ff ff ff  ff ff 00 00 ff ff ff ff  |................|
+00002620  4b 45 52 4e 45 4c 20 20  20 20 20 20 00 16 05 62  |KERNEL      ...b|
+00002630  23 59 23 59 00 00 05 62  23 59 03 00 39 01 00 00  |#Y#Y...b#Y..9...|
+00002640  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+*
+00004400  b0 13 b4 00 cd 10 c6 06  f2 0f 08 c7 06 f4 0f 40  |...............@|
+00004410  01 c7 06 f6 0f c8 00 66  c7 06 f8 0f 00 00 0a 00  |.......f........|
+00004420  b4 02 cd 16 a2 f1 0f be  5a c4 e8 50 00 b0 ff e6  |........Z..P....|
+00004430  21 90 e6 21 fa e8 d0 00  b0 d1 e6 64 e8 c9 00 b0  |!..!.......d....|
+00004440  df e6 60 e8 c2 00 0f 01  16 30 c5 0f 20 c0 66 83  |..`......0.. .f.|
+00004450  c8 01 0f 22 c0 ea 90 c4  10 00 0a 0a 6b 65 72 6e  |..."........kern|
+00004460  65 6c 20 69 73 20 6c 6f  61 64 69 6e 67 00 0a 0a  |el is loading...|
+00004470  74 72 79 20 69 74 20 61  67 61 69 6e 00 8a 04 83  |try it again....|
+00004480  c6 01 3c 00 74 09 b4 0e  bb 0f 00 cd 10 eb ee c3  |..<.t...........|
+00004490  66 b8 08 00 8e d8 8e c0  8e e0 8e e8 8e d0 bc ff  |f...............|
+000044a0  ff 3f 00 be 36 c5 00 00  bf 00 00 28 00 b9 00 00  |.?..6......(....|
+000044b0  02 00 e8 41 00 00 00 be  00 7c 00 00 bf 00 00 10  |...A.....|......|
+000044c0  00 b9 80 00 00 00 e8 2d  00 00 00 be 00 82 00 00  |.......-........|
+000044d0  bf 00 02 10 00 8a 0d f0  0f 00 00 69 c9 00 12 00  |...........i....|
+000044e0  00 81 e9 80 00 00 00 e8  0c 00 00 00 ea 00 00 00  |................|
+000044f0  00 18 00 eb fe f4 eb fd  8b 06 83 c6 04 89 07 83  |................|
+00004500  c7 04 83 e9 01 75 f1 c3  e4 64 a8 02 75 fa c3 90  |.....u...d..u...|
+00004510  00 00 00 00 00 00 00 00  ff ff 00 00 00 92 cf 00  |................|
+00004520  ff ff 00 00 00 9a 47 00  ff ff 00 00 28 9a 47 00  |......G.....(.G.|
+00004530  1f 00 10 c5 00 00 f4 eb  fd 00 00 00 00 00 00 00  |................|
+00004540  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+*
+00168000
 ```
 
 - 文件名写在`0x0002600`的地方
-
-![](2024-03-02-02.png)
-
 - 文件内容写在`0x004400`的地方，这个和书本上的`0x004200`不太一样，linux上mount后写入文件就在`0x004400`位置
-
-![](2024-03-02-01.png)
-
 - 编译生成的第三阶段启动程序代码在`0x004400`位置
 
 ### (2) 当前编译出来的软盘分布
 
 - `C0-H0-S1`: IPL启动区位于此扇区，操作系统启动时会自动装载到`0x7c00-0x7dff`，这个是iIBM和intel规定的默认行为
-- `asmhead.nas + bootpack.hrb`编译出来的`haribote.sys`保存在软盘的`0x004400`
+- `booloader.S + header.S`编译出来的`kernel`保存在软盘的`0x004400`
 
 ## 2. 内存寻址
 
@@ -359,7 +428,7 @@ clean:
 ```
 
 - 我们需要让`start_kernel`在cobjs的`.text`段第一个，有两个方案
-    1. 将main.o在链接的时候放到第一个位置
+    1. 将main.o在链接的时候放到第一个位置，需要在main.c中唯一
     2. 使用`.text.first`配合ld链接配置文件实现
 - 这里使用第二个方案
 
@@ -434,6 +503,11 @@ CFLAGS += -m32
 LDFLAGS	= -m elf_i386
 ```
 
+## 4. 使用c语言遇到的几个问题
+
+- switch不能超过5个case，否则会出问题，不清楚为什么
+- while中不能使用i--，不清楚为什么
+
 # 第5天 结构体、文字显示与GDT/IDT初始化
 
 ## 1. 字符点阵
@@ -507,14 +581,14 @@ struct desc_struct {
 - 随意取内存一段地址 `0x00270000 - 0x0027ffff` 这一段存储
 - 将所有段初始化成全0
 - 将段号1设置位cpu管理段，在内存的地址为0，大小为4GB，为32位内管理的最大内存，可读可写
-- 段号为2的设置为`bootpack.hrb`程序所在的内存段，地址在0x00280000，大小512K，可读可执行
+- 段号为3的设置为`kernel`程序所在的内存段，地址在0x00280000，大小512K，可读可执行
 - 最后通过汇编导出的函数写入GDTR，因为c语言无法设置GDTR
 
 ```cpp
 #define ADR_GDT 0x00270000       // GDT的内存位置
 #define LIMIT_GDT 0x0000ffff     // GDT占用的字节数
-#define ADR_BOTPAK 0x00280000    // bootpack.hrb所在的地址
-#define LIMIT_BOTPAK 0x0007ffff  // bootpack.hrb最大为512k
+#define ADR_BOTPAK 0x00280000    // kernel所在的地址
+#define LIMIT_BOTPAK 0x0007ffff  // kernel最大为512k
 #define AR_DATA32_RW 0x4092      // 数据段，可读写
 #define AR_CODE32_ER 0x409a      // 代码段，可读可执行，不可写
 
@@ -543,11 +617,29 @@ void init_gdtidt(void) {
     }
     // cpu管理的总内存
     set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, AR_DATA32_RW);
-    // bootpack.hrb的段
-    set_segmdesc(gdt + 2, LIMIT_BOTPAK, ADR_BOTPAK, AR_CODE32_ER);
+    // c语言的段，C语言只能使用第3个段，使用第4个或第2个都会在中断里面崩溃，不知道为什么
+    set_segmdesc(gdt + 3, LIMIT_BOTPAK, ADR_BOTPAK, AR_CODE32_ER);
     load_gdtr(LIMIT_GDT, ADR_GDT);
     ...
 }
+```
+
+- 对应汇编里面的实现
+
+```assembly
+# 第0个段是空的，全部是0
+# 第1个段是数据段，cpu管理的总内存，从0x00000000开始，0x92代表可读可写，内存上限为0xfffff，g = 1代表4K为单位，4G
+# 	按照结构体和16位低位高位计算 0xffff, 0x0000, 0x9200, 0x00cf
+# 第2个段是代码段，启动区所在位置，从0x00000000开始，0x9a代表可读可执行，内存上限为0x7ffff，g = 0代表字节为单位，512K
+# 	按照结构体和16位低位高位计算 0xffff, 0x0000, 0x9a00, 0x0047
+# 第3个段是代码段，c代码所在位置，从0x00280000开始，0x9a代表可读可执行，内存上限为0x7ffff，g = 0代表字节为单位，512K
+# 	按照结构体和16位低位高位计算 0xffff, 0x0000, 0x9a28, 0x0047
+.p2align	2	# 按照2^2 = 4字节对齐
+gdt:
+	.word	0x0000,0x0000,0x0000,0x0000		# null seg
+	.word	0xffff,0x0000,0x9200,0x00cf		# 可读写的段，数据段
+	.word	0xffff,0x0000,0x9a00,0x0047		# 汇编代码所在内存位置
+	.word	0xffff,0x0000,0x9a28,0x0047		# 给c代码使用的段
 ```
 
 ### 2.3. IDT: interrupt descriptor table
@@ -674,12 +766,13 @@ void init_pic() {
 - 也就是将中断函数地址写入idt中
 - 找到对应中断号对应的idt地址，将函数地址和对应的段号放进去，设置标志位即可
 - 由于中断最终要调用IRETD汇编指令退出，所以使用汇编函数调用c函数的方式来进行，并在里面存储了中断打断的进程的上下文信息
+- gcc链接的时候，已经指定了地址在0x00280000，所有函数在汇编代码中就是真实地址（0x00280000后面），在汇编启动时拷贝到0x00280000，其他c代码实际使用就是这个地址，但是对于cpu来说，不关注是否拷贝到内存的哪个位置，只关注段内偏移，所以idt中设置的是在段中的偏移，这里需要减去ADR_BOTPAK
 
 ```cpp
 // 注册中断处理函数
-set_gatedesc(idt + 0x21, (int)asm_inthandler21, 2 * 8, AR_INTGATE32);
-set_gatedesc(idt + 0x27, (int)asm_inthandler27, 2 * 8, AR_INTGATE32);
-set_gatedesc(idt + 0x2c, (int)asm_inthandler2c, 2 * 8, AR_INTGATE32);
+set_gatedesc(idt + 0x21, (int)asm_inthandler21-ADR_BOTPAK, 3 * 8, AR_INTGATE32);
+set_gatedesc(idt + 0x27, (int)asm_inthandler27-ADR_BOTPAK, 3 * 8, AR_INTGATE32);
+set_gatedesc(idt + 0x2c, (int)asm_inthandler2c-ADR_BOTPAK, 3 * 8, AR_INTGATE32);
 ```
 
 ## 4. 中断处理
@@ -702,7 +795,7 @@ set_gatedesc(idt + 0x2c, (int)asm_inthandler2c, 2 * 8, AR_INTGATE32);
 
 - 由于一开始鼠标并不是必须品，后来鼠标才加入
 - 鼠标加入后，当时使用者并不怎么使用，为了防止频繁中断，将鼠标控制默认关闭了
-- 所以想要使用鼠标，还需要进行特定操作进行激活鼠标
+- 所以想要使用鼠标，需要先通过键盘控制电路设置模式启用鼠标，再进行特定操作进行激活鼠标
 
 ```cpp
 #define PORT_KEYDAT 0x0060
@@ -710,7 +803,7 @@ set_gatedesc(idt + 0x2c, (int)asm_inthandler2c, 2 * 8, AR_INTGATE32);
 #define PORT_KEYCMD 0x0064
 #define KEYSTA_SEND_NOTREADY 0x02
 #define KEYCMD_WRITE_MODE 0x60
-#define KBC_MODE 0x47
+#define KBC_MODE 0x47   // 鼠标模式
 
 /**
  * @brief 等待键盘控制器可以发送数据
@@ -732,6 +825,7 @@ void init_keyboard() {
     wait_KBC_sendready();
     io_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
     wait_KBC_sendready();
+    // 设置模式使用鼠标
     io_out8(PORT_KEYDAT, KBC_MODE);
     return;
 }
@@ -751,6 +845,103 @@ void enable_mouse() {
     // 如果成功，就会发送ACK(0xfa)
 }
 ```
+
+## 4. 使用linux的idt和gdt的实现
+
+```cpp
+#include <asm/desc.h>
+#include <asm/desc_defs.h>
+#include <linux/kernel.h>
+
+#include "asmfunc.h"
+
+#define ADR_IDT 0x0026f800       // IDT的内存位置
+#define LIMIT_IDT 0x000007ff     // IDT占用的字节数
+#define ADR_GDT 0x00270000       // GDT的内存位置
+#define LIMIT_GDT 0x0000ffff     // GDT占用的字节数
+#define ADR_BOTPAK 0x00280000    // kernel所在的地址
+#define LIMIT_BOTPAK 0x0000007f  // kernel最大为4K x 128 = 512KB
+
+// 全局gdt表
+static const struct gdt_page gdt_page = {.gdt = {
+#ifdef CONFIG_X86_64
+#else
+                                             // kernel的代码段，也就是bootpack所在位置
+                                             [GDT_ENTRY_KERNEL_CS] = GDT_ENTRY_INIT(0xc09a, ADR_BOTPAK, LIMIT_BOTPAK),
+                                             // kernel控制的总内存大小
+                                             [GDT_ENTRY_KERNEL_DS] = GDT_ENTRY_INIT(0xc092, 0, 0xfffff),
+#endif
+                                         }};
+
+#define DPL0 0x0
+#define DPL3 0x3
+
+#define DEFAULT_STACK 0
+
+#define G(_vector, _addr, _ist, _type, _dpl, _segment) \
+    {                                                  \
+        .vector = _vector,                             \
+        .bits.ist = _ist,                              \
+        .bits.type = _type,                            \
+        .bits.dpl = _dpl,                              \
+        .bits.p = 1,                                   \
+        .addr = _addr,                                 \
+        .segment = _segment,                           \
+    }
+
+/* Interrupt gate */
+#define INTG(_vector, _addr) G(_vector, _addr, DEFAULT_STACK, GATE_INTERRUPT, DPL0, __KERNEL_CS)
+
+/* System interrupt gate */
+#define SYSG(_vector, _addr) G(_vector, _addr, DEFAULT_STACK, GATE_INTERRUPT, DPL3, __KERNEL_CS)
+
+// idt表
+static const struct idt_data idt_table[] = {
+    // gcc链接的时候，已经指定了地址在0x00280000，所有函数在汇编代码中就是真实地址（0x00280000后面）
+    // 在汇编启动时拷贝到0x00280000，其他c代码实际使用就是这个地址
+    // 但是对于cpu来说，不关注是否拷贝到内存的哪个位置，只关注段内偏移，所以idt中设置的是在段中的偏移
+    // 这里需要减去ADR_BOTPAK
+
+    // PS/2键盘中断
+    INTG(0x21, (int)asm_inthandler21-ADR_BOTPAK),
+    // 处理27中断
+    INTG(0x27, (int)asm_inthandler27-ADR_BOTPAK),
+    // PS/2鼠标中断
+    INTG(0x2c, (int)asm_inthandler2c-ADR_BOTPAK),
+};
+
+void init_gdtidt(void) {
+    int i;
+
+    // 初始化GDT
+    struct desc_struct *gdt = (struct desc_struct *)ADR_GDT;
+    // C语言的段
+    write_gdt_entry(gdt, GDT_ENTRY_KERNEL_CS, &gdt_page.gdt[GDT_ENTRY_KERNEL_CS], DESCTYPE_S);
+    // cpu管理的总内存
+    write_gdt_entry(gdt, GDT_ENTRY_KERNEL_DS, &gdt_page.gdt[GDT_ENTRY_KERNEL_DS], DESCTYPE_S);
+    // 设置gdtr
+    load_gdtr(LIMIT_GDT, ADR_GDT);
+
+    // 初始化IDT
+    gate_desc *idt = (gate_desc *)ADR_IDT;
+    gate_desc desc = {0};
+    // 所有中断位置设置为空
+    for (i = 0; i < LIMIT_IDT / sizeof(gate_desc); i++) {
+        write_idt_entry(idt, i, &desc);
+    }
+    // 初始化要使用的中断
+    const struct idt_data *t = idt_table;
+    for (i = 0; i < ARRAY_SIZE(idt_table); ++i, ++t) {
+        idt_init_desc(&desc, t);
+        write_idt_entry(idt, t->vector, &desc);
+    }
+
+    load_idtr(LIMIT_IDT, ADR_IDT);
+    return;
+}
+```
+
+- 不过发现了一个问题，gcc编译不能使用`-O1`，只能使用`-Os`，否则中断会崩溃
 
 # 第8天 鼠标控制与32位模式切换
 
@@ -772,11 +963,563 @@ void enable_mouse() {
 0x00268000 - 0x0026f7ff: 空（30KB）
 0x0026f800 - 0x0026ffff: IDT（2KB）
 0x00270000 - 0x0027ffff: GDT（64KB）
-0x00280000 - 0x002fffff: bookpack.hrb（512KB）
+0x00280000 - 0x002fffff: kernel（512KB）
 0x00300000 - 0x003fffff: 栈及其他（1MB）
 0x00400000 -           : 空
 ```
 
 # 第9天 内存管理
 
+## 1. 禁用高速缓存
 
+- 486之后的cpu存在高速缓存，如果代码上设置一个内存立刻使用或修改，cpu会先用在缓存中，并不会直接写到内存中
+- 内存检查就是写入内存一个值操作后读出来是否正常，这个时候就需要禁用cpu的高速缓存
+
+```cpp
+// asmfunc.h
+static inline uint32_t io_load_eflags(void) {
+    uint32_t eflags;
+    asm volatile("pushfl; popl %0" : "=r"(eflags));
+    return eflags;
+}
+
+static inline void io_store_eflags(uint32_t eflags) { asm volatile("pushl %0; popfl" : : "r"(eflags)); }
+
+static inline uint32_t load_cr0(void) {
+    uint32_t cr0;
+    asm volatile("movl %%cr0, %0" : "=r"(cr0));
+    return cr0;
+}
+
+static inline void store_cr0(uint32_t cr0) { asm volatile("movl %0, %%cr0" : : "r"(cr0)); }
+
+// bootpack.c
+unsigned int memtest(unsigned int start, unsigned int end) {
+    bool before_386;
+    unsigned int eflg, cr0, i;
+
+    // 386及之前的cpu，没有AC这个标记位，所以设置之后还是返回0，使用此方式判断是否为386及以前
+    eflg = io_load_eflags();
+    eflg |= EFLAGS_AC_BIT;
+    io_store_eflags(eflg);
+    eflg = io_load_eflags();
+    before_386 = (eflg & EFLAGS_AC_BIT) == 0;
+    // 还原AC标记位
+    eflg &= ~EFLAGS_AC_BIT;
+    io_store_eflags(eflg);
+
+    if (!before_386) {
+        cr0 = load_cr0();
+        cr0 |= CR0_CACHE_DISABLE; /* 禁止缓存 */
+        store_cr0(cr0);
+    }
+
+    i = memtest_sub(start, end);
+
+    if (!before_386) {
+        cr0 = load_cr0();
+        cr0 &= ~CR0_CACHE_DISABLE; /* 高速缓存许可 */
+        store_cr0(cr0);
+    }
+
+    return i;
+}
+```
+
+## 2. 内存检查和编译器优化
+
+如果使用c语言实现内存检查
+
+```cpp
+static unsigned int memtest_sub(unsigned int start, unsigned int end) {
+    unsigned int i, old, pat0 = 0xaa55aa55, pat1 = 0x55aa55aa;
+    unsigned int *p;
+    for (i = start; i <= end; i += 0x1000) {
+        p = (unsigned int *)(i + 0xffc);
+        old = *p;         /* 记录以前的值 */
+        *p = pat0;        /* 尝试写 */
+        *p ^= 0xffffffff; /* 反转 */
+        if (*p != pat1) { /* 检查反转结果 */
+        not_memory:
+            *p = old;
+            break;
+        }
+        *p ^= 0xffffffff; /* 再次反转 */
+        if (*p != pat0) { /* 检查反转结果 */
+            goto not_memory;
+        }
+        *p = old; /* 恢复原来的值 */
+    }
+    return i;
+}
+```
+
+编译器会进行优化，发现第一个if判断没有意义，`pat0^0xffffffff`本来就是等于`pat1`啊，就算赋值给了`*p`不是一样吗
+
+```cpp
+static unsigned int memtest_sub(unsigned int start, unsigned int end) {
+    unsigned int i, old, pat0 = 0xaa55aa55, pat1 = 0x55aa55aa;
+    unsigned int *p;
+    for (i = start; i <= end; i += 0x1000) {
+        p = (unsigned int *)(i + 0xffc);
+        old = *p;         /* 记录以前的值 */
+        *p = pat0;        /* 尝试写 */
+        *p ^= 0xffffffff; /* 反转 */
+        *p ^= 0xffffffff; /* 再次反转 */
+        if (*p != pat0) { /* 检查反转结果 */
+            goto not_memory;
+        }
+        *p = old; /* 恢复原来的值 */
+    }
+    return i;
+}
+```
+
+两次`*p^0xffffffff`数据保持原样，那就没有必要了
+
+```cpp
+static unsigned int memtest_sub(unsigned int start, unsigned int end) {
+    unsigned int i, old, pat0 = 0xaa55aa55, pat1 = 0x55aa55aa;
+    unsigned int *p;
+    for (i = start; i <= end; i += 0x1000) {
+        p = (unsigned int *)(i + 0xffc);
+        old = *p;         /* 记录以前的值 */
+        *p = pat0;        /* 尝试写 */
+        if (*p != pat0) { /* 检查反转结果 */
+            goto not_memory;
+        }
+        *p = old; /* 恢复原来的值 */
+    }
+    return i;
+}
+```
+
+`*p = pat0`后比较两个的值，肯定一样啊
+
+```cpp
+static unsigned int memtest_sub(unsigned int start, unsigned int end) {
+    unsigned int i, old, pat0 = 0xaa55aa55, pat1 = 0x55aa55aa;
+    unsigned int *p;
+    for (i = start; i <= end; i += 0x1000) {
+        p = (unsigned int *)(i + 0xffc);
+        old = *p;         /* 记录以前的值 */
+        *p = old; /* 恢复原来的值 */
+    }
+    return i;
+}
+```
+
+复制old后又赋值回去，等于没变
+
+```cpp
+static unsigned int memtest_sub(unsigned int start, unsigned int end) {
+    unsigned int i, old, pat0 = 0xaa55aa55, pat1 = 0x55aa55aa;
+    unsigned int *p;
+    for (i = start; i <= end; i += 0x1000) {
+        p = (unsigned int *)(i + 0xffc);
+    }
+    return i;
+}
+```
+
+p就赋了一个值，全局都没有使用
+
+```cpp
+static unsigned int memtest_sub(unsigned int start, unsigned int end) {
+    unsigned int i, old, pat0 = 0xaa55aa55, pat1 = 0x55aa55aa;
+    unsigned int *p;
+    for (i = start; i <= end; i += 0x1000) {}
+    return i;
+}
+```
+
+整个函数就剩下for循环了，所以一定返回输入什么就怎么样。解决这样的问题只需要在p前面修饰上`volatile`即可，编译器认为这个p是要实时变化的，就不会进行优化。
+
+```cpp
+static unsigned int memtest_sub(unsigned int start, unsigned int end) {
+    unsigned int i, old, pat0 = 0xaa55aa55, pat1 = 0x55aa55aa;
+    volatile unsigned int *p;       // 这里加上volatile，防止编译器优化
+    // unsigned int *p = 0;
+    for (i = start; i <= end; i += 0x1000) {
+        p = (unsigned int *)(i + 0xffc);
+        old = *p;         /* 记录以前的值 */
+        *p = pat0;        /* 尝试写 */
+        *p ^= 0xffffffff; /* 反转 */
+        if (*p != pat1) { /* 检查反转结果 */
+        not_memory:
+            *p = old;
+            break;
+        }
+        *p ^= 0xffffffff; /* 再次反转 */
+        if (*p != pat0) { /* 检查反转结果 */
+            goto not_memory;
+        }
+        *p = old; /* 恢复原来的值 */
+    }
+    return i;
+}
+```
+
+# 第10天和第11天 窗口处理
+
+主要处理图层、刷新等方式，使用图层添加了一个窗口，鼠标放到最上层。在刷新过程中发现了闪烁的问题，将刷新的方式优化了几板后没有了闪烁。主要结构如下
+
+```cpp
+#define SHEET_USE 1
+struct SHTCTL;
+struct SHEET {
+    struct SHTCTL *ctl;
+    unsigned char *buf;
+    int bxsize;   // 宽度
+    int bysize;   // 高度
+    int vx0;      // 左上角坐标
+    int vy0;      // 左上角坐标
+    int col_inv;  // 透明标识，buf中和此值相同的值会被透明化
+    int height;   // 高度，越大越在上面0-max
+    int flags;
+};
+
+#define MAX_SHEETS 256
+
+struct SHTCTL {
+    unsigned char *vram;
+    unsigned char *map;  // 标识哪里被哪一层sheet覆盖
+    int xsize, ysize;
+    int top;                           // 最高的sheet的索引+1
+    struct SHEET *sheets[MAX_SHEETS];  // 按照高度顺序排列的已使用sheet的数组，最低的sheet在sheets[0]
+    struct SHEET sheets0[MAX_SHEETS];  // 全部sheet包含使用和未使用
+};
+```
+
+刷新只刷新某一个区域，对区域内的点，根据map取哪一层要写入则写入vram。
+
+# 第12天 定时器（1）
+
+## PIT（Programmable Interval Timer） 可编程的间隔型定时器
+
+cpu有一个旁路芯片，8254芯片（或替代品），定时向cpu的IRQ0发起中断。如果我们接收此中断，设置中断周期就可以用于做定时器中断。
+
+- 此芯片频率大概为1.19318MHz，我们设置一个计数来让计数到某个值产生一次中断
+    - 1：1.19318MHz
+    - 1000：1.19318KHz
+    - 10000：119.318Hz
+    - 11932：100Hz
+
+对应的设置指令为
+
+- OUT(0x43, 0x34): 0x43为pit_ctrl寄存器，0x34为mode
+- OUT(0x40, 中断周期低8位):
+- OUT(0x40, 中断周期高8位):
+
+基于linux的实现，定义如下宏进行处理
+
+```cpp
+// include/linux/timex.h
+/* The clock frequency of the i8253/i8254 PIT */
+#define PIT_TICK_RATE 1193182ul
+
+// include/asm-generic/param.h
+# define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
+
+// include/linux/i8253.h
+#define PIT_LATCH	((PIT_TICK_RATE + HZ/2) / HZ)
+```
+
+在makefile中定义`-DCONFIG_HZ=1000`即可实现，直接使用`PIT_LATCH`设置到中断周期里面
+
+## 定时器中断优化
+
+可以一步到位，使用链表管理定时器，设置定时器插入到链表里面按照超时时间从小到大排序。中断中仅关注第一个定时器是否到期即可。这里使用内核的hlist处理定时器，不需要timer_alloc也可以使用定时器。
+
+```cpp
+// bookpack.h
+extern volatile unsigned long jiffies;
+void init_pit(void);
+#define MAX_TIMER 500
+typedef STRUCT_KFIFO(unsigned char, 8) TimerBufType;
+struct TIMER {
+    struct hlist_node entry;
+    unsigned long expires;  // 超时时间，取绝对时间，基于jiffies
+    unsigned int flags;
+    TimerBufType *fifo;
+    unsigned char data;
+};
+
+void timer_free(struct TIMER *timer);
+void timer_init(struct TIMER *timer, TimerBufType *fifo, unsigned char data);
+void timer_settime(struct TIMER *timer, unsigned long timeout);
+
+// timer.c
+#include <linux/list.h>
+volatile unsigned long jiffies = 0;
+
+static HLIST_HEAD(s_timer_list);  // 按照到期时间排序
+
+void init_pit(void) {
+    // 芯片主频为PIT_TICK_RATE，想要1ms触发1次，HZ为1000，设置PIT_LATCH = PIT_TICK_RATE / HZ
+    io_out8(PIT_MODE, 0x34);
+    io_out8(PIT_CH0, PIT_LATCH & 0xff);
+    io_out8(PIT_CH0, PIT_LATCH >> 8);
+}
+
+void timer_free(struct TIMER *timer) {
+    struct TIMER *node;
+    timer->flags = 0;
+    hlist_for_each_entry(node, &s_timer_list, entry) {
+        if (node == timer) {
+            hlist_del_init(&node->entry);
+            break;
+        }
+    }
+}
+
+void timer_init(struct TIMER *timer, TimerBufType *fifo, unsigned char data) {
+    timer->fifo = fifo;
+    timer->data = data;
+    INIT_HLIST_NODE(&timer->entry);
+}
+
+void timer_settime(struct TIMER *timer, unsigned long timeout) {
+    int e;
+    timer->expires = timeout;
+
+    // 操作s_timer_list需要关中断，防止并行操作
+    e = io_load_eflags();
+    io_cli();
+    // 按照到期时间排序插入
+    struct TIMER *node;
+    struct TIMER *prev = NULL;  // 记录要插入的节点前一个的节点
+
+    hlist_for_each_entry(node, &s_timer_list, entry) {
+        if (node->expires > timer->expires) {
+            break;
+        }
+        prev = node;
+    }
+    if (prev == NULL) {
+        // 没有前一个节点，说明要插入到第一个
+        // 1. 有节点，但是都不满足条件，插入最前面
+        // 2. 没有节点，直接插入最前面
+        hlist_add_head(&timer->entry, &s_timer_list);
+    } else {
+        // 有前一个节点，插入到前一个节点后面
+        hlist_add_behind(&timer->entry, &prev->entry);
+    }
+
+    // 恢复中断
+    io_store_eflags(e);
+    io_sti();
+}
+
+void inthandler20(int *esp) {
+    io_out8(PIC0_OCW2, 0x60);  // 通知PIC已经处理完毕
+    ++jiffies;
+    struct TIMER *node;
+    struct hlist_node *n;
+    hlist_for_each_entry_safe(node, n, &s_timer_list, entry) {
+        if (node->expires <= jiffies) {
+            hlist_del_init(&node->entry);
+            kfifo_put(node->fifo, node->data);
+        } else {
+            break;
+        }
+    }
+}
+```
+
+# 第13天 定时器（2）
+
+## 串口输出日志
+
+搞了这么久，发现出现一些问题没有办法进行排查，只能通过比较搓的方式直接在屏幕上输出某个字符串代表跑到了某个逻辑。而linux启动整个过程中可以有很多输出到串口或控制台上，参考linux的实现将日志加到操作系统中。
+
+- 对于串口，直接将字符串写到`0x3f8`即可输出到串口中
+
+```cpp
+// log.c
+#include <linux/jiffies.h>
+#include <linux/kernel.h>
+#include <linux/string.h>
+
+#include "asmfunc.h"
+
+/* Serial functions loosely based on a similar package from Klaus P. Gerlicher */
+
+static unsigned long early_serial_base = 0x3f8; /* ttyS0 */
+
+#define XMTRDY 0x20
+
+#define DLAB 0x80
+
+#define TXR 0 /*  Transmit register (WRITE) */
+#define RXR 0 /*  Receive register  (READ)  */
+#define IER 1 /*  Interrupt Enable          */
+#define IIR 2 /*  Interrupt ID              */
+#define FCR 2 /*  FIFO control              */
+#define LCR 3 /*  Line control              */
+#define MCR 4 /*  Modem control             */
+#define LSR 5 /*  Line Status               */
+#define MSR 6 /*  Modem Status              */
+#define DLL 0 /*  Divisor Latch Low         */
+#define DLH 1 /*  Divisor latch High        */
+
+static inline unsigned int io_serial_in(unsigned long addr, int offset) { return inb(addr + offset); }
+
+static inline void io_serial_out(unsigned long addr, int offset, int value) { outb(value, addr + offset); }
+
+static inline int serial_putc(unsigned char ch) {
+    unsigned timeout = 0xffff;
+
+    while ((io_serial_in(early_serial_base, LSR) & XMTRDY) == 0) {
+        --timeout;
+    }
+    io_serial_out(early_serial_base, TXR, ch);
+    return timeout ? 0 : -1;
+}
+
+static inline void serial_write(const char *s, unsigned n) {
+    while (*s && n-- > 0) {
+        if (*s == '\n') serial_putc('\r');
+        serial_putc(*s);
+        s++;
+    }
+}
+
+void serial_printf(const char *fmt, ...) {
+    va_list ap;
+    char buf[512];
+    int n;
+
+    va_start(ap, fmt);
+    n = vscnprintf(buf, sizeof(buf), fmt, ap);
+    va_end(ap);
+
+    serial_write(buf, n);
+}
+
+void _print_current_time(void) {
+    unsigned long msecs = jiffies_to_msecs(jiffies);
+    unsigned long secs = msecs / 1000;
+    unsigned long msec = msecs % 1000;
+    serial_printf("[%5lu.%03lu]", secs, msec);
+}
+```
+
+```cpp
+// log.h
+#ifndef __LOG_H__
+#define __LOG_H__
+
+void serial_printf(const char *fmt, ...);
+
+void _print_current_time(void);
+
+#define LOG_INFO(fmt, ...) \
+    _print_current_time(); \
+    serial_printf("[%s:%d %s] " fmt "\r\n", __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+
+#endif  // __LOG_H__
+```
+
+makefile中修改一下qemu的参数，添加`-serial stdio`，然后在控制台就可以看到输出，代码中使用`LOG_INFO`打印即可。输出效果
+
+```
+[    0.000][bootpack.c:21 HariMain] HariMain start
+[    0.000][bootpack.c:30 HariMain] init gdtidt done
+[    0.002][bootpack.c:44 HariMain] create timer done
+[    0.002][bootpack.c:50 HariMain] init keyboard and mouse done
+[    0.004][bootpack.c:54 HariMain] init palette done
+[    0.314][bootpack.c:64 HariMain] init memory done, cost 310ms, memory 2048MB, free: 2093688KB
+[    0.324][bootpack.c:106 HariMain] init windows done
+```
+
+## 中断处理优化
+
+其实就是搞了个数组实现链表的方式，将timer管理起来。之前使用了hlist来管理timer，天然就是链表，后面两个优化就不做了。
+
+# 第14天 提高分辨率及键盘输入
+
+## VBE（VESA BIOS Extensions）
+
+参考：https://en.wikipedia.org/wiki/VESA_BIOS_Extensions
+
+最开始电脑规格是IBM公司决定的，也制定了相关的规格，各家显卡公司只能迎合IBM规格制作显卡。一段时间后，显卡公司图像处理技术超过了IBM公司，就出现了各式各样的画面模式，造成了显卡公司竞争和设定方法使用方法各不相同。由于开发人员不想记忆那么多情况，所以很多高性能显卡也只使用最原始的320x200来使用。为了解决这个问题，各个显卡公司经过协商，成立了VESA协会（Video Electronics Standards Association，视频电子标准协会）。协会制定了一个通用设定方法，虽然不能完全兼容，但是可以通用。这个BIOS操作称为“VESA BIOS Extension”简称VBE。
+
+在qemu上测试支持下面几个模式
+
+- 0x0100: 640x400
+- 0x0101: 640x480
+- 0x0105: 1024x768
+- 0x0107: 1280x1024
+- 0x011c: 1600x1200
+
+不过设置之后的vram的地址不是`0xe0000000`而是`0xfd000000`。设置方法为
+
+```assembly
+#define VBEMODE         0x0105
+
+	mov 	$(VBEMODE+0x4000),%bx
+	mov 	$0x4f02,%ax
+	int 	$0x10
+	movb 	$8,(VMODE)
+```
+
+需要ax设置`0x4f02`，bx设置`vbemode+0x4000`，然后调用`int 10`
+
+## VBE检查
+
+部分显卡可能真不支持VBE的情况，我们的代码就有问题了，无法显示屏幕，所以需要做一个自适应检查。
+
+```assembly
+	# 确认VBE是否存在
+	mov 	$0x9000,%ax
+	mov 	%ax,%es
+	mov 	$0,%di
+	mov 	$0x4f00,%ax
+	int 	$0x10
+	cmp 	$0x004f,%ax
+	jne 	scrn320
+
+	# 检查vbe版本需要是0x200，即VBE 2.0
+	mov 	%es:(%di,4),%ax
+	cmp 	$0x0200,%ax
+	jb  	scrn320
+
+	# 测试画面模式是否能使用，需要ax为0x004f
+	mov 	$VBEMODE,%cx
+	mov 	$0x4f01,%ax
+	int 	$0x10
+	cmp 	$0x004f,%ax
+	jne  	scrn320
+
+	# 画面的模式 包含了非常多的重要信息，如模式属性
+    # WORD  [es:di+0x00]: 模式属性，第7位需要是1，这样才能加上0x4000
+    # WORD  [es:di+0x12]: X的分辨率
+    # WORD  [es:di+0x14]: Y的分辨率
+    # BYTE  [es:di+0x19]: 颜色数，必须为8，我们代码用的就是8
+    # BYTE  [es:di+0x1b]: 颜色的指定方法，必须为4，即调色板模式
+    # DWORD [es:di+0x28]: VRAM的地址
+
+    # 确认颜色数
+	movb 	%es:0x19(%di),%al
+	cmp 	$8,%al
+	jne 	scrn320
+    # 确认颜色指定方法
+	movb 	%es:0x1b(%di),%al
+	cmp 	$4,%al
+	jne 	scrn320
+
+    # 重新调用设置画面模式，需要加上0x4000
+    mov 	$(VBEMODE+0x4000),%bx
+	mov 	$0x4f02,%ax
+	int 	$0x10
+
+	# 记录对应信息给到c语言
+	movb 	$8,(VMODE)
+	mov 	%es:0x12(%di),%ax
+	mov 	%ax,(SCRNX)
+	mov 	%es:0x14(%di),%ax
+	mov 	%ax,(SCRNY)
+	movl 	%es:0x28(%di),%eax
+	movl 	%eax,(VRAM)
+```

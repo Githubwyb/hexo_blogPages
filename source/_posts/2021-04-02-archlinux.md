@@ -568,6 +568,7 @@ sudo systemctl start vmware-usbarbitrator.service
 ```shell
 # -s 安装依赖
 # -f 覆盖编译
+# -e 不更新代码，使用已有代码
 # --skipinteg 跳过完整性检查，因为改了config这个会不过，所以要跳过
 makepkg -sf --skipinteg
 ```
@@ -611,3 +612,17 @@ sudo mount /dev/sdb4 /path/to/mount
 ## 6. 安装提示`error: missing package metadata in xxx`
 
 - 此问题是因为cache目录存在脏数据，使用`yay -Scc`清理一下就好了
+
+## 7. kde6默认使用wayland后，部分应用启动异常
+
+- remmina远程刷新不完全
+- synergy（barrier）无法使用
+
+设置下面环境变量后在wayland里面使用x11启动程序，仅对一个终端生效，其他不受影响
+
+```shell
+# 清空wayland显示配置
+export WAYLAND_DISPLAY=
+# 将session设置为x11
+export XDG_SESSION_TYPE=x11
+```

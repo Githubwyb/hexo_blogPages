@@ -149,6 +149,30 @@ static char *get_kernel_version(void) {
 }
 ```
 
+## 3. 添加git commitid
+
+makefile中对于编译添加选项
+
+```makefile
+ifeq ($(GIT_COMMITID), )
+GIT_COMMITID := $(shell git rev-parse HEAD)
+endif
+
+ccflags-y += -DGIT_COMMITID=\"$(GIT_COMMITID)\"
+```
+
+代码中定义到comment里面
+
+```cpp
+#ifndef GIT_COMMITID
+#define GIT_COMMITID "unknown"
+#endif
+
+// 显示在modinfo xxx.ko中
+MODULE_LICENSE("GPL");
+MODULE_DESCRIPTION("xxxx, Git: "GIT_COMMITID);
+```
+
 # 四、实战示例
 
 ## 1. netfilter框架
@@ -202,26 +226,71 @@ module_exit(hello_exit);
 ### 1.2. 添加setsockopt选项
 
 ```cpp
+/* toa insert socket options */
+enum {
+    SOCKET_OPT_BASE = 0x248,
+    /* set */
+    SOCKET_OPT_TOA_SET_IP = SOCKET_OPT_BASE,
+    SOCKET_OPT_MAX,
+};
+
 static int toa_set_ip_options(struct sock *sk, int cmd, void __user *user, unsigned int len) {
-    unsigned long data;
+    int ret = 0;
+    struct sockaddr_storage address;
+    static const char *tag = __FUNCTION__;
 
-    if (!sk || cmd != TOA_SET_IP) {
-        SDP_LOG_ERR("set ip options, bad cmd");
-        return -EINVAL;
-    }
+    switch (cmd) {
+        case SOCKET_OPT_TOA_SET_IP:
+            if (!sk || NULL == user || len < 2 || len > sizeof(struct sockaddr_storage)) {
+                LOG_ERR("%s, param is invalid", tag);
+                return -EINVAL;
+            }
 
-    if (len != sizeof(data) || NULL == user) {
-        SDP_LOG_ERR("set ip options, bad param len");
-        return -EINVAL;
-    }
+            if (sk->sk_user_data) {
+                LOG_ERR("%s, sk_user_data is not NULL", tag);
+                return -EPERM;
+            }
 
-    if (copy_from_user(&data, user, len) != 0) {
-        SDP_LOG_ERR("set ip options, copy_from_user failed");
-        return -EINVAL;
-    }
+            ret = copy_from_user(&address, user, len);
+            if (ret < 0) {
+                LOG_ERR("%s, copy addr from userspace failed, ret %d", tag, ret);
+                return ret;
+            }
 
-    if (test_bit(SOCK_TOAV4_SET, &data)) {
-        sock_set_flag(sk, SOCK_TOAV4_SET);
+            switch (address.ss_family) {
+                case PF_INET: {
+                    struct sockaddr_in *vip_addr = (struct sockaddr_in *)&address;
+                    sock_set_flag(sk, SOCK_TOAV4_SET);
+                    // 存放高32位，低2位被用于当标记位使用
+                    sk->sk_user_data = (void *)((u64)(vip_addr->sin_addr.s_addr) << 32);
+                    INC_ATOMIC(s_setsockopt_count);
+                } break;
+                case PF_INET6: {
+                    toa_ipv6_node_t *node = NULL;
+                    struct sockaddr_in6 *vip_addr = (struct sockaddr_in6 *)&address;
+
+                    node = kmem_cache_zalloc(toa_ipv6_node_slab, GFP_KERNEL);
+                    if (!node) {
+                        LOG_ERR("%s, kmalloc toa_ipv6_node_t failed", tag);
+                        return -ENOMEM;
+                    }
+
+                    node->sk = sk;
+                    node->created_at = jiffies;
+                    memcpy(node->ipv6, vip_addr->sin6_addr.s6_addr, sizeof(node->ipv6));
+                    toa_ipv6_insert_node(node);
+
+                    sock_set_flag(sk, SOCK_TOAV6_SET);
+                    INC_ATOMIC(s_setsockoptv6_count);
+                } break;
+                default:
+                    LOG_ERR("%s, family %d is not support", tag, address.ss_family);
+                    return -EOPNOTSUPP;
+            }
+            break;
+        default:
+            LOG_ERR("%s cmd %d not support", tag, cmd);
+            return -EOPNOTSUPP;
     }
 
     return 0;
@@ -247,12 +316,16 @@ int driver_init(void) {
     }
     return ret;
 }
+
+void driver_uninit(void) {
+    nf_unregister_sockopt(&toa_insert_sockopts);
+}
 ```
 
 - 用户层使用
 
 ```cpp
-#define TOA_SET_IP 8192
+#define TOA_SET_IP 0x248
 
 int main() {
     ...
@@ -282,84 +355,242 @@ static void disable_netfilter_hook(void) { atomic_set(&g_hook_enable, 0); }
 
 bool is_toa_netfilter_enable(void) { return atomic_read(&g_hook_enable) == 1; }
 
-// local out hook
-static unsigned int toa_insert_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *state) {
-    struct sock *sk = state->sk;
+static bool insert_ipv4_toa(struct sock *sk, struct sk_buff *skb) {
     struct tcphdr *th;
+    unsigned int tcp_options_size, tcp_header_size;
+    int length, ip_offset, tcp_offset;
+    int mac_offset = 0;
+    __be32 *ptr;
+    __be32 i;
+    u16 port = 0;
+
+    // 计算当前tcp头部长度和剩余空间
+    tcp_options_size = tcp_optlen(skb);
+    if (MAX_TCP_OPTION_SPACE - tcp_options_size < TCPOLEN_TOAV4_ALIGNED) {
+        // 剩余空间不足
+        LOG_WARN("there is not enough space left to add toa v4, remain size %d",
+                     MAX_TCP_OPTION_SPACE - tcp_options_size);
+        return false;
+    }
+
+    // 增加头部长度并将固定长度拷贝到新位置，toa插入到option的第一段
+    // 先计算一下ip头到tcp头的偏移量，再进行设置transport_header位置
+    tcp_offset = skb_transport_offset(skb);
+    ip_offset = skb_network_offset(skb);
+    if (skb_mac_header_was_set(skb)) {
+        // 正常来讲是进到output链是没有mac头，这里算是防御性编程，防止mac头被覆盖
+        mac_offset = skb_mac_offset(skb);
+    }
+    ptr = skb_push(skb, TCPOLEN_TOAV4_ALIGNED);
+    skb_set_network_header(skb, ip_offset);
+    skb_set_transport_header(skb, tcp_offset);
+    if (mac_offset) {
+        skb_set_mac_header(skb, mac_offset);
+    }
+    // 按照4字节的方式计算整体偏移到tcp固定长度头的长度，进行内存移位计算
+    length = (skb_transport_offset(skb) + sizeof(struct tcphdr)) >> 2;
+    for (i = 0; i < length; i++) {
+        *ptr = *(ptr + TCPOLEN_TOAV4_ALIGNED / 4);
+        ptr++;
+    }
+
+    /*
+    正好4字节对齐
+    |-------------+------------+-------------+-----------------------+
+    | KIND(1byte) | LEN(1byte) | Port(2byte) | IPV4/IPV6(4/16byte)   |
+    |-------------+------------+-------------+-----------------------+
+    |    200      |    8/20    |  Port       |   IP                  |
+    |-------------+------------+-------------+-----------------------+
+     */
+    // 设置toa
+    *ptr++ = htonl((TCPOPT_TOA << 24) | (TCPOLEN_TOAV4 << 16) | (htons(port)));
+    // 存放于sk_user_data的高32位中，从s_addr存入的，所以不需要做htonl
+    *ptr++ = (u32)((u64)(sk->sk_user_data) >> 32);
+    // 清理sk_user_data，防止影响到后面的流程
+    sk->sk_user_data = NULL;
+
+    // 修改tcp头部长度后，需要重新计算伪首部的校验和
+    th = tcp_hdr(skb);
+    tcp_header_size = tcp_hdrlen(skb) + TCPOLEN_TOAV4_ALIGNED;
+    th->doff = tcp_header_size >> 2;
+    return true;
+}
+
+static bool insert_ipv6_toa(struct sock *sk, struct sk_buff *skb) {
+    static const char *tag = __FUNCTION__;
+    toa_ipv6_node_t *node;
+    struct tcphdr *th;
+    unsigned int tcp_options_size, tcp_header_size;
+    int length, ip_offset, tcp_offset;
+    int mac_offset = 0;
+    __be32 *ptr;
+    __be32 i;
+    u16 port = 0;
+
+    // 计算当前tcp头部长度和剩余空间
+    tcp_options_size = tcp_optlen(skb);
+    if (MAX_TCP_OPTION_SPACE - tcp_options_size < TCPOLEN_TOAV6_ALIGNED) {
+        // 剩余空间不足
+        LOG_WARN("%s, there is not enough space left to add toa v6, remain size %d", tag,
+                     MAX_TCP_OPTION_SPACE - tcp_options_size);
+        return NF_ACCEPT;
+    }
+
+    // 看能不能找到，找到同时删除节点
+    node = toa_ipv6_lookup_node(sk, true);
+    if (!node) {
+        LOG_WARN("%s, can not find ipv6 node, maybe cleaned", tag);
+        return NF_ACCEPT;
+    }
+
+    // 增加头部长度并将固定长度拷贝到新位置，toa插入到option的第一段
+    // 先计算一下ip头到tcp头的偏移量，再进行设置transport_header位置
+    tcp_offset = skb_transport_offset(skb);
+    ip_offset = skb_network_offset(skb);
+    if (skb_mac_header_was_set(skb)) {
+        // 正常来讲是进到output链是没有mac头，这里算是防御性编程，防止mac头被覆盖
+        mac_offset = skb_mac_offset(skb);
+    }
+    ptr = skb_push(skb, TCPOLEN_TOAV6_ALIGNED);
+    skb_set_network_header(skb, ip_offset);
+    skb_set_transport_header(skb, tcp_offset);
+    if (mac_offset) {
+        skb_set_mac_header(skb, mac_offset);
+    }
+    // 按照4字节的方式计算整体偏移到tcp固定长度头的长度，进行内存移位计算
+    length = (skb_transport_offset(skb) + sizeof(struct tcphdr)) >> 2;
+    for (i = 0; i < length; i++) {
+        *ptr = *(ptr + TCPOLEN_TOAV6_ALIGNED / 4);
+        ptr++;
+    }
+
+    /*
+    正好4字节对齐
+    |-------------+------------+-------------+-----------------------+
+    | KIND(1byte) | LEN(1byte) | Port(2byte) | IPV6(16byte)          |
+    |-------------+------------+-------------+-----------------------+
+    |    200      |      20    |  Port       |   IP                  |
+    |-------------+------------+-------------+-----------------------+
+     */
+    // 设置toa
+    *ptr++ = htonl((TCPOPT_TOA << 24) | (TCPOLEN_TOAV6 << 16) | (htons(port)));
+    memcpy(ptr, &node->ipv6, sizeof(node->ipv6));
+    kmem_cache_free(toa_ipv6_node_slab, node);
+    node = NULL;
+
+    // 清理sk_user_data，防止影响到后面的流程
+    sk->sk_user_data = NULL;
+
+    // 修改tcp头部长度后，需要重新计算伪首部的校验和
+    th = tcp_hdr(skb);
+    tcp_header_size = tcp_hdrlen(skb) + TCPOLEN_TOAV6_ALIGNED;
+    th->doff = tcp_header_size >> 2;
+    return NF_ACCEPT;
+}
+
+// local out hook
+static unsigned int toa_insert_hook(void *priv, struct sk_buff *skb,
+                                    const struct nf_hook_state *state) {
+    struct tcphdr *th;
+    struct sock *sk = skb_to_full_sk(skb);
 
     if (!is_toa_netfilter_enable()) return NF_ACCEPT;
 
-    // 只处理tcp协议包
-    if (!sk || sk->sk_protocol != IPPROTO_TCP) {
+    // 这里需要判断sock是否是完整的，只有完整的sock中flag才是真的flag
+    // 非完整的request_sock中flag是skc_listener
+    // 非完整的inet_timewait_sock中flag是skc_tw_dr
+    if (!sk || !sk_fullsock(sk)) {
         return NF_ACCEPT;
+    }
+
+    switch (sk->sk_family) {
+        case PF_INET: {
+            // output链进来的是ip包，这里用ip头判断只处理tcp协议包
+            struct iphdr *iph = ip_hdr(skb);
+            if (likely(iph->protocol != IPPROTO_TCP)) {
+                return NF_ACCEPT;
+            }
+        } break;
+        case PF_INET6: {
+            // output链进来的是ip包，这里用ip头判断只处理tcp协议包
+            // 这里仅处理sdp-tunnel代理的短隧道访问的握手包，由于是我们自己的代码，所以不考虑ack或syn带数据的场景
+            // 也就不存在分片包场景，这里就仅处理nexthdr为tcp的，分片的直接放过
+            struct ipv6hdr *iph = ipv6_hdr(skb);
+            if (likely(iph->nexthdr != NEXTHDR_TCP)) {
+                return NF_ACCEPT;
+            }
+        } break;
+        default:
+            // 其他协议不处理，直接放通
+            return NF_ACCEPT;
     }
 
     // 只处理syn包
     th = tcp_hdr(skb);
-    // 只处理syn包
-    if (likely(!th->syn)) {
+    switch (s_toa_mode) {
+        case TOA_MODE_SYN:
+            // 只处理syn包
+            if (th->syn && !th->ack) {
+                break;
+            }
+            return NF_ACCEPT;
+        case TOA_MODE_ACK:
+            // 只处理ack包
+            if (th->ack && !th->syn && !th->fin) {
+                break;
+            }
+            return NF_ACCEPT;
+        default:
+            LOG_WARN("unsupport toa_mode %d", s_toa_mode);
+            return NF_ACCEPT;
+    }
+
+    // 只有完整的sock中flag才是真的flag，前面处理了，这里一定是完整的sk
+    // 非完整的request_sock中flag是skc_listener
+    // 非完整的inet_timewait_sock中flag是skc_tw_dr
+    if (sock_flag(sk, SOCK_TOAV4_SET)) {
+        if (!insert_ipv4_toa(sk, skb)) {
+            return NF_ACCEPT;
+        }
+        // 仅设置一次，设置后清理flag
+        sock_reset_flag(sk, SOCK_TOAV4_SET);
+        INC_ATOMIC(s_settcpopt_count);
+    } else if (sock_flag(sk, SOCK_TOAV6_SET)) {
+        if (!insert_ipv6_toa(sk, skb)) {
+            return NF_ACCEPT;
+        }
+        // 仅设置一次，设置后清理flag
+        sock_reset_flag(sk, SOCK_TOAV6_SET);
+        INC_ATOMIC(s_settcpoptv6_count);
+    } else {
+        // 没有设置过，直接放通
         return NF_ACCEPT;
     }
 
-    // 调用原函数获取长度后，添加一个tcp option，用于放入vip
-    if (sock_flag(sk, SOCK_TOAV4_SET)) {
-        // ipv4
-        struct iphdr *iph;
-        const struct inet_sock *inet = inet_sk(sk);
-        unsigned int tcp_options_size, tcp_header_size;
-        int offset;  // ip头到tcp头部的偏移量
-        __be32 *ptr;
-        __be32 i;
-
-        // 计算当前tcp头部长度和剩余空间
-        tcp_header_size = (ntohs(*(((__be16 *)th) + 6)) >> 12) << 2;
-        tcp_options_size = tcp_header_size - sizeof(struct tcphdr);
-        if (MAX_TCP_OPTION_SPACE - tcp_options_size < TCPOLEN_TOAV4_ALIGNED) {
-            // 剩余空间不足
-            SDP_LOG_WARN("there is not enough space left to add toa v4, remain size %d",
-                         MAX_TCP_OPTION_SPACE - tcp_options_size);
-            return NF_ACCEPT;
-        }
-
-        // 增加头部长度并将固定长度拷贝到新位置，toa插入到option的第一段
-        // 先计算一下ip头到tcp头的偏移量，再进行设置transport_header位置
-        offset = skb_transport_header(skb) - skb->data;
-        ptr = skb_push(skb, TCPOLEN_TOAV4_ALIGNED);
-        skb_reset_network_header(skb);
-        skb_set_transport_header(skb, offset);
-        // 按照4字节的方式计算ip头加tcp固定长度头进行内存移位计算
-        offset = (skb_transport_header(skb) - skb->data + sizeof(struct tcphdr)) >> 2;
-        for (i = 0; i < offset; i++) {
-            *ptr = *(ptr + TCPOLEN_TOAV4_ALIGNED / 4);
-            ptr++;
-        }
-
-        // 设置toa
-        *ptr++ = htonl((TCPOPT_NOP << 24) | (TCPOPT_NOP << 16) | (TCPOPT_TOA << 8) | TCPOLEN_TOAV4);
-        // 存放于sk_user_data的低32位中，从s_addr存入的，所以不需要做htonl
-        *ptr++ = (u32)((u64)(sk->sk_user_data) >> 32);
-        // 清理sk_user_data，防止影响到后面的流程
-        sk->sk_user_data = NULL;
-
-        // 修改tcp头部长度后，需要重新计算伪首部的校验和
-        th = tcp_hdr(skb);
-        tcp_header_size += TCPOLEN_TOAV4_ALIGNED;
-        i = ntohs(*(((__be16 *)th) + 6));
-        *(((__be16 *)th) + 6) = htons(((tcp_header_size >> 2) << 12) | (i & 0x0fff));
-        offset = skb->len - (skb_transport_header(skb) - skb->data);  // 这里只计算tcp数据包长度，去除ip头
-        th->check = ~tcp_v4_check(offset, inet->inet_saddr, inet->inet_daddr, 0);
+    // 处理完tcp层的toa插入后，需要重新处理一下checksum和头部长度
+    if (sk->sk_family == PF_INET) {
+        struct iphdr *iph = ip_hdr(skb);  // 由于skb指针偏移，需要重新获取iph的地址
+        // checksum计算的是整个tcp长度，所以计算长度取的是整体长度减去头部长度
+        th = tcp_hdr(skb);  // 由于skb指针偏移，需要重新获取tcp的地址
+        th->check = ~tcp_v4_check(skb->len - skb_transport_offset(skb), iph->saddr, iph->daddr, 0);
         skb->csum_start = skb_transport_header(skb) - skb->head;
         skb->csum_offset = offsetof(struct tcphdr, check);
 
-        // 修改ip头部长度并重新计算伪首部校验和
-        iph = ip_hdr(skb);
+        // 修改ip头部长度和checksum
         iph->tot_len = htons(skb->len);
         ip_send_check(iph);
+    } else {
+        struct ipv6hdr *iph = ipv6_hdr(skb);  // 由于skb指针偏移，需要重新获取iph的地址
+        // checksum计算的是整个tcp长度，所以计算长度取的是整体长度减去头部长度
+        th = tcp_hdr(skb);  // 由于skb指针偏移，需要重新获取tcp的地址
+        th->check =
+            ~tcp_v6_check(skb->len - skb_transport_offset(skb), &iph->saddr, &iph->daddr, 0);
+        skb->csum_start = skb_transport_header(skb) - skb->head;
+        skb->csum_offset = offsetof(struct tcphdr, check);
 
-        // 仅设置一次，设置后清理flag
-        sock_reset_flag(sk, SOCK_TOAV4_SET);
+        // 修改ip头部长度
+        iph->payload_len = htons(skb->len - sizeof(struct ipv6hdr));
     }
-
     return NF_ACCEPT;
 }
 
@@ -522,5 +753,40 @@ void toa_proc_exit(void) {
         proc_remove(s_toa_proc.main_dir);
         s_toa_proc.main_dir = NULL;
     }
+}
+```
+
+## 4. 定时器
+
+```cpp
+#include <linux/jiffies.h>
+#include <linux/timer.h>
+
+static int toav6_expire_time = 5 * 60;  // 默认过期时间5分钟
+module_param(toav6_expire_time, int, S_IRUGO);
+#define EXPIRE_TIME_JIFFIES (msecs_to_jiffies(toav6_expire_time * 1000))
+#define TIMER_INTERVAL EXPIRE_TIME_JIFFIES  // 使用过期时间作为定时器间隔
+
+static struct timer_list toa_timer;
+
+static void toa_timer_callback(struct timer_list *timer) {
+    // do something
+
+    // Re-arm the timer
+    mod_timer(timer, jiffies + TIMER_INTERVAL);
+}
+
+bool toa_timer_init(void) {
+    static const char *tag = __FUNCTION__;
+    LOG_INFO("%s, init timer, intervel %d s", tag, toav6_expire_time);
+    // Initialize the timer
+    timer_setup(&toa_timer, toa_timer_callback, 0);
+
+    // Set the timer to fire in 5 minutes
+    return mod_timer(&toa_timer, jiffies + TIMER_INTERVAL);
+}
+
+void toa_timer_exit(void) {
+    del_timer(&toa_timer);
 }
 ```
