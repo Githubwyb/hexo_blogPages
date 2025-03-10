@@ -161,6 +161,25 @@ int accept (int __fd, __SOCKADDR_ARG __addr, socklen_t *__restrict __addr_len);
 #include <sys/socket.h>
 ```
 
+### 1.3. TCP断开直接发送rst包
+
+linker机制
+
+| l_onoff | l_linger | closesocket行为                  | 发送队列                         | 底层行为                                    |
+| ------- | -------- | -------------------------------- | -------------------------------- | ------------------------------------------- |
+| 0       | x        | 立即返回                         | 保持直至发送完成                 | 系统接管套接字，数据发送完成                |
+| x       | 0        | 立即返回                         | 立即放弃                         | 直接发送rst包，自身立即复位，不经过2msl状态 |
+| x       | x        | 阻塞到l_linger超时或数据发送完成 | 超时时间内尝试发送，超时立即放弃 | 超时则发送rst包，发送完成就是fin            |
+
+```cpp
+// 设置方式
+struct linger ling;
+ling.l_onoff = 1;
+ling.l_linger = 0;
+setsockopt(sockfd, SOL_SOCKET, SO_LINGER, &ling, sizeof(ling));
+close(sockfd);  // 这里直接发送rst
+```
+
 ## 2. UDP连接
 
 ## 3. close()和shutdown()的区别

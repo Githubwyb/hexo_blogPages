@@ -105,7 +105,8 @@ grub-mkconfig -o /boot/grub/grub.cfg
 - 安装下面的包
 
 ```shell
-sudo pacman -S plasma kde-applications xorg-server xorg-drivers sddm
+# xorg-fonts-misc 字体，默认不安装，x11应用下不安装会中文显示有问题
+sudo pacman -S plasma kde-applications xorg-server xorg-drivers sddm xorg-fonts-misc
 ```
 
 #### 踩坑记
@@ -625,4 +626,41 @@ sudo mount /dev/sdb4 /path/to/mount
 export WAYLAND_DISPLAY=
 # 将session设置为x11
 export XDG_SESSION_TYPE=x11
+```
+
+## 8. kde下设置中没有网络设置项
+
+保证NetworkManager安装了，安装`plasma-nm`即可
+
+## 9. wifi无法连接wpa/wpa2 enterprise的wifi
+
+企业版的协议和wpa依赖的openssl版本不匹配，3.x不支持。使用openssl-1.1重新编译wpa_supplicant就好了
+
+```shell
+asp checkout wpa_supplicant
+cd wpa_supplicant/trunk
+```
+
+编辑wpa_supplicant_config，在`# Uncomment following two lines and fix the paths if you have installed OpenSSL`注释后面添加下面几行，引用openssl-1.1。需要系统中先安装了openssl-1.1
+
+```
+CFLAGS += -I/usr/include/openssl-1.1
+LIBS += -L/usr/lib/openssl-1.1
+LIBS_p += -L/usr/lib/openssl-1.1
+```
+
+然后执行命令
+
+```shell
+# -s 安装编译依赖
+# -i 安装
+# --skippgpcheck 跳过pgp检查，一般都有问题
+# --skipchecksums 由于改了文件，这里跳过文件checksum
+makepkg -si --skippgpcheck --skipchecksums
+```
+
+安装之后重启服务即可
+
+```shell
+sudo systemctl restart wpa_supplicant.service
 ```

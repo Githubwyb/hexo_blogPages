@@ -563,6 +563,7 @@ xxx | sort -V
 - `-E`: 衍生为正则表达式（用|代表或等）
 - `-o`: 正则只输出PATTERN部分
 - `-c`: 统计行数
+- `-w`: 匹配完整单词
 - `--include="*.c"`: 包含某个后缀的文件，可以多次设置`--include`
 
 ### 7.1. 内容匹配
@@ -1158,6 +1159,15 @@ local default dev lo scope host
        valid_lft forever preferred_lft forever
     inet6 fe80::d501:6609:cfd1:9970/64 scope link noprefixroute
        valid_lft forever preferred_lft forever
+
+# 查看单网卡ip
+=> ip addr show dev ens18
+2: ens18: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether fe:fc:fe:07:fe:6a brd ff:ff:ff:ff:ff:ff
+    inet 199.200.2.199/16 brd 199.200.255.255 scope global noprefixroute ens18
+       valid_lft forever preferred_lft forever
+    inet6 fe80::34c9:aa6d:8630:e99a/64 scope link noprefixroute
+       valid_lft forever preferred_lft forever
 ```
 
 ### 30.3. 配置网卡
@@ -1227,6 +1237,12 @@ LISTEN  0        128                       [::]:22                  [::]:*      
 => ss -tnlp | grep 'pid=25985'
 LISTEN  0        128                    0.0.0.0:22               0.0.0.0:*       users:(("sshd",pid=25985,fd=3))
 LISTEN  0        128                       [::]:22                  [::]:*       users:(("sshd",pid=25985,fd=4))
+
+# 查看unix套接字的连接情况
+=> ss -xp | grep /run/containerd/containerd.sock
+u_str ESTAB 0      0                                                   /run/containerd/containerd.sock.ttrpc -303872270             * -303872271  users:(("containerd",pid=22176,fd=14))
+u_str ESTAB 0      0                                                         /run/containerd/containerd.sock 64791                  * 65556       users:(("containerd",pid=22176,fd=9))
+u_str ESTAB 0      0                                                         /run/containerd/containerd.sock 63273                  * 64793       users:(("containerd",pid=22176,fd=10))
 ```
 
 ## 34. pwd
@@ -1535,6 +1551,30 @@ Device     Boot    Start       End   Sectors  Size Id Type
 /dev/vda6       25393152 167770111 142376960 67.9G 83 Linux
 ```
 
+## 46. exec
+
+exec是启动一个程序，使用当前的进程id，会在底层将进程的各种信息替换成新的进程。主要用于脚本中替换新的进程，给service中使用也可以让systemd可以获取到新进程状态，因为pid不变
+
+```shell
+# test.sh
+echo $$
+
+# test1.sh
+echo "test1 $$"
+exec ./test.sh
+echo "test1 exit"
+```
+
+输出
+
+```shell
+=> bash test1.sh
+test1 19002
+19002
+```
+
+可以看到，最后的test1的exit没有打印，说明整个进程全部替换，被替换的进程里面的什么代码都不存在了，不会返回执行的。
+
 # 三、工具命令
 
 ## 1. 文件夹目录大小 du
@@ -1730,6 +1770,20 @@ UseDNS no
 #### (3) scp报错 path canonicalization failed
 
 可能是服务端ssh版本太老导致，添加`-O`使用旧版本协议
+
+#### (4) ssh配合xclip报错
+
+```
+clipboard: error invoking xclip: Waiting for selection requests, Control-C to quit   Waiting for selection request number 1   Waiting for selection request number 2 X Error of failed request:  BadAccess (attempt to access private resource denied)   Major opcode of failed request:  18 (X_ChangeProperty)   Serial number of failed request:  13   Current serial number in output stream:  24
+```
+
+需要在`ssh_config`中开启，或者直接`ssh -Y`
+
+```conf
+Host *
+   ForwardX11 yes
+   ForwardX11Trusted yes
+```
 
 ## 5. 压缩和解压缩命令
 
@@ -2064,6 +2118,25 @@ gdb /path/to/exec pid
 - `Ctrl + s`: 向下查找，输入字符串回车后，使用n和N选择下一个或者上一个
 - `Ctrl + r`: 向上查找
 
+### 配置
+
+```shell
+# tmux修改终端的标题
+set-option -g set-titles on
+# 设置标题格式
+# #{USER} 用户名
+# #H      hostname
+# #W      当前命令
+set-option -g set-titles-string "#{USER}@#H #W #{session_alerts}"
+# 支持鼠标操作，包括鼠标滚轮
+set -g mouse on
+
+# 设置右下角状态栏显示，设置为当前时间
+set-option -g status-right "%Y-%m-%d %a %H:%M"
+set-option -sg escape-time 10
+set-option -g focus-events on
+```
+
 ## 15. fzf
 
 ### 配置
@@ -2129,105 +2202,6 @@ alias phptags='ctags --langmap=php:.engine.inc.module.theme.php  --php-kinds=cdf
 ```
 
 3. 到工程目录下`phptags -R`即可生成相应tags
-
-## 17. gcc
-
-### 17.1. 选项解释
-
-**编译选项**
-
-- `-Os`: 类似于`-O2.5`但是不缩减代码尺寸
-- `-fpie`: pie功能看后面解释，给可执行文件使用，e代表`executable`
-- `-fno-pie`: 关闭pie功能
-- `-fpic`: 和pie类似，给链接库使用，c代表code
-- `-s`: strip掉所有符号
-- `-fsanitize=address`: 监听内存泄漏，需要同时加上`-lasan`并且保证已经安装libasan
-- `-fno-stack-protector`: gcc默认会添加栈安全检查，但是这个会依赖glibc的库，导致undefined reference to `__stack_chk_fail'的问题
-- `-MD`: 编译时输出依赖关系到`x.d`，一般是头文件包含关系
-- `-Werror`: 所有warning当作error处理
-- `-nostdinc`: 不搜索默认路径头文件，一般是嵌入式或内核开发使用
-- `-m32`: 32位编译
-
-**链接选项**
-
-- `-pie`: 链接选项，需要和`-fpie`一起使用，不过不加好像是默认看编译选项
-- `-no-pie`: 链接选项，关闭pie，同样需要和`-fno-pie`一起使用，不过不加好像是默认看编译选项
-- `-m elf_i386`: 生成32位的可执行文件
-
-#### 1) PIE技术
-
-PIE（position-independent executable）是一种生成地址无关可执行程序的技术。编译器在生成代码时，会添加特殊指令，让内部跳转时不关心内存在哪里加载，也就可以将二进制在内存中随即地址加载
-
-一般技术为添加`__x86.get_pc_thunk.ax`函数，使用当前的地址加上偏移计算出对应调用地址
-
-```assembly
-00280000 <start_kernel>:
-  ...
-  280004:	e8 eb 02 00 00       	call   2802f4 <__x86.get_pc_thunk.bx>
-  280009:	81 c3 7b 06 00 00    	add    $0x67b,%ebx
-  ...
-
-Disassembly of section .text.__x86.get_pc_thunk.bx:
-
-002802f4 <__x86.get_pc_thunk.bx>:
-  2802f4:	8b 1c 24             	mov    (%esp),%ebx
-  2802f7:	c3                   	ret
-
-00280684 <_GLOBAL_OFFSET_TABLE_>:
-	...
-```
-
-`__x86.get_pc_thunk.bx`实现是将esp内存的地址赋值给ebx，esp存的地址是下一条指令所在的地址，也就是上面的`280009:	81 c3 7b 06 00 00    	add    $0x67b,%ebx`的地址`0x280009`。对这个地址添加`0x67b`得到`0x280684`也就是`_GLOBAL_OFFSET_TABLE_`的地址。这段汇编就是将全局偏移表的地址存到ebx中，后面进行使用。
-
-使用当前地址加偏移的方式就可以让二进制在加载内存时不用在特定地址加载。
-
-此方式只需要给全局变量和静态变量使用，因为函数地址本身就是偏移得来的，
-
-### 17.2. 查看预定义宏
-
-```shell
-=> gcc -dM -E - < /dev/null
-#define __SSP_STRONG__ 3
-#define __DBL_MIN_EXP__ (-1021)
-#define __UINT_LEAST16_MAX__ 0xffff
-...
-```
-
-### 17.3. 单函数优化级别设定
-
-- 全局优化级别设定后，可以在编译时指定单个函数的优化级别
-
-```cpp
-static int ip_rcv_finish(struct net *net, struct sock *sk, struct sk_buff *skb) __attribute__((optimize("O0")));
-int ip_rcv_finish(struct net *net, struct sock *sk, struct sk_buff *skb) {
-    ...
-}
-```
-
-- 或者指定一批，`pragma`后面的函数都会应用此优化
-
-```cpp
-#pragma GCC optimize("O0")
-static int ip_rcv_finish(struct net *net, struct sock *sk, struct sk_buff *skb) {
-    ...
-}
-```
-
-### 17.4. 编译过程的报错解释
-
-- `unused-result`: 返回值未使用
-- `pointer-sign`: 指针符号错误
-- `int-conversion`: 整形类型转换
-- `unused`: 变量未使用
-- `declaration-after-statement`: 语句在定义前面，这个一般在C90标准中有问题
-
-### 17.5. 实例
-
-#### 1) 编译动态库
-
-```shell
-gcc -shared -fPIC main.cpp -o main.so
-```
 
 ## 18. firewalld 防火墙
 

@@ -810,3 +810,31 @@ COMMAND: "mysqld"
 ```shell
 crash> task [pid]
 ```
+
+### 1.5. vtop 将虚拟地址转换为物理地址
+
+```shell
+crash> vtop ffff8e98b8acd800
+VIRTUAL           PHYSICAL
+ffff8e98b8acd800  7f8acd800
+
+PGD DIRECTORY: ffffffffa2c0a000
+PAGE DIRECTORY: 5cda01067
+   PUD: 5cda01310 => 103ffe4067
+   PMD: 103ffe4e28 => 81c678063
+   PTE: 81c678668 => 80000007f8acd063
+  PAGE: 7f8acd000
+
+      PTE         PHYSICAL   FLAGS
+80000007f8acd063  7f8acd000  (PRESENT|RW|ACCESSED|DIRTY|NX)
+
+      PAGE        PHYSICAL      MAPPING       INDEX CNT FLAGS
+fffff9c01fe2b340 7f8acd000 dead000000000400        0  0 17ffffc0000000
+```
+
+- `ffff8e98b8acd800`是内核中打印的虚拟地址，映射到物理地址`7f8acd800`
+- `PGD (Page Global Directory)`: fffffffa2c0a000 是页全局目录的地址。
+- `PUD (Page Upper Directory)`: 5cda01310 是页上层目录的地址，指向 103ffe4067。
+- `PMD (Page Middle Directory)`: 103ffe4e28 是页中间目录的地址，指向 81c678063。
+- `PTE (Page Table Entry)`: 81c678668 是页表项的地址，指向 80000007f8acd063。
+- `PAGE`: 7f8acd000 是页的起始物理地址。

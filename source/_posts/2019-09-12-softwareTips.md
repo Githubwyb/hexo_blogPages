@@ -56,6 +56,8 @@ https://github.com/FelisCatus/SwitchyOmega
 
 下载链接: https://chromedriver.chromium.org/downloads
 
+https://googlechromelabs.github.io/chrome-for-testing/#stable
+
 # 三、vscode
 
 [vscode使用技巧记录](/blogs/2022-02-15-vscode)
@@ -210,3 +212,16 @@ set vb t_vb=
 # 十四、xmind
 
 破解: https://github.com/henryau53/xmind-crack-patch/tree/main
+
+# 十五、typora
+
+## 1. 图片目录
+
+在文档头部添加下面代码可以动态指定图片目录
+
+```markdown
+---
+typora-root-url: xxxx
+---
+```
+

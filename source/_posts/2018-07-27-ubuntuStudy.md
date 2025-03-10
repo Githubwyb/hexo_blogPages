@@ -279,3 +279,9 @@ sudo update-ca-certificates
 ```
 
 - 删除和新增同理，都只需要文件删除和添加执行命令即可
+
+## 3. apt-key禁用
+
+```shell
+curl -fsSL http://xxx/gpg | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/xxxx.gpg
+```

@@ -25,3 +25,9 @@ categories:
 ## 1. Thinkpad workspace
 
 - `F12`: 启动菜单
+
+# 三、华硕
+
+## 1. 笔记本
+
+- `F2`: 启动菜单

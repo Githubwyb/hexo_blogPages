@@ -1072,6 +1072,118 @@ os.rmdir('my_empty_directory')
 shutil.rmtree("/path/to/dir", ignore_errors=True)
 ```
 
+## 11. datetime 时间库带时区
+
+### 11.1. 基础用法
+
+```python
+import datetime
+########## 当前时间 ##########
+dt = datetime.now()
+
+########## 转datetime对象 ##########
+# 时间字符串转datetime
+dt = datetime.strptime("2024-11-27 15:30:00", "%Y-%m-%d %H:%M:%S")
+# 时间戳转datetime
+dt = datetime.fromtimestamp(1577962800.0)
+
+########## datetime转其他 ##########
+# 转时间戳，s
+timestamp_float = dt.timestamp()
+timestamp_s = int(timestamp_float)
+# 转时间字符串
+time_str = dt.strftime("%Y-%m-%d %H:%M:%S")
+```
+
+## 12. tkinker 窗口工具
+
+### 实例
+
+#### 1) 护眼小工具
+
+```shell
+import tkinter as tk
+import time
+import argparse
+
+# 创建解析器
+parser = argparse.ArgumentParser(description='解析工作时间和休息时间参数')
+
+# 添加工作时间参数
+parser.add_argument(
+    'work_time',
+    type=int,
+    help='工作时间（单位：秒）'
+)
+
+# 添加休息时间参数
+parser.add_argument(
+    'rest_time',
+    type=int,
+    help='休息时间（单位：秒）'
+)
+
+# 解析命令行参数
+args = parser.parse_args()
+
+# 输出解析结果
+print(f'工作: {args.work_time} 秒 休息：{args.rest_time} 秒')
+
+class FullScreenApp:
+    def __init__(self, master):
+        self.master = master
+
+    def show(self):
+        # 窗口标题
+        self.master.title("护眼小程序")
+        # 保持最上方
+        self.master.attributes('-topmost', True)
+        # 全屏显示
+        self.master.attributes('-fullscreen', True)
+        # 配置背景色
+        self.master.config(bg='green')
+
+        # 获取label，用于后面设置倒计时在屏幕上，设置label的字体背景色绿色，前景色白色
+        self.label = tk.Label(self.master, text="", font=("Helvetica", 48), bg='green', fg='white')
+        self.label.pack(expand=True)
+
+        # 设置关闭按钮
+        self.close_button = tk.Button(self.master, text="关闭", command=self.close_app, font=("Helvetica", 18))
+        # 设置按钮位置
+        self.close_button.place(relx=0.95, rely=0.95, anchor='se')
+
+        # 设置倒计时时间，单位s
+        self.countdown_time = args.rest_time
+        self.update_countdown()
+
+    def update_countdown(self):
+        if self.countdown_time > 0:
+            mins, secs = divmod(self.countdown_time, 60)
+            self.label.config(text=f"休息一下眼睛吧！！！\n剩余时间：{mins:02}:{secs:02}")
+            self.countdown_time -= 1
+            self.master.after(1000, self.update_countdown)
+        else:
+            self.close_app()
+
+    def close_app(self):
+        self.master.destroy()
+
+def countdown(t):
+    while t:
+        mins, secs = divmod(t, 60)
+        timer = '工作时间剩余：{:02d}:{:02d}'.format(mins, secs)
+        print(timer, end='\r')  # 使用 '\r' 使光标回到行首
+        time.sleep(1)
+        t -= 1
+
+while True:
+    countdown(args.work_time)
+    root = tk.Tk()
+    app = FullScreenApp(root)
+    app.show()
+    root.mainloop()
+```
+
 # 四、好用的module推荐
 
 ## module对应pack
@@ -1317,6 +1429,140 @@ for img_name in img_names:
     img.putdata(new_data)
     # 保存到新的文件
     img.save(f'{img_dst}/{img_name}')
+```
+
+## 14. PyQt5 python的qt扩展
+
+### 实例
+
+#### 1. 护眼小工具
+
+```python
+# -*- coding:utf-8 -*-
+import sys
+import time
+import argparse
+from PyQt5 import QtWidgets, QtCore
+
+# 创建解析器
+parser = argparse.ArgumentParser(description='解析专注时间和休息时间参数')
+
+# 添加工作时间参数
+parser.add_argument(
+    'work_time',
+    type=int,
+    help='专注时间（单位：秒）'
+)
+
+# 添加休息时间参数
+parser.add_argument(
+    'rest_time',
+    type=int,
+    help='休息时间（单位：秒）'
+)
+
+# 解析命令行参数
+args = parser.parse_args()
+
+# 输出解析结果
+print(f'专注: {args.work_time} 秒 休息：{args.rest_time} 秒')
+
+class FullScreenApp(QtWidgets.QWidget):
+    def __init__(self, rect):
+        super().__init__()
+        self.initUI(rect)
+        self.countdown_time = args.rest_time
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.update_countdown)
+
+    def initUI(self, rect):
+        self.setGeometry(rect)  # 设置到对应窗口
+
+        self.setWindowTitle("护眼小程序")  # 设置窗口标题
+        # 设置窗口置顶、无边框无标题栏
+        self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.FramelessWindowHint)
+        self.showFullScreen()  # 全屏显示窗口
+        self.setWindowOpacity(0.75)  # 设置窗口透明度
+        self.setStyleSheet("background-color: black;")  # 设置窗口背景颜色为黑色
+
+        self.label = QtWidgets.QLabel("", self)  # 创建标签
+        self.label.setStyleSheet("font-size: 60px; color: white; font-weight: bold;")  # 设置标签样式
+        self.label.setAlignment(QtCore.Qt.AlignCenter)  # 设置标签文本居中对齐
+
+        self.close_button = QtWidgets.QPushButton("我爱工作，退下！！！", self)  # 创建关闭按钮
+        # 设置按钮样式
+        self.close_button.setStyleSheet("""
+            QPushButton {
+                border: 2px solid white;  /* 边框颜色和宽度 */
+                border-radius: 5px;          /* 边框圆角 */
+                padding: 5px;                /* 文字与边框之间的空间 */
+                background-color: none;   /* 背景颜色 */
+                font-size: 28px;              /* 字体大小 */
+                color: red;                 /* 字体颜色 */
+                font-weight: bold;          /* 字体加粗 */
+            }
+            QPushButton:hover {
+                background-color: #909090;   /* 鼠标悬停时的背景颜色 */
+            }
+        """)
+        self.close_button.clicked.connect(self.close_app)  # 连接按钮点击事件到关闭应用程序的函数
+
+        # 垂直布局
+        vbox = QtWidgets.QVBoxLayout()  # 创建垂直布局
+        vbox.addStretch(1)  # 添加弹性空间
+        vbox.addWidget(self.label)  # 将标签添加到布局中
+        # 添加按钮所在布局，居中显示
+        hbox = QtWidgets.QHBoxLayout()
+        hbox.addStretch(1)
+        hbox.addWidget(self.close_button)
+        hbox.addStretch(1)
+        # 将按钮布局添加到垂直布局中
+        vbox.addLayout(hbox)
+        vbox.addStretch(1)  # 添加弹性空间
+
+        self.setLayout(vbox)  # 设置窗口的布局为垂直布局
+
+    def start_countdown(self):
+        self.timer.start(1000)
+        self.update_countdown()
+
+    def update_countdown(self):
+        if self.countdown_time > 0:
+            mins, secs = divmod(self.countdown_time, 60)
+            self.label.setText(f"休息一下眼睛吧！！！\n{mins:02}:{secs:02}")
+            self.countdown_time -= 1
+        else:
+            self.timer.stop()
+            self.close_app()
+
+    def close_app(self):
+        self.timer.stop()
+        self.close()
+
+def countdown(t):
+    while t:
+        mins, secs = divmod(t, 60)
+        timer = '专注时间剩余：{:02d}:{:02d}'.format(mins, secs)
+        print(timer, end='\r')  # 使用 '\r' 使光标回到行首
+        time.sleep(1)
+        t -= 1
+
+if __name__ == '__main__':
+    app = QtWidgets.QApplication([])
+
+    while True:
+        warr = []
+        countdown(args.work_time)
+        # 获取所有屏幕，用来在所有屏幕上显示窗口
+        for sn in QtWidgets.QApplication.screens():
+            window = FullScreenApp(rect=sn.availableGeometry())
+            window.start_countdown()
+            window.show()
+
+            warr.append(window)
+
+        # 开始执行app
+        app.exec_()
 ```
 
 # 五、jupyter notebook

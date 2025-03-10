@@ -312,9 +312,14 @@ INT		0x10
 - 选择0x00100000为软盘拷贝的首地址
 - 选择0x00280000为c语言代码开始位置
 - 选择0x002fffff-0x003fffff为c语言栈的大小，栈设定为1MB。esp从c语言开始赋值为0x003fffff（栈顶是高地址，栈底为低地址）
+- 参考linux内核代码，将cpu管理的内存也就是DS段放到13号段，c代码所在也就是CS段放到12号段
 
 ```assembly
-; header.S文件节选
+# header.S文件节选
+
+#define GDT_ENTRY_KERNEL_CS 12
+#define GDT_ENTRY_KERNEL_DS 13
+
 # 栈起始位置，共1MB。0x002fffff-0x003fffff
 #define STACK    0x003fffff
 # C语言代码所在内存位置
@@ -324,18 +329,28 @@ INT		0x10
 # 软盘数据所在内存位置（真实模式）
 #define DISK_ADDR_REAL	0x00008000
 ...
+	# Set up the protected-mode data segment registers
+	movw    $(GDT_ENTRY_KERNEL_DS*8), %ax   # Our data segment selector
+	movw    %ax, %ds                		# -> DS: Data Segment
+	movw    %ax, %es                		# -> ES: Extra Segment
+	movw    %ax, %fs                		# -> FS
+	movw    %ax, %gs                		# -> GS
+	movw    %ax, %ss                		# -> SS: Stack Segment
+	# 设置栈指针到栈顶，调用c函数
+	movl    $STACK,%esp
+
 	# 拷贝c代码到内存中
 	movl	$start_kernel,%esi		# 源地址
 	movl	$C_CODE,%edi			# 目的地址
 	movl	$(512*1024/4),%ecx		# 拷贝512K，注意后面的C语言编译超过512K就要修改这里
-	call	memcpy
+	call	asmmemcpy
 
 	# 拷贝软盘数据到内存对应位置
 	# 拷贝启动扇区
 	movl	$0x00007c00,%esi		# 源地址
 	movl	$DISK_ADDR,%edi			# 目的地址
 	movl	$(512/4),%ecx			# 拷贝512B
-	call	memcpy
+	call	asmmemcpy
 	# 拷贝剩余数据
 	movl	$(DISK_ADDR_REAL+512),%esi		# 源地址
 	movl	$(DISK_ADDR+512),%edi			# 目的地址
@@ -343,10 +358,11 @@ INT		0x10
 	# 将ecx乘上512*8*2/4，cyls是bootloader读取的软盘中柱面数，一个柱面18个磁道，一个磁道2个扇区，一个扇区512B
 	imul	$(512*18*2/4),%ecx
 	subl	$(512/4),%ecx					# 去除启动扇区
-	call	memcpy
+	call	asmmemcpy
 
-	# 调用c语言第一个指令，位置是第3个段的首地址
-	ljmp	$(3*8),$0x0000
+	# 调用c语言第一个指令，位置是CS段的首地址
+	# 已经使用段管理内存了，跳转32位需要使用ljmp进行段+偏移的方式跳转
+	ljmp	$(GDT_ENTRY_KERNEL_CS*8),$0x0000
 ...
 start_kernel:
 ```
@@ -356,11 +372,15 @@ start_kernel:
 ## 7. makefile解释
 
 ```makefile
-INCLUDE = -I$(TOOLPATH)/haribote/ -I./include/ -I./arch/x86/include/ -I./arch/x86/include/uapi/ -I.
-CFLAGS  = -Wall -Werror -Wno-int-to-pointer-cast -Wno-unused
+TOOLPATH = ../../z_tools
+KERNEL_FILES = ../../kernel_files
+INCLUDE = -I.
+INCLUDE += -I$(KERNEL_FILES)/arch/x86 -I$(KERNEL_FILES)/arch/x86/include/ -I$(KERNEL_FILES)/arch/x86/include/uapi/ -I$(KERNEL_FILES)/arch/x86/include/generated/ -I$(KERNEL_FILES)/arch/x86/include/generated/uapi/
+INCLUDE += -I$(KERNEL_FILES)/include/ -I$(KERNEL_FILES)/include/uapi/ -I.
+CFLAGS  = -Wall -Werror -Wno-int-to-pointer-cast -Wno-unused -Wno-array-bounds -Wno-int-conversion
 # -fno-pie 生成位置相关代码，位置无关代码暂时不清楚为什么会运行有问题，访问全局变量失败导致调色板设置有问题
 # -fno-stack-protector gcc默认会添加栈安全检查，但是这个会依赖glibc的库，导致undefined reference to `__stack_chk_fail'的问题
-CFLAGS += -MD -Os -fno-pie -nostdinc -nostdlib -fno-builtin -fno-stack-protector -fno-omit-frame-pointer -D_SIZE_T -DCONFIG_X86_32 -m32
+CFLAGS += -MD -Os -fno-pie -nostdinc -nostdlib -fno-builtin -fno-stack-protector -DCONFIG_X86_32 -DBITS_PER_LONG=32 -DBITS_PER_LONG_LONG=64 -D__KERNEL__ -D__LITTLE_ENDIAN -m32
 LDFLAGS	= -m elf_i386 -no-pie
 
 all: img
@@ -369,7 +389,7 @@ bootloader : bootloader.S
 	nasm -w-zeroing -o $@.bin $@.S
 
 #下面四个命令通过模式匹配获取当前目录下的所有C文件
-SRCDIR = ./ ./lib/ ./init/
+SRCDIR = ./ $(KERNEL_FILES)/arch/x86/lib/ $(KERNEL_FILES)/lib/ $(KERNEL_FILES)/init/ ./init/
 
 C_SOURCES = $(foreach d,$(SRCDIR),$(wildcard $(d)*.c))
 C_OBJS = $(patsubst %.c,%.o,$(C_SOURCES))
@@ -550,7 +570,7 @@ static void put_font8(char *vram, int xsize, int x, int y, char color, char c) {
 
 ### 2.1. 分段
 
-- 因为操作系统可以执行多个进程，但是每个进程使用的内存是独立的，需要使用分段让每个进程使用的内存隔开
+因为操作系统可以执行多个进程，但是每个进程使用的内存是独立的，需要使用分段让每个进程使用的内存隔开
 
 ### 2.2. GDT: global segment descriptor table
 
@@ -615,10 +635,10 @@ void init_gdtidt(void) {
     for (i = 0; i < LIMIT_GDT / sizeof(struct SEGMENT_DESCRIPTOR); i++) {
         set_segmdesc(gdt + i, 0, 0, 0);
     }
-    // cpu管理的总内存
-    set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, AR_DATA32_RW);
-    // c语言的段，C语言只能使用第3个段，使用第4个或第2个都会在中断里面崩溃，不知道为什么
-    set_segmdesc(gdt + 3, LIMIT_BOTPAK, ADR_BOTPAK, AR_CODE32_ER);
+    // CS段，给c语言使用的段
+    set_segmdesc(gdt + 12, LIMIT_BOTPAK, ADR_BOTPAK, AR_CODE32_ER);
+    // DS段，cpu管理所有内存的段
+    set_segmdesc(gdt + 13, 0xffffffff, 0x00000000, AR_DATA32_RW);
     load_gdtr(LIMIT_GDT, ADR_GDT);
     ...
 }
@@ -630,15 +650,12 @@ void init_gdtidt(void) {
 # 第0个段是空的，全部是0
 # 第1个段是数据段，cpu管理的总内存，从0x00000000开始，0x92代表可读可写，内存上限为0xfffff，g = 1代表4K为单位，4G
 # 	按照结构体和16位低位高位计算 0xffff, 0x0000, 0x9200, 0x00cf
-# 第2个段是代码段，启动区所在位置，从0x00000000开始，0x9a代表可读可执行，内存上限为0x7ffff，g = 0代表字节为单位，512K
-# 	按照结构体和16位低位高位计算 0xffff, 0x0000, 0x9a00, 0x0047
 # 第3个段是代码段，c代码所在位置，从0x00280000开始，0x9a代表可读可执行，内存上限为0x7ffff，g = 0代表字节为单位，512K
 # 	按照结构体和16位低位高位计算 0xffff, 0x0000, 0x9a28, 0x0047
 .p2align	2	# 按照2^2 = 4字节对齐
 gdt:
 	.word	0x0000,0x0000,0x0000,0x0000		# null seg
 	.word	0xffff,0x0000,0x9200,0x00cf		# 可读写的段，数据段
-	.word	0xffff,0x0000,0x9a00,0x0047		# 汇编代码所在内存位置
 	.word	0xffff,0x0000,0x9a28,0x0047		# 给c代码使用的段
 ```
 
@@ -770,9 +787,9 @@ void init_pic() {
 
 ```cpp
 // 注册中断处理函数
-set_gatedesc(idt + 0x21, (int)asm_inthandler21-ADR_BOTPAK, 3 * 8, AR_INTGATE32);
-set_gatedesc(idt + 0x27, (int)asm_inthandler27-ADR_BOTPAK, 3 * 8, AR_INTGATE32);
-set_gatedesc(idt + 0x2c, (int)asm_inthandler2c-ADR_BOTPAK, 3 * 8, AR_INTGATE32);
+set_gatedesc(idt + 0x21, (int)asm_inthandler21-ADR_BOTPAK, 12 * 8, AR_INTGATE32);
+set_gatedesc(idt + 0x27, (int)asm_inthandler27-ADR_BOTPAK, 12 * 8, AR_INTGATE32);
+set_gatedesc(idt + 0x2c, (int)asm_inthandler2c-ADR_BOTPAK, 12 * 8, AR_INTGATE32);
 ```
 
 ## 4. 中断处理
@@ -1160,7 +1177,7 @@ static unsigned int memtest_sub(unsigned int start, unsigned int end) {
 }
 ```
 
-# 第10天和第11天 窗口处理
+# 第10天 - 第11天 窗口处理
 
 主要处理图层、刷新等方式，使用图层添加了一个窗口，鼠标放到最上层。在刷新过程中发现了闪烁的问题，将刷新的方式优化了几板后没有了闪烁。主要结构如下
 
@@ -1522,4 +1539,86 @@ makefile中修改一下qemu的参数，添加`-serial stdio`，然后在控制�
 	mov 	%ax,(SCRNY)
 	movl 	%es:0x28(%di),%eax
 	movl 	%eax,(VRAM)
+```
+
+# 第15天 - 第16天 多任务
+
+## 1. 设置tss结构体
+
+从内核中参考的代码，tss_struct直接使用内核的相关实现。因为参考内核将CS和DS放到12和13，0为null。这里使用1和2的保留段进行实验
+
+```cpp
+void HariMain(void) {
+    ...
+    struct desc_struct *gdt = (struct desc_struct *)ADR_GDT;
+    struct tss_struct tss_a, tss_b;
+    // 申请栈内存，由于栈指针是从高地址向低地址移动，所以esp栈顶指针要设置成最高地址
+    int task_b_esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024;
+
+    tss_a.x86_tss.ldt = 0;
+    tss_b.x86_tss.ldt = 0;
+
+    // 入口地址，由于内核使用的是段内相对地址，我们定义text.first在0x00280000
+    // 所以函数需要减去这个地址才得到真正的段内偏移
+    tss_b.x86_tss.ip = (int)&task_b_main - ADR_BOTPAK;
+    tss_b.x86_tss.flags = 0x00000202;
+    tss_b.x86_tss.ax = 0;
+    tss_b.x86_tss.cx = 0;
+    tss_b.x86_tss.dx = 0;
+    tss_b.x86_tss.bx = 0;
+    tss_b.x86_tss.sp = task_b_esp;
+    tss_b.x86_tss.bp = 0;
+    tss_b.x86_tss.si = 0;
+    tss_b.x86_tss.di = 0;
+    tss_b.x86_tss.es = __KERNEL_DS;
+    tss_b.x86_tss.cs = __KERNEL_CS;
+    tss_b.x86_tss.ss = __KERNEL_DS;
+    tss_b.x86_tss.ds = __KERNEL_DS;
+    tss_b.x86_tss.fs = __KERNEL_DS;
+    tss_b.x86_tss.gs = __KERNEL_DS;
+
+    tss_desc tss_a_desc;
+    tss_desc tss_b_desc;
+    set_tssldt_descriptor(&tss_a_desc, (unsigned long)&tss_a.x86_tss, DESC_TSS, __KERNEL_TSS_LIMIT);
+    set_tssldt_descriptor(&tss_b_desc, (unsigned long)&tss_b.x86_tss, DESC_TSS, __KERNEL_TSS_LIMIT);
+    write_gdt_entry(gdt, 1, &tss_a_desc, DESC_TSS);
+    write_gdt_entry(gdt, 2, &tss_b_desc, DESC_TSS);
+    load_tr_desc(1 * 8);
+    ...
+}
+```
+
+这里有个坑，内核里面`set_tssldt_descriptor`会先memset成0再赋值，在我们小系统里面`memset`操作栈内地址会造成崩溃，所以将memset注释掉才能跑通。
+
+针对`load_tr_desc`和`taskswitch`直接使用内联汇编实现
+
+```cpp
+static inline void load_tr_desc(u32 tr) { asm volatile("ltr %w0" ::"q" (tr)); }
+
+void taskswitch(void) { __asm__ __volatile__("ljmp %0, %1" : : "i"(2 * 8), "i"(0x0000)); }
+```
+
+## 2. jmp far简化
+
+在at&t汇编中，ljmp就可以作为jmp far使用，所以实现内联汇编代码如下
+
+```cpp
+static inline void farjmp(u16 seg, u16 offset) {
+    __asm__ __volatile__("ljmp *%0\n"
+                         :
+                         : "m"((struct {
+                             unsigned int off;
+                             unsigned short sel;
+                         }){offset, seg}));
+}
+```
+
+## 3. 给任务传参
+
+32位汇编中，跳转到另一个函数，栈上先放进去传入的参数，再放入调用者的地址。64位汇编中参数小于7个的时候，参数从左到右放入寄存器: rdi, rsi, rdx, rcx, r8, r9。这里我们使用32位汇编。所以想给task_b_main传参就是将参数放到`esp + 4`，esp是return跳回的地址，我们用不到。
+
+```cpp
+task_b_esp -= 8;
+// 将sht_back放到esp+4
+*(int *)(task_b_esp + 4) = sht_back;
 ```
