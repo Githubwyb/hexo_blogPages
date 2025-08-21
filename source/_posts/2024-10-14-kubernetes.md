@@ -1234,6 +1234,10 @@ kubectl get services
 ########## 获取状态 ##########
 # 获取简单状态
 kubectl get deployments
+
+########## 操作 ##########
+# 重启deployment
+kubectl rollout restart deployment/<deployment-name> -n <namespace>
 ```
 
 ### 1.4. yml操作
@@ -3206,3 +3210,14 @@ spec:
 
 # 小技巧和踩坑记
 
+## 1. 在命名空间级别设置了sidecar如何针对单独的deployment设置去除
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+spec:
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"  # 关键：添加此注解禁用注入
+```
