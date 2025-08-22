@@ -1365,6 +1365,22 @@ spec:					# deployment的要求
       labels:			# 定义标签，要和deployment中一样
         app: test
     spec:				# pod的定义
+      # 亲和性调度
+      affinity:
+        # pod亲和性调度
+        podAntiAffinity:
+          # 调度时尽量遵守，但不强制执行。如果无法满足，Pod仍会被调度，但可能违背此规则。
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 80
+              # Pod反亲和性条款，满足下面的条件就是反亲和，尽量不要调度到这类型下面
+              podAffinityTerm:
+                # 指定反亲和性基于节点的主机名。这样，Pod会尽量分布在不同的主机名节点上
+                topologyKey: kubernetes.io/hostname
+                # 选择匹配的pod规则
+                labelSelector:
+                  matchLabels:
+                    releaseName: {{ .Release.Name }}
+                    version: {{ .Values.global.image.version }}
       volumes:  # 定义要求的存储卷
         - name: test-volume         # 起个名字给pod使用
           persistentVolumeClaim:    # 对应的pvc
