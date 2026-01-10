@@ -29,6 +29,9 @@ ln -s /usr/bin/pip3 /usr/bin/pip    # 将pip3使用pip命令代替，创建一�
 
 ```shell
 pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 临时生效
+pip install requests -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn
 ```
 
 ### 1.3. 生成requirements.txt
@@ -1188,11 +1191,12 @@ while True:
 
 ## module对应pack
 
-| module | pack          |
-| ------ | ------------- |
+| module | pack          | 介绍                                                                                                                           |
+| ------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | cv2    | opencv-python |
 | PIL    | pillow        |
 | dns    | dnspython     |
+| z3     | z3-solver     | 微软研究院开发 的一款开源 定理证明器（Theorem Prover），核心定位是 SMT（Satisfiability Modulo Theories，满足性模理论）求解器。 |
 
 ## 1. 数据处理
 

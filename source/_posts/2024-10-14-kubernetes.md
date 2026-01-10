@@ -1,60 +1,243 @@
 ---
-title: kubernetes详解
+title: Kubernetes详解 - 从入门到精通
 date: 2024-10-14 10:31:30
-tags: [后台开发]
-categories: [Program, Web]
+tags: [后台开发, 容器化, 微服务]
+categories: [Program, Web, 云原生]
 typora-root-url: 2024-10-14-kubernetes
 ---
 
 # 一、前言和知识性说明
 
-Kubernetes 是一个可移植、可扩展的开源平台，用于管理容器化的工作负载和服务，方便进行声明式配置和自动化。一般来讲，取中间8个字母转成8，kubernetes又叫k8s。
+Kubernetes（常简称为 K8s）是一个开源的容器编排平台，用于自动化部署、扩展和管理容器化应用程序。它最初由 Google 设计并捐赠给 Cloud Native Computing Foundation (CNCF) 来维护和发展。
 
-## 1. 和docker的关系
+## 1.1 Kubernetes 的核心价值
 
-docker其实就是启动、运行、维护容器的一个工具，是基于单个容器的。k8s是类似于一个更高级别的管理容器的工具，可以动态检测、启动、调度多个容器，提供高可用、稳定的业务服务
+Kubernetes 提供了以下核心价值：
+
+- **自动化运维**：自动部署、重启、复制和扩展容器化应用
+- **服务发现和负载均衡**：无需修改应用程序即可使用服务发现机制
+- **存储编排**：自动挂载本地存储、云存储或网络存储系统
+- **自我修复**：自动重启失败的容器，重新调度和替换节点上的容器
+- **密钥和配置管理**：存储和管理敏感信息，如密码、OAuth 令牌和 SSH 密钥
+- **批处理执行**：管理批处理和 CI 工作负载，替换失效的容器
+
+## 1.2 和 Docker 的关系
+
+### 1.2.1 Docker 的定位
+Docker 是一个开源的容器化平台，它允许开发者将应用程序及其依赖项打包到一个可移植的容器中。Docker 主要负责：
+- 容器的创建、运行、停止和删除
+- 镜像的构建和管理
+- 容器网络和存储的管理
+
+### 1.2.2 Kubernetes 的定位
+Kubernetes 是一个容器编排平台，它管理多个 Docker 容器的生命周期。Kubernetes 主要负责：
+- 容器的调度和部署
+- 自动扩展和负载均衡
+- 服务发现和配置管理
+- 故障恢复和自愈能力
+
+### 1.2.3 协同工作关系
+Docker 负责单个容器的生命周期管理，而 Kubernetes 负责整个容器集群的管理。它们的关系类似于：
+- Docker：单个士兵（容器）
+- Kubernetes：指挥官（编排和管理多个士兵）
+
+## 1.3 Kubernetes 的发展历程
+
+- **2014年**：Google 内部 Borg 系统的开源版本，最初由 Google 发布
+- **2015年**：捐赠给 CNCF（云原生计算基金会）
+- **2017年**：发布 1.8 版本，引入了 API 聚合和自定义资源定义（CRD）
+- **2018年**：发布 1.10 版本，引入了存储卷快照功能
+- **2019年**：发布 1.14 版本，对 Windows 容器的支持达到生产级别
+- **2020年**：发布 1.19 版本，移除了对 Docker 的直接支持，转向 CRI（容器运行时接口）
+- **2021年**：发布 1.22 版本，引入了 Pod 安全性准入控制器
+- **2022年**：发布 1.25 版本，引入了 Gateway API
+- **2023年**：发布 1.28 版本，增强了安全性和可观测性
+- **2024年**：发布 1.30+ 版本，进一步优化了性能和用户体验
+
+## 1.4 核心概念概览
+
+Kubernetes 的核心概念包括：
+
+- **Pod**：最小的部署单元，包含一个或多个容器
+- **Service**：为 Pod 提供稳定的网络访问端点
+- **Deployment**：管理 Pod 的部署和更新
+- **StatefulSet**：管理有状态应用的部署
+- **ConfigMap**：管理非敏感配置信息
+- **Secret**：管理敏感信息
+- **Ingress**：管理外部访问集群服务的规则
+- **PersistentVolume**：持久化存储资源
+- **Namespace**：逻辑隔离的资源组
+
+这些概念将在后续章节中详细讲解。
 
 ## 2. k8s各个组件说明
 
 <img src="2024-11-29-01.png" />
 
-### 2.1. pod
+### 2.1. Pod
 
-Pod是Kubernetes中最小的部署单元。一个Pod可以包含一个或多个容器，这些容器共享存储、网络和配置。Pod通常用于运行一个单一的应用实例。多个容器在同一个Pod中运行时，它们可以通过`localhost`进行通信。pod是真实运行的一个个容器，里面会有以下环境变量
+Pod是Kubernetes中最小的部署单元，也是容器编排的基本单位。
+
+#### 2.1.1 Pod的核心特性
+
+**1. 最小部署单元**
+- Pod是Kubernetes中可以创建和管理的最小部署单元
+- 一个Pod包含一个或多个紧密关联的容器
+- 容器共享Pod的网络命名空间、存储卷和进程空间
+
+**2. 资源共享**
+- **网络共享**：同一Pod内的容器共享IP地址和端口空间，通过localhost相互通信
+- **存储共享**：可以定义共享的存储卷，所有容器都能访问
+- **进程空间**：容器间可以通过进程间通信（IPC）方式交互
+
+**3. 生命周期**
+- Pod是短暂的（ephemeral），会被创建、销毁和重启
+- Pod一旦被销毁，其内部的数据也会丢失（除非使用持久化存储）
+- Pod的IP地址在重启后会发生变化
+
+**4. 调度单元**
+- Kubernetes以Pod为单位进行调度，而不是以容器为单位
+- 调度器会根据资源需求、亲和性规则等将Pod分配到合适的节点上
+
+#### 2.1.2 Pod的环境变量
+
+Pod启动时会自动注入Kubernetes相关的环境变量，用于服务发现和配置管理：
 
 ```
 => env
-TEST_SERVICE_PORT_80_TCP_ADDR=10.99.198.195
-KUBERNETES_SERVICE_PORT_HTTPS=443
-KUBERNETES_SERVICE_PORT=443
-HOSTNAME=test-dep-6cb67f4fbb-n8d78
-TEST_SERVICE_PORT_80_TCP_PORT=80
-TEST_SERVICE_PORT_80_TCP_PROTO=tcp
-KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443
+TEST_SERVICE_PORT_80_TCP_ADDR=10.99.198.195    # 服务IP地址
+KUBERNETES_SERVICE_PORT_HTTPS=443              # Kubernetes API端口
+KUBERNETES_SERVICE_PORT=443                    # Kubernetes服务端口
+HOSTNAME=test-dep-6cb67f4fbb-n8d78             # Pod主机名
+TEST_SERVICE_PORT_80_TCP_PORT=80               # 服务端口
+TEST_SERVICE_PORT_80_TCP_PROTO=tcp              # 服务协议
+KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443   # Kubernetes API地址
 TEST_SERVICE_PORT=tcp://10.99.198.195:80
 KUBERNETES_PORT_443_TCP_PROTO=tcp
 KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
 TEST_SERVICE_SERVICE_HOST=10.99.198.195
-TEST_SERVICE_PORT_80_TCP=tcp://10.99.198.195:80
+TEST_SERVICE_PORT_80_TCP=tcp://10.99.198.195:80       # 服务完整地址
 KUBERNETES_SERVICE_HOST=10.96.0.1
 KUBERNETES_PORT=tcp://10.96.0.1:443
 KUBERNETES_PORT_443_TCP_PORT=443
 TEST_SERVICE_SERVICE_PORT=80
 ```
 
+这些环境变量提供了：
+- **服务发现**：自动注入其他服务的访问地址
+- **配置信息**：Kubernetes集群的基本配置
+- **网络信息**：Pod的网络配置参数
+
 ### 2.2. service 将pod对外暴露端口
 
-Service是Kubernetes中用于定义一组Pod的访问策略的抽象。它提供了一个稳定的IP地址和DNS名称，供外部或内部客户端访问。Service通过标签选择器将流量路由到一组Pod上，即使这些Pod的IP地址发生变化。它可以实现负载均衡和服务发现。Service有多种类型，如ClusterIP（默认，集群内部访问）、NodePort（通过节点IP和端口访问）、LoadBalancer（使用云提供商的负载均衡器）等。
+Service是Kubernetes中用于定义一组Pod的访问策略的抽象。它提供了一个稳定的网络端点，为Pod提供服务发现和负载均衡功能。
+
+#### 2.2.1 Service的核心概念
+
+**1. 服务发现**
+- Service为Pod提供稳定的DNS名称和虚拟IP地址
+- 即使Pod被重新创建或重启，Service的访问地址保持不变
+- 客户端可以通过Service名称访问后端Pod，无需关心Pod的具体IP变化
+
+**2. 负载均衡**
+- Service自动将流量分发到后端的多个Pod实例
+- 支持多种负载均衡算法，默认为轮询方式
+- 可以实现会话保持（Session Affinity），确保来自同一客户端的请求路由到同一个Pod
+
+**3. 抽象层**
+- Service作为Pod的抽象层，屏蔽了底层Pod的复杂性
+- 提供统一的访问入口，简化服务间的通信
+- 支持多种暴露方式，适应不同的访问需求
+
+#### 2.2.2 Service的类型
+
+**1. ClusterIP（默认类型）**
+- 在集群内部创建一个虚拟IP地址
+- 只能在集群内部访问，提供内部服务间通信
+- 适用于微服务架构中的内部服务调用
+
+**2. NodePort**
+- 在ClusterIP基础上，在每个节点上暴露一个端口
+- 可以通过节点IP和端口从外部访问服务
+- 端口范围固定为30000-32767
+
+**3. LoadBalancer**
+- 在NodePort基础上，使用云提供商的负载均衡器
+- 自动创建外部负载均衡器并分配外部IP地址
+- 适用于生产环境的外部服务访问
+
+**4. ExternalName**
+- 将服务映射到外部DNS名称
+- 适用于访问集群外部的服务
+- 不创建代理或负载均衡器，仅提供DNS映射
+
+#### 2.2.3 Service的关键特性
+
+**1. 标签选择器**
+- 通过标签选择器确定哪些Pod属于该Service
+- 支持等值选择和集合选择两种方式
+- 支持多个标签的组合选择，提供灵活的Pod匹配规则
+
+**2. 端口映射**
+- 支持多端口映射，一个Service可以暴露多个端口
+- 支持端口名称，便于管理和理解
+- 支持TCP、UDP、SCTP等多种协议
+
+**3. 会话保持**
+- 基于客户端IP地址进行会话保持
+- 可以设置会话保持的超时时间
+- 适用于需要保持会话状态的应用场景
+
+**4. DNS集成**
+- 与Kubernetes DNS系统集成，提供自动服务发现
+- 支持Headless Service，直接返回Pod IP列表
+- 支持外部服务的DNS映射
 
 ### 2.3. 管理pod的组件
 
 #### 1) Deployment
 
-Deployment是Kubernetes中用于管理Pod的控制器。它定义了Pod的期望状态，比如副本数量、更新策略等。通过Deployment，用户可以声明应用的期望状态，Kubernetes会自动创建和管理Pod以达到这个状态。它支持滚动更新、回滚等功能。Deployment会创建ReplicaSet来管理Pod的副本数量，确保系统中始终有指定数量的Pod在运行。
+Deployment是Kubernetes中用于管理Pod的无状态应用控制器。
+
+**核心功能：**
+- **声明式管理**：用户定义Pod的期望状态（副本数、镜像版本等），Kubernetes自动维护实际状态与期望状态一致
+- **副本管理**：确保指定数量的Pod副本在运行，自动处理Pod故障和重启
+- **滚动更新**：支持零停机时间的应用更新，可控制更新速度和策略
+- **版本回滚**：支持快速回滚到之前的版本，保证应用稳定性
+
+**与Pod的关系：**
+- Deployment不直接管理Pod，而是通过ReplicaSet来管理Pod副本
+- 每个Deployment会创建对应的ReplicaSet，ReplicaSet负责创建和管理具体的Pod
+- Pod模板定义在Deployment中，包含容器镜像、资源限制、健康检查等配置
+
+**适用场景：**
+- 无状态应用（如Web服务、API服务）
+- 需要快速扩缩容的应用
+- 需要频繁更新和回滚的应用
 
 #### 2) StatefulSet
 
-statefulset是用于管理有状态应用程序的副本。适合需要持久化存储和稳定网络标识的场景。提供稳定的、唯一的网络标识符和持久化存储。和deployment对比如下
+StatefulSet是Kubernetes中用于管理有状态应用的控制器，为需要稳定身份和持久化存储的Pod提供保障。
+
+**核心特性：**
+- **稳定的网络标识**：每个Pod有唯一且稳定的名称（如web-0, web-1），重新调度后保持不变
+- **持久化存储**：每个Pod关联独立的持久化存储，Pod重新调度后数据不丢失
+- **有序部署和扩展**：Pod按顺序创建、更新和删除，确保应用启动顺序
+- **有序滚动更新**：支持按顺序更新Pod，避免同时更新所有副本导致服务中断
+
+**与Pod的关系：**
+- StatefulSet直接管理Pod，不通过中间控制器
+- 每个Pod都有固定的身份标识，名称格式为`<statefulset-name>-<ordinal-index>`
+- Pod的存储卷与Pod身份绑定，确保数据持久性
+- 支持Pod的优雅启动和停止，维护应用状态一致性
+
+**适用场景：**
+- 数据库服务（MySQL、PostgreSQL、MongoDB等）
+- 分布式存储系统（如Ceph、etcd）
+- 需要稳定网络身份的集群应用
+- 有状态的消息队列（如Kafka、RabbitMQ集群）
+
+**与Deployment对比：**
 
 | 特性           | Deployment                     | StatefulSet                        |
 | -------------- | ------------------------------ | ---------------------------------- |
@@ -66,23 +249,94 @@ statefulset是用于管理有状态应用程序的副本。适合需要持久化
 
 #### 3) DaemonSet
 
-DaemonSet 是一种控制器，用于确保在集群中的每个节点上运行一个特定的 Pod 实例。DaemonSet 的主要用途是为每个节点提供服务或功能，例如日志收集、监控、网络代理等。
+DaemonSet是Kubernetes中用于确保集群中每个节点上运行特定Pod实例的控制器。
 
-- 当你创建一个 DaemonSet 时，Kubernetes 会在每个节点上启动一个 Pod 实例。
-- 如果有新节点加入集群，DaemonSet 会自动在这些新节点上启动 Pod。
-- 如果节点被删除，DaemonSet 会自动清理该节点上的 Pod。
+**核心功能：**
+- **节点覆盖**：在集群中的每个节点上自动运行一个Pod实例
+- **自动扩展**：新节点加入集群时，DaemonSet自动在新节点上创建Pod
+- **自动清理**：节点被删除时，DaemonSet自动清理该节点上的Pod
+- **节点感知**：能够感知集群节点变化，动态调整Pod分布
 
-DaemonSet 可以通过节点选择器（Node Selector）、节点亲和性（Node Affinity）和污点/容忍（Taints and Tolerations）来控制在哪些节点上运行 Pod。更新 DaemonSet 时，Kubernetes 会逐个更新每个节点上的 Pod。删除 DaemonSet 会删除所有相关的 Pod。
+**与Pod的关系：**
+- DaemonSet直接管理Pod，确保每个节点都有且仅有一个对应的Pod实例
+- Pod的调度与节点绑定，不会在节点间漂移
+- 支持通过节点选择器、亲和性和污点容忍来控制Pod在特定节点上的运行
+- Pod通常需要访问节点资源或提供节点级别的服务
+
+**适用场景：**
+- **日志收集**：如Fluentd、Logstash等日志收集代理
+- **监控代理**：如Prometheus Node Exporter、Datadog Agent等
+- **网络插件**：如Calico、Flannel等CNI网络组件
+- **存储插件**：如CSI驱动程序、存储守护进程
+- **系统服务**：如kube-proxy、DNS缓存等基础服务
+
+**管理特性：**
+- 支持滚动更新策略，可控制更新过程中Pod的可用性
+- 支持节点选择器（Node Selector）、节点亲和性（Node Affinity）和污点/容忍（Taints and Tolerations）
+- 更新时逐个节点进行，确保服务连续性
+- 删除DaemonSet时会自动清理所有相关Pod
 
 #### 4) Job
 
-Job 是一种用于管理一次性任务的 Kubernetes 资源。它确保指定数量的 Pods 成功终止。Job 会创建一个或多个 Pods 来执行任务，直到任务完成。Job 主要用于执行一次性任务，例如数据处理、备份等。如果 Pod 执行失败，Job 会自动重启 Pod 以确保任务完成。可以设置并发策略，控制同时运行的 Pod 数量。
+Job是Kubernetes中用于管理一次性任务的控制器，确保任务成功完成。
+
+**核心功能：**
+- **任务完成保证**：创建一个或多个Pod来执行任务，直到任务成功完成
+- **失败重试**：Pod执行失败时，Job会自动重启Pod以确保任务完成
+- **并发控制**：支持设置并发策略，控制同时运行的Pod数量
+- **完成跟踪**：跟踪任务完成状态，确保指定数量的Pod成功终止
+
+**与Pod的关系：**
+- Job直接管理Pod的生命周期，专门为一次性任务设计
+- Pod成功完成任务后正常终止，不会被重启
+- 支持多种完成模式：单次完成、固定次数完成、并行完成
+- 提供任务状态监控，可以查看任务进度和成功/失败情况
+
+**适用场景：**
+- **数据处理**：如ETL作业、数据转换、批量计算
+- **备份操作**：数据库备份、文件归档、数据导出
+- **批处理任务**：报表生成、日志分析、邮件发送
+- **系统维护**：数据库迁移、缓存预热、索引重建
+- **测试任务**：自动化测试、性能测试、集成测试
+
+**关键特性：**
+- 支持设置重试次数和超时时间
+- 可以指定并行运行的Pod数量
+- 支持任务完成后的清理操作
+- 提供详细的任务状态和事件信息
 
 #### 5) CronJob
 
-CronJob 是基于时间调度的 Job。它允许用户按照指定的时间表定期执行 Job，类似于 Linux 系统中的 cron 任务。CronJob 可以按照指定的时间间隔（如每分钟、每天等）自动创建 Job。使用 Cron 表达式来定义调度时间。可以设置保留的成功和失败的 Job 数量。
+CronJob是Kubernetes中基于时间调度的任务控制器，用于定期执行一次性任务。
 
-CronJob是定时创建Job对象，Job才是创建pod使用的
+**核心功能：**
+- **定时调度**：按照指定的时间表定期创建Job，类似于Linux系统中的cron任务
+- **灵活调度**：使用Cron表达式定义调度时间，支持复杂的调度策略
+- **历史管理**：可以设置保留的成功和失败的Job数量，便于审计和调试
+- **自动管理**：自动创建、清理和管理Job及其相关的Pod
+
+**与Pod的关系：**
+- CronJob不直接管理Pod，而是通过Job来间接管理Pod
+- CronJob按照时间表创建Job对象，Job再创建具体的Pod来执行任务
+- Pod的生命周期由Job管理，确保任务完成后Pod正常终止
+- 支持并发策略，控制同时运行的Job数量
+
+**适用场景：**
+- **定期备份**：数据库定时备份、文件系统快照、配置备份
+- **数据同步**：定时数据同步、缓存更新、索引重建
+- **系统维护**：日志轮转、临时文件清理、系统健康检查
+- **报表生成**：定期生成业务报表、统计数据汇总
+- **通知提醒**：定时发送邮件通知、系统告警、状态报告
+
+**关键特性：**
+- 支持标准Cron表达式语法，灵活定义调度规则
+- 可以设置Job的并发策略（Allow、Forbid、Replace）
+- 支持设置Job的超时时间和重试次数
+- 提供历史Job的保留策略，避免资源浪费
+- 支持暂停和恢复调度任务
+
+**工作流程：**
+CronJob → 创建Job → 创建Pod → 执行任务 → Pod完成 → Job完成
 
 ### 2.4. pod配置相关
 
@@ -1226,6 +1480,46 @@ kubectl delete pods <pod-name>
 ########## 获取状态 ##########
 # 获取简单状态
 kubectl get services
+# 获取所有命名空间的services
+kubectl get services --all-namespaces
+# 获取详细信息
+kubectl describe services <service-name>
+# 获取service的YAML配置
+kubectl get service <service-name> -o yaml
+
+########## 创建和删除 ##########
+# 创建service
+kubectl create service <service-type> <service-name> --tcp=<port>:<target-port>
+# 使用YAML文件创建service
+kubectl apply -f service.yaml
+# 删除service
+kubectl delete service <service-name>
+# 强制删除service
+kubectl delete service <service-name> --force
+
+########## endpoints管理 ##########
+# 查看service的endpoints
+kubectl get endpoints <service-name>
+# 查看所有endpoints
+kubectl get endpoints
+# 获取endpoints详细信息
+kubectl describe endpoints <service-name>
+
+########## 故障排查 ##########
+# 查看service的事件
+kubectl get events --field-selector involvedObject.kind=Service,involvedObject.name=<service-name>
+# 检查service是否正确选择到pod
+kubectl get pods --selector=<selector-key>=<selector-value>
+# 测试service的连通性
+kubectl run -it --rm debug-pod --image=busybox -- wget -O- <service-name>.<namespace>.svc.cluster.local:<port>
+
+########## 更新和修改 ##########
+# 更新service的selector
+kubectl patch service <service-name> -p '{"spec":{"selector":{"<key>":"<value>"}}}'
+# 更新service的端口
+kubectl patch service <service-name> -p '{"spec":{"ports":[{"port":<new-port>,"targetPort":<new-target-port>}]}}'
+# 添加新的端口到service
+kubectl patch service <service-name> --type='json' -p='[{"op": "add", "path": "/spec/ports/-", "value": {"port": <new-port>, "targetPort": <new-target-port>, "name": "<port-name>"}}]'
 ```
 
 ### 1.3. deployments
@@ -1261,73 +1555,860 @@ kubectl explain <resource_name>
 ## 1. pod定义
 
 ```yaml
-apiVersion: v1			# 版本信息
-kind: Pod				# 类型是pod
+apiVersion: v1			# API版本，Pod使用v1
+kind: Pod				# 资源类型，指定为Pod
 metadata:
-  name: test-pod		# pod取名为test-pod
-  labels:				# 添加标签，主要为了service暴露端口使用
-    app: test
-spec:					# 定义spec期望
-  containers:
-  - name: test					# 一个test镜像
-    image: test-con:latest		# 使用test-con:latest镜像
-    imagePullPolicy: Never		# 不允许从官方搜索，只找本地
-    # tty: true					# 和docker一样，没有定义command就需要指定这个保证容器不退出
-    command: ["go"]				# 镜像启动后执行的命令
-    args: ["run", "/root/test.go"]
+  name: test-pod		# Pod名称，命名空间内唯一
+  namespace: default	# 命名空间，默认为default
+  labels:				# 标签，用于选择器和组织管理
+    app: test			# 应用标识，Service通过此标签选择Pod
+    version: v1			# 版本标签
+  annotations:			# 注解，存储非标识性元数据
+    description: "测试Pod"
+spec:					# 规格说明，定义Pod的期望状态
+  containers:			# 容器定义列表
+  - name: test			# 容器名称
+    image: test-con:latest		# 容器镜像
+    imagePullPolicy: Never		# 镜像拉取策略
+    command: ["go"]		# 容器启动命令
+    args: ["run", "/root/test.go"]	# 命令参数
+    ports:				# 端口暴露
+    - containerPort: 7878	# 容器监听端口
+      protocol: TCP		# 协议类型
+      name: http		# 端口名称
+    env:				# 环境变量
+    - name: APP_ENV		# 变量名
+      value: "production"	# 变量值
+    resources:			# 资源限制和请求
+      requests:			# 资源请求，保证的最小资源
+        memory: "64Mi"	# 内存请求
+        cpu: "250m"		# CPU请求（0.25核）
+      limits:			# 资源限制，最大可用资源
+        memory: "128Mi"	# 内存限制
+        cpu: "500m"		# CPU限制（0.5核）
+    volumeMounts:		# 容器内卷挂载
+    - name: config-volume	# 卷名称
+      mountPath: /etc/config	# 挂载路径
+      readOnly: true		# 只读挂载
+  volumes:				# Pod级别卷定义
+  - name: config-volume	# 卷名称
+    configMap:			# 使用ConfigMap作为卷源
+      name: app-config	# ConfigMap名称
+  restartPolicy: Always	# 重启策略：Always/OnFailure/Never
+  nodeSelector:			# 节点选择器
+    disktype: ssd		# 选择带有ssd标签的节点
 ```
 
-### 1.1. spec.containers[*].imagePullPolicy
+### 1.1 spec.containers[*].imagePullPolicy 镜像拉取策略
 
-镜像拉取策略
+镜像拉取策略用于控制Kubernetes如何拉取容器镜像。
 
-- Always: 每次都拉取最新的镜像
-- IfNotPresent: 本地不存在镜像彩绘从仓库拉取
-- Never: 从不从镜像仓库拉取，只使用本地已有的镜像
+#### 1.1.1 策略类型
+```yaml
+spec:
+  containers:
+  - name: app
+    image: nginx:1.21
+    imagePullPolicy: IfNotPresent  # 镜像拉取策略
+```
 
-当镜像标签是latest，默认是Always。当镜像标签不是，默认是IfNotPresent
+**策略说明**:
+- **Always**: 每次都拉取最新镜像，适用于latest标签
+- **IfNotPresent**: 本地不存在时才拉取（默认），适用于具体版本标签
+- **Never**: 从不拉取，只使用本地镜像
 
-## 2. service定义
+#### 1.1.2 默认行为
+- 当镜像标签是`latest`时，默认策略为`Always`
+- 当镜像标签是具体版本时（如`v1.2.3`），默认策略为`IfNotPresent`
+- 当镜像标签不存在时，默认策略为`Always`
+
+#### 1.1.3 使用场景
+```yaml
+# 开发环境：总是拉取最新镜像
+spec:
+  containers:
+  - name: dev-app
+    image: my-app:latest
+    imagePullPolicy: Always
+
+# 生产环境：使用固定版本，避免意外更新
+spec:
+  containers:
+  - name: prod-app
+    image: my-app:v1.2.3
+    imagePullPolicy: IfNotPresent
+
+# 离线环境：只使用本地镜像
+spec:
+  containers:
+  - name: offline-app
+    image: my-app:v1.2.3
+    imagePullPolicy: Never
+```
+
+### 1.2 spec.containers[*].name 容器名称
+
+容器名称在Pod内必须唯一。
+
+```yaml
+spec:
+  containers:
+  - name: web-server    # 容器名称
+    image: nginx:1.21
+  - name: log-agent     # 另一个容器名称
+    image: fluentd:v1.16
+```
+
+### 1.3 spec.containers[*].image 容器镜像
+
+指定容器使用的镜像。
+
+```yaml
+spec:
+  containers:
+  - name: app
+    image: nginx:1.21                    # 官方镜像
+    image: registry.example.com/myapp:v1.2.3  # 私有仓库镜像
+    image: myapp@sha256:abc123...        # 使用镜像摘要
+```
+
+### 1.4 spec.containers[*].command 和 args 启动命令
+
+覆盖容器的默认启动命令和参数。
+
+```yaml
+spec:
+  containers:
+  - name: app
+    image: nginx:1.21
+    command: ["nginx"]                    # 启动命令
+    args: ["-g", "daemon off;"]          # 命令参数
+```
+
+### 1.5 spec.containers[*].ports 端口配置
+
+暴露容器的端口。
+
+```yaml
+spec:
+  containers:
+  - name: app
+    ports:
+    - containerPort: 80                  # 容器监听端口
+      protocol: TCP                      # 协议类型（TCP/UDP/SCTP）
+      name: http                         # 端口名称
+      hostPort: 8080                     # 主机端口（不推荐使用）
+```
+
+### 1.6 spec.containers[*].env 环境变量
+
+为容器设置环境变量。
+
+```yaml
+spec:
+  containers:
+  - name: app
+    env:
+    - name: APP_ENV                      # 变量名
+      value: "production"                # 变量值
+    - name: DB_HOST
+      valueFrom:                         # 从其他资源获取值
+        configMapKeyRef:                  # 从ConfigMap获取
+          name: app-config
+          key: database.host
+    - name: API_KEY
+      valueFrom:
+        secretKeyRef:                     # 从Secret获取
+          name: app-secrets
+          key: api-key
+```
+
+### 1.7 spec.containers[*].envFrom 批量环境变量
+
+从ConfigMap或Secret批量导入环境变量。
+
+```yaml
+spec:
+  containers:
+  - name: app
+    envFrom:                            # 批量导入环境变量
+    - configMapRef:                      # 从ConfigMap导入
+        name: app-config
+    - secretRef:                         # 从Secret导入
+        name: app-secrets
+```
+
+### 1.8 spec.containers[*].resources 资源管理
+
+设置容器的资源请求和限制。
+
+```yaml
+spec:
+  containers:
+  - name: app
+    resources:
+      requests:                          # 资源请求，Kubernetes保证的最小资源
+        memory: "64Mi"                   # 内存请求
+        cpu: "250m"                      # CPU请求（1000m = 1核）
+        ephemeral-storage: "1Gi"         # 临时存储请求
+      limits:                            # 资源限制，容器可使用的最大资源
+        memory: "128Mi"                  # 内存限制
+        cpu: "500m"                      # CPU限制
+        ephemeral-storage: "2Gi"         # 临时存储限制
+```
+
+### 1.9 spec.containers[*].volumeMounts 存储挂载
+
+将存储卷挂载到容器内部。
+
+```yaml
+spec:
+  containers:
+  - name: app
+    volumeMounts:
+    - name: config-volume                # 卷名称
+      mountPath: /etc/config             # 挂载路径
+      readOnly: true                     # 只读挂载
+      subPath: nginx.conf                # 子路径挂载
+    - name: data-volume
+      mountPath: /app/data
+      subPathExpr: $(POD_NAME)           # 动态子路径
+```
+
+### 1.10 spec.containers[*].livenessProbe 存活探针
+
+检测容器是否存活，失败时重启容器。
+
+```yaml
+spec:
+  containers:
+  - name: app
+    livenessProbe:
+      httpGet:                           # HTTP检测方式
+        path: /health                    # 检测路径
+        port: 8080                       # 检测端口
+        scheme: HTTP                      # 协议（HTTP/HTTPS）
+      initialDelaySeconds: 30            # 启动后等待时间
+      periodSeconds: 10                  # 检测间隔
+      timeoutSeconds: 5                  # 超时时间
+      failureThreshold: 3                # 失败阈值
+      successThreshold: 1                # 成功阈值
+```
+
+### 1.11 spec.containers[*].readinessProbe 就绪探针
+
+检测容器是否准备好服务，失败时从Service中移除。
+
+```yaml
+spec:
+  containers:
+  - name: app
+    readinessProbe:
+      tcpSocket:                         # TCP检测方式
+        port: 8080
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 1
+      successThreshold: 1
+```
+
+### 1.12 spec.containers[*].startupProbe 启动探针
+
+检测容器是否已启动，适用于启动时间长的应用。
+
+```yaml
+spec:
+  containers:
+  - name: app
+    startupProbe:
+      exec:                              # 命令检测方式
+        command:
+        - cat
+        - /tmp/ready
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      failureThreshold: 30
+```
+
+### 1.13 spec.volumes 存储卷定义
+
+Pod级别的存储卷定义。
+
+```yaml
+spec:
+  volumes:
+  - name: config-volume                  # 卷名称
+    configMap:                           # ConfigMap卷
+      name: app-config
+      items:                             # 选择特定键
+      - key: nginx.conf
+        path: nginx.conf
+  - name: secret-volume
+    secret:                              # Secret卷
+      secretName: app-secrets
+  - name: data-volume
+    persistentVolumeClaim:               # PVC卷
+      claimName: data-pvc
+  - name: temp-volume
+    emptyDir: {}                         # 临时存储
+  - name: host-volume
+    hostPath:                            # 主机路径
+      path: /data/host
+      type: DirectoryOrCreate
+```
+
+### 1.14 spec.restartPolicy 重启策略
+
+Pod的重启策略。
+
+```yaml
+spec:
+  restartPolicy: Always                  # 重启策略
+```
+
+**策略类型**:
+- **Always**: 容器退出时总是重启（默认）
+- **OnFailure**: 只有在非正常退出（状态码非0）时重启
+- **Never**: 从不重启容器
+
+### 1.15 spec.nodeSelector 节点选择器
+
+将Pod调度到特定节点。
+
+```yaml
+spec:
+  nodeSelector:
+    disktype: ssd                        # 选择带有ssd标签的节点
+    region: east-1                       # 选择特定区域的节点
+    node-role.kubernetes.io/worker: "true"  # 选择工作节点
+```
+
+### 1.16 spec.affinity 亲和性调度
+
+更复杂的调度约束，包括节点亲和性、Pod亲和性和Pod反亲和性。
+
+#### 1.16.1 节点亲和性（Node Affinity）
+
+节点亲和性用于约束Pod可以调度到哪些节点上，分为硬性要求（required）和软性偏好（preferred）。
+
+```yaml
+spec:
+  affinity:
+    nodeAffinity:
+      # 硬性要求：必须满足条件才能调度
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: disktype
+            operator: In
+            values:
+            - ssd
+          - key: region
+            operator: In
+            values:
+            - east-1
+        - matchFields:
+          - key: metadata.name
+            operator: In
+            values:
+            - node-1
+            - node-2
+
+      # 软性偏好：尽量满足，但不强制
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80  # 权重，1-100
+        preference:
+          matchExpressions:
+          - key: memory
+            operator: Gt
+            values:
+            - "16Gi"
+      - weight: 20
+        preference:
+          matchExpressions:
+          - key: cpu
+            operator: Gt
+            values:
+            - "8"
+```
+
+**操作符说明**:
+- **In**: 标签值在指定列表中
+- **NotIn**: 标签值不在指定列表中
+- **Exists**: 节点具有指定标签
+- **DoesNotExist**: 节点不具有指定标签
+- **Gt**: 标签值大于指定值（仅适用于数值）
+- **Lt**: 标签值小于指定值（仅适用于数值）
+
+#### 1.16.2 Pod亲和性（Pod Affinity）
+
+Pod亲和性用于将Pod调度到与特定Pod相同的位置（如同一节点、同一机架等）。
+
+```yaml
+spec:
+  affinity:
+    podAffinity:
+      # 硬性要求：必须与指定Pod在同一拓扑域
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: security
+            operator: In
+            values:
+            - S1
+          matchLabels:
+            app: database
+        topologyKey: "kubernetes.io/hostname"  # 拓扑域键，定义"位置"的粒度
+        # 常用拓扑域键：
+        # - kubernetes.io/hostname: 同一节点
+        # - topology.kubernetes.io/zone: 同一可用区
+        # - topology.kubernetes.io/region: 同一区域
+        # - failure-domain.beta.kubernetes.io/zone: 同一故障域
+
+      # 软性偏好：尽量与指定Pod在同一拓扑域
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app
+              operator: In
+              values:
+              - web-frontend
+          topologyKey: "topology.kubernetes.io/zone"
+```
+
+#### 1.16.3 Pod反亲和性（Pod Anti-Affinity）
+
+Pod反亲和性用于将Pod调度到与特定Pod不同的位置，避免单点故障。
+
+```yaml
+spec:
+  affinity:
+    podAntiAffinity:
+      # 硬性要求：不能与指定Pod在同一拓扑域
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - web-server
+        topologyKey: "kubernetes.io/hostname"
+        # 确保同一应用的多个Pod分布在不同节点上
+
+      # 软性偏好：尽量避免与指定Pod在同一拓扑域
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app
+              operator: In
+              values:
+              - cache-service
+          topologyKey: "topology.kubernetes.io/zone"
+        # 尽量将缓存服务分布在不同可用区
+```
+
+#### 1.16.4 亲和性调度策略示例
+
+**示例1：高可用部署**
+```yaml
+# 确保数据库Pod分布在不同节点和可用区
+spec:
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - database
+        topologyKey: "kubernetes.io/hostname"
+      - labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - database
+        topologyKey: "topology.kubernetes.io/zone"
+```
+
+**示例2：数据本地性优化**
+```yaml
+# 将Web服务调度到与缓存服务相同的节点
+spec:
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - cache
+        topologyKey: "kubernetes.io/hostname"
+```
+
+**示例3：硬件资源优化**
+```yaml
+# 优先调度到SSD和高内存节点
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: disktype
+            operator: In
+            values:
+            - ssd
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+          - key: memory
+            operator: Gt
+            values:
+            - "32Gi"
+```
+
+#### 1.16.5 调度策略执行阶段说明
+
+亲和性规则包含两个执行阶段：
+- **DuringScheduling**: 调度阶段执行，影响Pod的调度决策
+- **DuringExecution**: 运行阶段执行，影响已调度Pod的行为
+
+组合类型：
+- **requiredDuringSchedulingIgnoredDuringExecution**: 硬性要求，调度时必须满足，运行时忽略
+- **preferredDuringSchedulingIgnoredDuringExecution**: 软性偏好，调度时尽量满足，运行时忽略
+- **requiredDuringSchedulingRequiredDuringExecution**: 硬性要求，调度和运行时都必须满足（较少使用）
+
+### 1.17 spec.tolerations 污点容忍
+
+污点容忍允许Pod调度到带有特定污点的节点上。
+
+```yaml
+spec:
+  tolerations:
+  - key: "dedicated"           # 污点键
+    operator: "Equal"          # 操作符：Equal（默认）或Exists
+    value: "gpu"              # 污点值（Equal时需要）
+    effect: "NoSchedule"       # 影响：NoSchedule、PreferNoSchedule、NoExecute
+  - key: "storage"
+    operator: "Exists"        # 存在即可，不关心值
+    effect: "NoExecute"
+    tolerationSeconds: 3600   # 容忍时间（仅NoExecute有效）
+```
+
+**污点影响类型**:
+- **NoSchedule**: 不调度到该节点（已存在的Pod不受影响）
+- **PreferNoSchedule**: 尽量不调度到该节点，但没有硬性要求
+- **NoExecute**: 不调度到该节点，并驱逐已存在的Pod
+
+### 1.18 spec.schedulerName 自定义调度器
+
+指定使用自定义调度器而非默认调度器。
+
+```yaml
+spec:
+  schedulerName: my-custom-scheduler
+```
+
+### 1.19 spec.priorityClassName 优先级类
+
+为Pod设置调度优先级。
+
+```yaml
+spec:
+  priorityClassName: high-priority
+```
+
+### 1.20 spec.overhead 资源开销
+
+声明Pod本身消耗的系统资源（主要用于虚拟机容器）。
+
+```yaml
+spec:
+  overhead:
+    podFixed:                    # Pod固定开销
+      cpu: "100m"
+      memory: "100Mi"
+```
+
+## 2. Service配置详解
+
+### 2.1. ClusterIP Service配置
 
 ```yaml
 apiVersion: v1
-kind: Service			  # 类型是service
+kind: Service
 metadata:
-  name: test-service	# 起个名字，这个名字会映射一个dns地址到clusterIP
+  name: my-clusterip-service
+  namespace: default
+  labels:
+    app: my-app
+  annotations:
+    # 自定义注解
+    description: "ClusterIP service for internal access"
 spec:
-  clusterIP: xxx    # 不设置会自动给一个ip，设置为None代表Headless service，请求dns返回pod的ip
-  externalTrafficPolicy: Cluster  # 默认是Cluster，集群内会进行转发，Local只会找本节点
-  type: NodePort		# 具体看后面解释
-  selector:				  # 选择器，此服务对应哪些pod
-    app: test			  # app为test的pod
+  type: ClusterIP  # 默认类型，仅在集群内部访问
+  clusterIP: None  # 设置为None创建Headless Service，不设置则自动分配IP
+  selector:
+    app: my-app    # 选择器，匹配带有app=my-app标签的Pod
+  ports:
+  - name: http     # 端口名称，便于管理
+    protocol: TCP  # 协议类型，支持TCP、UDP、SCTP
+    port: 80       # Service对外暴露的端口
+    targetPort: 8080  # 后端Pod的端口
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8443
+  sessionAffinity: None  # 会话保持，None或ClientIP
+  # sessionAffinityConfig:  # 会话保持配置
+  #   clientIP:
+  #     timeoutSeconds: 10800  # 会话保持超时时间
+  publishNotReadyAddresses: false  # 是否发布未就绪的地址
+```
+
+### 2.2. NodePort Service配置
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-nodeport-service
+  namespace: default
+  labels:
+    app: my-app
+spec:
+  type: NodePort  # NodePort类型，在每个节点上暴露端口
+  selector:
+    app: my-app
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80           # 集群内部访问的端口
+    targetPort: 8080   # 后端Pod的端口
+    nodePort: 30080    # 节点上暴露的端口，范围30000-32767，不设置则自动分配
+  externalTrafficPolicy: Cluster  # 外部流量策略，Cluster或Local
+  # Cluster：流量可以路由到集群中任何节点上的Pod
+  # Local：流量只路由到接收流量的节点上的Pod，保留源IP
+```
+
+### 2.3. LoadBalancer Service配置
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-loadbalancer-service
+  namespace: default
+  labels:
+    app: my-app
+  annotations:
+    # 云提供商特定的注解
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb  # AWS NLB
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"  # Azure内部LB
+    cloud.google.com/load-balancer-type: "Internal"  # GCP内部LB
+spec:
+  type: LoadBalancer  # LoadBalancer类型，使用云提供商的负载均衡器
+  selector:
+    app: my-app
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+    # nodePort: 30080  # 可选，NodePort会自动分配
+  externalTrafficPolicy: Cluster
+  # loadBalancerIP: 192.168.1.100  # 可选，指定负载均衡器的IP地址
+  # loadBalancerSourceRanges:  # 可选，限制访问的源IP范围
+  # - "10.0.0.0/8"
+  # - "172.16.0.0/12"
+  # - "192.168.0.0/16"
+```
+
+### 2.4. ExternalName Service配置
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-external-service
+  namespace: default
+spec:
+  type: ExternalName  # ExternalName类型，映射到外部DNS名称
+  externalName: my.database.example.com  # 外部服务的DNS名称
+  # externalName: my-database-service.production.svc.cluster.local  # 也可以是集群内部其他命名空间的服务
+```
+
+### 2.5. Headless Service配置
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-headless-service
+  namespace: default
+  labels:
+    app: my-stateful-app
+spec:
+  clusterIP: None  # 关键：设置为None创建Headless Service
+  selector:
+    app: my-stateful-app
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+  publishNotReadyAddresses: true  # 对于StatefulSet，通常发布未就绪的地址
+```
+
+### 2.6. 多端口Service配置
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-multiport-service
+  namespace: default
+spec:
+  selector:
+    app: my-app
+  ports:
+  - name: web        # 必须为每个端口指定名称
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+  - name: metrics    # 必须为每个端口指定名称
+    protocol: TCP
+    port: 9090
+    targetPort: 9090
+  - name: health     # 必须为每个端口指定名称
+    protocol: TCP
+    port: 8080
+    targetPort: 8081
+```
+
+### 2.7. 带会话保持的Service配置
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-session-service
+spec:
+  selector:
+    app: my-app
   ports:
   - protocol: TCP
-    port: 80			# 集群内部监听端口
-    targetPort: 7878	# pod里面的端口
-    # nodePort: 30001   # 外部监听的端口，不设置就是随机一个，设置就要取30000以上的，可以和port定义成一样的
+    port: 80
+    targetPort: 8080
+  sessionAffinity: ClientIP  # 启用基于客户端IP的会话保持
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 3600  # 会话保持时间，默认10800秒（3小时）
 ```
 
-service的dns地址为
+### 2.8. 无选择器的Service配置
 
-```
-<service_name>.<namespace>.svc.cluster.local
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service-without-selector
+spec:
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  # 不指定selector，需要手动创建Endpoints
+---
+# 手动创建Endpoints
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: my-service-without-selector  # 必须与Service名称相同
+subsets:
+- addresses:
+  - ip: 192.168.1.10  # 外部服务或手动指定的Pod IP
+  - ip: 192.168.1.11
+  ports:
+  - port: 8080        # 必须与Service的targetPort匹配
+    protocol: TCP
 ```
 
-### 2.1. spec.type各个类型说明
+### 2.9. Service与不同类型Pod的配置
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-complex-service
+spec:
+  selector:
+    # 可以使用多个标签进行更精确的选择
+    app: my-app
+    version: v1
+    environment: production
+  ports:
+  - name: main
+    protocol: TCP
+    port: 80
+    targetPort: http      # 使用Pod中定义的端口名称
+  - name: admin
+    protocol: TCP
+    port: 8080
+    targetPort: 8080     # 直接使用端口号
+  - name: debug
+    protocol: TCP
+    port: 5000
+    targetPort: debug    # 使用Pod中定义的端口名称
+```
+
+### 2.10. Service的DNS配置
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-dns-service
+  annotations:
+    # 自定义DNS注解
+    external-dns.alpha.kubernetes.io/hostname: my-app.example.com
+    # 为Service创建外部DNS记录
+spec:
+  type: LoadBalancer
+  selector:
+    app: my-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+```
+
+### 2.11. Service配置参数说明
+
+#### spec.type各个类型说明
 
 | 类型         | 说明                                      | 效果                                            |
 | ------------ | ----------------------------------------- | ----------------------------------------------- |
 | ClusterIP    | 将pod的端口通过集群内部ip暴露给集群访问   | targetPort=>port                                |
 | NodePort     | 扩展ClusterIP，在节点上暴露端口给外部访问 | targetPort=>port=>nodePort                      |
 | LoadBalancer | 扩展NodePort，多了externalip              | targetPort=>port=>nodePort=>externalip:nodePort |
-| ExternalName | 将服务映射到一个外部的 DNS 名称。         | 待补充                                          |
+| ExternalName | 将服务映射到一个外部的 DNS 名称。         | DNS映射到外部服务                               |
 
-### 2.2. spec.clusterIP
+#### spec.clusterIP
 
 - 不设置的话k8s会自动分配一个ip
 - 设置为None则不会分配ip，请求dns会返回pod列表和对应的ip，也就是对应Headless Service
 
-### 2.3. spec.externalTrafficPolicy
+#### spec.externalTrafficPolicy
 
 - Cluster：这是默认值。选择 Cluster 时，Kubernetes 会将外部流量路由到集群中的所有 Pod，无论它们在哪个节点上。
   - 优点：
@@ -1342,6 +2423,12 @@ service的dns地址为
   - 缺点：
     - 负载不均：如果某些节点上的 Pod 较少，可能会导致流量不均匀分配。
     - 需要确保每个节点都有足够的 Pod 来处理流量，否则可能会导致流量丢失。
+
+#### Service的DNS地址
+
+```
+<service_name>.<namespace>.svc.cluster.local
+```
 
 ## 3. deployment定义
 
@@ -3237,3 +4324,107 @@ spec:
       annotations:
         sidecar.istio.io/inject: "false"  # 关键：添加此注解禁用注入
 ```
+
+## 2. 解决一次etcd数据损坏导致k8s集群无法启动的问题
+etcd是Kubernetes集群的关键组件，它存储了整个集群的状态数据，包括节点、Pod、服务等信息。当etcd出现问题时，整个Kubernetes集群将无法正常工作。下面我将介绍一次etcd数据损坏导致k8s集群无法启动的问题及解决方案。
+
+### 现象描述
+
+在一次系统维护后，Kubernetes集群无法正常启动，具体表现为：
+
+1. **整个K8s服务不可用**：kubectl命令无法执行，所有Pod无法管理
+2. **Kubernetes API Server无法启动**：排查为什么api-server连不上，发现是由于无法连接到etcd 127.0.0.1:2379，API Server启动失败
+3. **etcd服务无法启动**：查看etcd服务状态，发现服务一直处于重启状态
+
+接着查看etcd的启动日志，发现报错`mvcc: cannot unmarshal event: proto: wrong wireType = 0 for field Key`。经查询资料，此报错是由于服务器非正常关机（意外掉电，强制拔电)后 etcd数据损坏导致的，这个节点之前确实是出现异常关机，etcd无法启动，那么解决此问题就行了
+
+### 解决方案
+
+#### 1. 清理etcd数据
+
+首先，我们需要备份当前的etcd数据（如果可能），然后清理损坏的数据。
+
+**步骤1：停止etcd服务**
+
+本身就没有启动，所以不用管
+
+**步骤2：备份现有数据（可选）**
+```shell
+# 备份etcd数据目录
+cp -r /var/lib/etcd /var/lib/etcd.backup.$(date +%Y%m%d%H%M%S)
+```
+
+**步骤3：清理etcd数据**
+```shell
+# 清理etcd数据目录，容器的目录都在member下
+rm -rf /var/lib/etcd/member/*
+```
+
+**注意事项：**
+- 清理etcd数据将导致集群中所有配置信息丢失，包括部署的应用、服务等
+- 如果有重要的集群配置，建议先尝试使用etcd快照恢复
+- 在生产环境中，此操作应谨慎进行，最好有数据备份
+
+#### 2. 重启etcd
+
+清理数据后，我们需要重新初始化并启动etcd服务。
+
+```shell
+docker restart xxxxx
+```
+
+#### 3. 重启apiserver
+
+etcd恢复正常后，我们需要重启Kubernetes API Server。
+
+**步骤1：重启kube-apiserver服务**
+```shell
+# 在所有master节点上执行
+docker restart xxxxx
+```
+
+**步骤2：验证API Server功能**
+```shell
+# 测试kubectl命令是否正常
+kubectl get nodes
+kubectl get pods --all-namespaces
+```
+
+**注意事项：**
+- 如果API Server无法启动，检查etcd连接配置是否正确
+- 确保API Server的证书有效且未过期
+- 检查API Server的配置文件，确保etcd服务器地址正确
+
+#### 4. 重新部署k8s服务
+
+etcd和API Server恢复正常后，我们需要重新部署Kubernetes集群的核心服务。
+
+**步骤1：重启其他控制平面组件**
+```shell
+# 在所有master节点上执行
+systemctl restart kube-controller-manager
+systemctl restart kube-scheduler
+systemctl enable kube-controller-manager
+systemctl enable kube-scheduler
+```
+
+**步骤2：重启工作节点服务**
+```shell
+# 在所有worker节点上执行
+systemctl restart kubelet
+systemctl restart kube-proxy
+systemctl enable kubelet
+systemctl enable kube-proxy
+```
+
+**步骤3：检查集群状态**
+```shell
+# 检查节点状态
+kubectl get nodes
+
+# 检查系统Pod状态
+kubectl get pods -n kube-system
+```
+
+**注意事项：**
+- 由于etcd数据已清理，所有之前的部署配置都已丢失，需要重新部署

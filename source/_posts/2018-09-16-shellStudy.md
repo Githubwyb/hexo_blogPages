@@ -1149,7 +1149,7 @@ local default dev lo scope host
        valid_lft forever preferred_lft forever
 2: ens18: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
     link/ether fe:fc:fe:07:fe:6a brd ff:ff:ff:ff:ff:ff
-    inet 199.200.2.199/16 brd 199.200.255.255 scope global noprefixroute ens18
+    inet 199.200.2.199/16 brd 199.200.255.255 scope global noprefixr aoute ens18
        valid_lft forever preferred_lft forever
     inet6 fe80::34c9:aa6d:8630:e99a/64 scope link noprefixroute
        valid_lft forever preferred_lft forever
@@ -3168,6 +3168,16 @@ fi
 smbclient -U User -L //xxx.xxx.xxx.xxx/
 # 挂载
 mount -t cifs -o user=share,rw,uid=0,gid=0 //192.168.1.120/share /root/share
+```
+
+## 14. 挂载ssh目录到本地
+
+```shell
+# 基本格式：sshfs [远程用户]@[远程服务器IP]:[远程目录路径] [本地挂载点] -p [SSH端口，默认22]
+sshfs user@192.168.1.100:/home/user/data /mnt/remote_sftp -p 22
+
+# windows目录挂载到linux下
+sshfs user@192.168.1.100:/D:/ /mnt/remote_sftp -p 22
 ```
 
 # 踩坑记

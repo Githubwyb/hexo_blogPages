@@ -24,7 +24,7 @@ gnome-session-properties
 1. 先安装
 
 ```shell
-sudo apt install fcitx5 fcitx5-frontend-gtk3 fcitx5-frontend-gtk2
+sudo apt install fcitx5 fcitx5-frontend-gtk3 fcitx5-frontend-gtk2 fcitx5-chinese-addons
 ```
 
 2. 找个主题装上去
@@ -284,4 +284,58 @@ sudo update-ca-certificates
 
 ```shell
 curl -fsSL http://xxx/gpg | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/xxxx.gpg
+```
+
+## 4. grub配置没问题，还是一直进GRUB命令行
+
+应该是prefix变量和`bootloader-id`对不上，导致找不到`grub.cfg`导致
+
+```shell
+grub> echo $prefix
+(hd0,gpt3)/EFI/ubuntu   # ubuntu的efi引导第一个prefix是这个，后面改成/boot/grub
+```
+
+看一下默认的prefix和当前的`bootloader-id`是不是不一致，不一致换对应的`bootloader-id`即可
+
+```shell
+# bootloader-id跟prefix里面的一致即可
+grub-install --target x86_64-efi --efi-directory=/boot/efi --bootloader-id ubuntu
+```
+
+## 5. 关机等待`crash report submission daemon`时间太长
+
+主要是apport导致，这个服务主要用于收集应用的崩溃信息，就是弹窗app崩溃的那个东西。关闭后就快了，关闭方法
+
+```shell
+sudo vim /etc/default/apport
+# 把`enabled=1`改成`enabled=0`
+
+# 强制生效改动
+sudo service apport start force_start=1
+```
+
+本次关机就不会因为这个慢了，下次开启也不会启动了
+
+## 6. 关闭ubuntu自动后台更新
+
+**系统更新**
+
+ubuntu自己搞了个`unattended-upgrades`用来自动检查更新，类似windows的自动更新机制，可以直接停掉。
+
+```shell
+# 临时关掉
+systemctl stop unattended-upgrades
+# 临时禁用
+systemctl disable unattended-upgrades
+
+# 永久禁用
+apt autoremove unattended-upgrades
+```
+
+**软件更新**
+
+软件更新弹窗的那个通过`update-notifier`这个软件控制的，直接卸载即可
+
+```shell
+apt autoremove update-notifier
 ```

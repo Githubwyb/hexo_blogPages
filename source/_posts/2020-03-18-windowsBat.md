@@ -509,6 +509,11 @@ C:\Users\User>netsh interface ip set interface 17 metric=auto
 ```bat
 :: 开放1234的tcp入站端口
 netsh advfirewall firewall add rule name=shared_folder dir=in protocol=TCP localport=1234 action=allow
+
+:: 禁用某个tcp目的ip+端口
+netsh advfirewall firewall add rule name="test:441" dir=OUT action=BLOCK remoteip=10.13.6.21 remoteport=441 protocol=TCP
+:: 删除禁用的规则
+netsh advfirewall firewall delete rule name="test:441"
 ```
 
 ## 15. taskkill
