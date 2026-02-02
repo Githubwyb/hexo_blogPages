@@ -259,6 +259,9 @@ sudo chown -R root:root ./fs
 sudo chmod -R 777 ./fs
 # 挂载dev到目录下（不然无法操作/dev/null）
 sudo mount -o bind /dev fs/dev
+sudo mount -o bind /tmp fs/tmp
+sudo mount -o bind /sys fs/sys
+sudo mount -o bind /proc fs/proc
 # chroot上去
 sudo chroot ./fs
 # 更新软件源
@@ -278,6 +281,9 @@ passwd
 # 退出后umount
 exit
 sudo umount ./fs/dev
+sudo umount ./fs/tmp
+sudo umount ./fs/proc
+sudo umount ./fs/sys
 sudo umount ./fs
 ```
 
@@ -376,6 +382,7 @@ index e9daa627..6408baae 100755
 - `-hda rootfs.img`: 将rootfs.img作为硬盘加到设备里面
 - `-initrd initramfs.cpio.gz`: 将制作的initramfs作为ram启动
 - `-append "console=ttyS0,38400" -serial file:output.txt`: 将启动过程输出到文件
+- `-net user,hostfwd=tcp:127.0.0.1:2222-:22 -net nic`: 转发虚拟机的22端口到本机的2222端口，虚拟机里面使用用户态协议栈，无法直接连接，需要配置端口转发。因为指定了`-net user`所以要指定`-net nic`，不需要端口转发不输入这一段qemu默认会添加`-net user -net nic`
 
 ```shell
 qemu-system-x86_64 -enable-kvm -m 4G -smp 1 -kernel /path/to/kernel/source/arch/x86_64/boot/bzImage -hda rootfs.img -initrd initramfs.cpio.gz -nographic -s -append "console=ttyS0,38400" -serial file:output.txt
